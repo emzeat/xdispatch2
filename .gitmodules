@@ -1,0 +1,7 @@
+[submodule "build"]
+	path = build
+	url = ../../opensource/mz-cmaketools.git
+	branch = master
+[submodule "3rdparty"]
+	path = 3rdparty
+	url = ../../external/3rdparty.git
