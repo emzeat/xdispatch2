@@ -1,0 +1,180 @@
+/*
+* queue.h
+*
+* Copyright (c) 2011-2018 MLBA-Team
+* All rights reserved.
+*
+* @LICENSE_HEADER_START@
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+* @LICENSE_HEADER_END@
+*/
+
+
+#ifndef XDISPATCH_QUEUE_H_
+#define XDISPATCH_QUEUE_H_
+
+/**
+ * @addtogroup xdispatch
+ * @{
+ */
+
+#ifndef __XDISPATCH_INDIRECT__
+    # error "Please #include <xdispatch/dispatch.h> instead of this file directly."
+    # include "dispatch.h"
+#endif
+
+__XDISPATCH_BEGIN_NAMESPACE
+
+class iqueue_impl;
+using iqueue_impl_ptr = std::shared_ptr< iqueue_impl >;
+
+/**
+    Provides an interface for representing
+    a dispatch queue and methods that can be
+    called to modify or use the queue.
+
+    Read Apple's documentation of libDispatch
+    to understand the concept of tasks and
+    queues.
+
+    @see xdispatch::dispatch for creation of queues
+*/
+class XDISPATCH_EXPORT queue
+{
+public:
+    /**
+        @brief Creates a new queue using the given implementation and name.
+     */
+    queue(
+        const std::string& label,
+        const iqueue_impl_ptr& impl
+    );
+
+    /**
+        @brief copy constructor
+     */
+    queue(
+        const queue&
+    ) = default;
+
+    /**
+        @brief move constructor
+     */
+    queue(
+        queue&&
+    ) = default;
+
+    /**
+        @brief destructor
+    */
+    ~queue() = default;
+
+    /**
+        Will dispatch the given operation for
+        async execution on the queue and return
+        immediately.
+      */
+    void async(
+        const operation_ptr& op
+    );
+
+    /**
+        Same as async(operation_ptr).
+        Will put the given function on the queue.
+
+        @see async(operation_ptr)
+    */
+    template< typename Func >
+    inline void async(
+        const Func& f
+    )
+    {
+        async( make_operation( f ) );
+    }
+
+    /**
+        Applies the given iteration_operation for async execution
+        in this queue and returns immediately.
+
+        @param times The number of times the operation will be executed
+    */
+    void apply(
+        size_t times,
+        const iteration_operation_ptr& op
+    );
+
+    /**
+        Same as apply(sizee_t, iteration_operation_ptr).
+
+        Will wrap the given function in an operation and put it on the
+        queue.
+
+        @see apply(iteration_operation_ptr, size_t)
+    */
+    template< typename Func >
+    inline void apply(
+        size_t times,
+        const Func& f
+    )
+    {
+        apply( times, make_iteration_operation( f ) );
+    }
+
+    /**
+        Applies the given operation for async execution
+        in this queue after the given time and returns immediately.
+
+        @param delay The time to wait until the operation is applied to
+                     the queue.
+    */
+    void after(
+        std::chrono::milliseconds delay,
+        const operation_ptr& op
+    );
+
+    /**
+        Same as dispatch_after(std::chrono::milliseconds, operation_ptr).
+        Will wrap the given function in an operation and put it on the
+        queue for execution as soon as the delay expired
+    */
+    template< typename Func >
+    inline void after(
+        std::chrono::milliseconds delay,
+        const Func& f
+    )
+    {
+        after( delay, make_operation( f ) );
+    }
+
+    /**
+        @return The label of the queue that was used while creating it
+    */
+    std::string label() const;
+
+    /**
+        @brief Assignment operator
+    */
+    queue& operator = (
+        const queue&
+    ) = default;
+
+private:
+    iqueue_impl_ptr m_impl;
+    std::string m_label;
+};
+
+__XDISPATCH_END_NAMESPACE
+
+/** @} */
+
+#endif /* XDISPATCH_QUEUE_H_ */

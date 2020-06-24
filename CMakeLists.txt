@@ -53,6 +53,7 @@ if(GIT_FOUND)
         set(XDISPATCH_WC_TAG "alpha-${XDISPATCH_WC_REVISION}")
     endif()
 endif()
+set( XDISPATCH_WC_TAG "2.${XDISPATCH_WC_TAG}" )
 mz_message( "xdispatch version ${XDISPATCH_WC_TAG}" )
 
 
@@ -70,6 +71,14 @@ if( NOT MZ_WINDOWS )
     mz_add_flag(GCC -fvisibility=hidden)
 endif()
 
+# generate the build time configuration header
+configure_file(config.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/include/xdispatch/config.h
+)
+include_directories(
+    ${CMAKE_CURRENT_BINARY_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
 
 # core lib
 file(GLOB CXX
@@ -77,6 +86,10 @@ file(GLOB CXX
     include/xdispatch/dispatch
     src/*.cpp
     src/*.h
+)
+file(GLOB CXX_INCL
+    include/xdispatch/*.h
+    include/xdispatch/dispatch
 )
 
 # naive backend (required)
@@ -131,7 +144,7 @@ target_link_libraries( xdispatch ${LIBS})
 set_target_properties( xdispatch PROPERTIES
     VERSION ${XDISPATCH_WC_TAG}
     SOVERSION ${XDISPATCH_WC_TAG}
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}/include"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include;${CMAKE_CURRENT_BINARY_DIR}/include"
 )
 
 if(MZ_IOS)
@@ -148,7 +161,7 @@ elseif(MZ_MACOS)
         FRAMEWORK TRUE
         MACOSX_FRAMEWORK_IDENTIFIER "de.mlba-team.xdispatch"
         MACOSX_FRAMEWORK_BUNDLE_VERSION "${XDISPATCH_WC_TAG}"
-        PUBLIC_HEADER ${CXX_INCL}
+        PUBLIC_HEADER "${CXX_INCL}"
     )
 
     install(TARGETS xdispatch
