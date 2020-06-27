@@ -1,5 +1,5 @@
 /*
-* platform.h
+* backend_libdispatch.h
 *
 * Copyright (c) 2011-2018 MLBA-Team
 * All rights reserved.
@@ -19,35 +19,42 @@
 * @LICENSE_HEADER_END@
 */
 
-#ifndef XDISPATCH_PLATFORM_H_
-#define XDISPATCH_PLATFORM_H_
 
+#ifndef XDISPATCH_BACKEND_LIBDISPATCH_H_
+#define XDISPATCH_BACKEND_LIBDISPATCH_H_
 
-// detect compilers
+/**
+ * @addtogroup xdispatch
+ * @{
+ */
 
-#if defined __clang__
-    #define XDISPATCH_COMPILER_CLANG 1
-    #define XDISPATCH_COMPILER "clang"
-#endif
+#include "xdispatch/dispatch.h"
 
-#if defined __GNUC__ && ( !defined __clang__ )
-    #define XDISPATCH_COMPILER_GCC 1
-    #define XDISPATCH_COMPILER "gcc"
-#endif
+#include <dispatch/dispatch.h>
 
-#if defined _MSC_VER
-    #define XDISPATCH_COMPILER_MSVC
-    #define XDISPATCH_COMPILER "Visual Studio"
-#endif
+__XDISPATCH_BEGIN_NAMESPACE
+namespace libdispatch
+{
 
-#ifndef XDISPATCH_COMPILER
-    # error "Unsupported compiler version"
-#endif
+/**
+    @return A new queue powered by the given dispatch_queue_t instance
+    */
+XDISPATCH_EXPORT queue
+create_queue(
+    dispatch_queue_t native
+);
 
-#include <memory>
-#include <chrono>
-#include <string>
-#include <atomic>
-#include <type_traits>
+/**
+    @return A new group powered by the given dispatch_group_t instance
+    */
+XDISPATCH_EXPORT group
+create_group(
+    dispatch_group_t native
+);
 
-#endif // XDISPATCH_PLATFORM_H_
+}
+__XDISPATCH_END_NAMESPACE
+
+/** @} */
+
+#endif /* XDISPATCH_BACKEND_LIBDISPATCH_H_ */

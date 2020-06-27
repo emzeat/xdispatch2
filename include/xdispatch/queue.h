@@ -30,7 +30,7 @@
 
 #ifndef __XDISPATCH_INDIRECT__
     # error "Please #include <xdispatch/dispatch.h> instead of this file directly."
-    # include "dispatch.h"
+    #include "dispatch.h"
 #endif
 
 __XDISPATCH_BEGIN_NAMESPACE
@@ -86,7 +86,7 @@ public:
       */
     void async(
         const operation_ptr& op
-    );
+    ) const;
 
     /**
         Same as async(operation_ptr).
@@ -97,7 +97,7 @@ public:
     template< typename Func >
     inline void async(
         const Func& f
-    )
+    ) const
     {
         async( make_operation( f ) );
     }
@@ -111,7 +111,7 @@ public:
     void apply(
         size_t times,
         const iteration_operation_ptr& op
-    );
+    ) const;
 
     /**
         Same as apply(sizee_t, iteration_operation_ptr).
@@ -125,7 +125,7 @@ public:
     inline void apply(
         size_t times,
         const Func& f
-    )
+    ) const
     {
         apply( times, make_iteration_operation( f ) );
     }
@@ -140,7 +140,7 @@ public:
     void after(
         std::chrono::milliseconds delay,
         const operation_ptr& op
-    );
+    ) const;
 
     /**
         Same as dispatch_after(std::chrono::milliseconds, operation_ptr).
@@ -151,7 +151,7 @@ public:
     inline void after(
         std::chrono::milliseconds delay,
         const Func& f
-    )
+    ) const
     {
         after( delay, make_operation( f ) );
     }
@@ -167,6 +167,28 @@ public:
     queue& operator = (
         const queue&
     ) = default;
+
+    /**
+        @brief Equality operator
+    */
+    bool operator==(
+        const queue& other
+    ) const;
+
+    /**
+        @brief Unequality operator
+    */
+    inline bool operator!=(
+        const queue& other
+    ) const
+    {
+        return !( *this == other );
+    }
+
+    /**
+        @return The implementation instance backing this queue
+     */
+    iqueue_impl_ptr implementation() const;
 
 private:
     iqueue_impl_ptr m_impl;

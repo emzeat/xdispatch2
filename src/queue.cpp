@@ -36,7 +36,7 @@ queue::queue(
 
 void queue::async(
     const operation_ptr& op
-)
+) const
 {
     XDISPATCH_ASSERT( op );
     m_impl->async( op );
@@ -46,7 +46,7 @@ void queue::async(
 void queue::apply(
     size_t times,
     const iteration_operation_ptr& op
-)
+) const
 {
     XDISPATCH_ASSERT( op );
     m_impl->apply( times, op );
@@ -56,7 +56,7 @@ void queue::apply(
 void queue::after(
     std::chrono::milliseconds delay,
     const operation_ptr& op
-)
+) const
 {
     XDISPATCH_ASSERT( op );
     m_impl->after( delay, op );
@@ -66,4 +66,16 @@ void queue::after(
 std::string queue::label() const
 {
     return m_label;
+}
+
+bool queue::operator==(
+    const queue& other
+) const
+{
+    return m_impl == other.m_impl;
+}
+
+iqueue_impl_ptr queue::implementation() const
+{
+    return m_impl;
 }

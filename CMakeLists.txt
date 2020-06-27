@@ -29,9 +29,10 @@ if(NOT HAS_MZ_GLOBAL)
 endif()
 
 # build options
-   set(BUILD_XDISPATCH_BACKEND_NAIVE ON)
-option(BUILD_XDISPATCH_BACKEND_QT5 "Build the qt5 backend" ON)
-option(BUILD_XDISPATCH_BACKEND_LIBDISPATCH "Build the libdispatch backend" ON)
+   set(BUILD_XDISPATCH2_BACKEND_NAIVE ON)
+option(BUILD_XDISPATCH2_BACKEND_QT5 "Build the qt5 backend" ON)
+option(BUILD_XDISPATCH2_BACKEND_LIBDISPATCH "Build the libdispatch backend" ON)
+option(BUILD_XDISPATCH2_TESTS "Build the xdispatch2 test target" OFF)
 
 # configuration and version information
 find_package(Git)
@@ -58,7 +59,7 @@ mz_message( "xdispatch version ${XDISPATCH_WC_TAG}" )
 
 
 # dependencies
-if( BUILD_XDISPATCH_BACKEND_QT5 AND NOT TARGET qt5-core )
+if( BUILD_XDISPATCH2_BACKEND_QT5 AND NOT TARGET qt5-core )
     mz_add_library(qt5 3rdparty/qt5)
 endif()
 
@@ -81,6 +82,7 @@ include_directories(
 )
 
 # core lib
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR})
 file(GLOB CXX
     include/xdispatch/*.h
     include/xdispatch/dispatch
@@ -93,7 +95,7 @@ file(GLOB CXX_INCL
 )
 
 # naive backend (required)
-if( BUILD_XDISPATCH_BACKEND_NAIVE )
+if( BUILD_XDISPATCH2_BACKEND_NAIVE )
     file(GLOB CXX_NAIVE
         src/naive/*.cpp
         src/naive/*.h
@@ -101,7 +103,7 @@ if( BUILD_XDISPATCH_BACKEND_NAIVE )
 endif()
 
 # libdispatch backend
-if( BUILD_XDISPATCH_BACKEND_LIBDISPATCH )
+if( BUILD_XDISPATCH2_BACKEND_LIBDISPATCH )
     file(GLOB CXX_LIBDISPATCH
         src/libdispatch/*.cpp
         src/libdispatch/*.h
@@ -109,7 +111,7 @@ if( BUILD_XDISPATCH_BACKEND_LIBDISPATCH )
 endif()
 
 # qt backend
-if( BUILD_XDISPATCH_BACKEND_QT5 )
+if( BUILD_XDISPATCH2_BACKEND_QT5 )
     file(GLOB CXX_QT5
         src/qt5/*.cpp
         src/qt5/*.h

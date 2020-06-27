@@ -45,12 +45,38 @@
 #define __XDISPATCH_END_NAMESPACE \
     }
 
-
 /*
 #ifdef _WIN32
 # pragma warning(default: 4251) // re-enable warning C4251 - we do not want to influence other code
 #endif
 */
 
+/**
+ * @addtogroup xdispatch
+ * @{
+ */
+
+__XDISPATCH_BEGIN_NAMESPACE
+
+/**
+  The number of nanoseconds per second
+  */
+static constexpr std::chrono::nanoseconds nsec_per_sec = std::chrono::seconds( 1 );
+/**
+  The number of nanoseconds per millisecond
+  */
+static constexpr std::chrono::nanoseconds nsec_per_msec = std::chrono::milliseconds( 1 );
+/**
+  The number of nanoseconds per microsecond
+  */
+static const std::chrono::nanoseconds nsec_per_usec = std::chrono::microseconds( 1 );
+/**
+  The number of microseconds per second
+  */
+static const std::chrono::microseconds usec_per_sec = std::chrono::seconds( 1 );
+
+__XDISPATCH_END_NAMESPACE
+
+/** @} */
 
 #endif /* XDISPATCH_DECL_H_ */

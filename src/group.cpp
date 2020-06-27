@@ -22,6 +22,7 @@
 
 #include "xdispatch_internal.h"
 #include "xdispatch/igroup_impl.h"
+#include "xdispatch/iqueue_impl.h"
 
 __XDISPATCH_USE_NAMESPACE
 
@@ -41,7 +42,16 @@ void group::async(
 )
 {
     XDISPATCH_ASSERT( op );
-    m_impl->async( op, q );
+
+    const auto q_impl = q.implementation();
+    if( m_impl->backend() == q_impl->backend() )
+    {
+        m_impl->async( op, q_impl );
+    }
+    else
+    {
+        throw std::runtime_error( "Cannot mix two different backends" );
+    }
 }
 
 
@@ -51,5 +61,21 @@ void group::notify(
 )
 {
     XDISPATCH_ASSERT( op );
-    m_impl->notify( op, q );
+
+    const auto q_impl = q.implementation();
+    if( m_impl->backend() == q_impl->backend() )
+    {
+        m_impl->notify( op, q_impl );
+    }
+    else
+    {
+        throw std::runtime_error( "Cannot mix two different backends" );
+    }
+}
+
+bool group::wait(
+    std::chrono::milliseconds t
+)
+{
+    return m_impl->wait( t );
 }

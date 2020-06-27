@@ -28,7 +28,7 @@
  * @{
  */
 
-#include "dispatch.h"
+#include "xdispatch/ibackend.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 
@@ -51,7 +51,7 @@ public:
     */
     virtual void async(
         const operation_ptr& op,
-        const queue& q
+        const iqueue_impl_ptr& q
     ) = 0;
 
     /**
@@ -79,13 +79,16 @@ public:
     */
     virtual void notify(
         const operation_ptr& op,
-        const queue& q
+        const iqueue_impl_ptr& q
     ) = 0;
 
     /**
         @returns the backend type behind this implementation
      */
     virtual backend_type backend() = 0;
+
+protected:
+    igroup_impl() = default;
 
 private:
     igroup_impl(

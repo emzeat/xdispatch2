@@ -34,14 +34,12 @@
 
     #define __XDISPATCH_INDIRECT__
     #include "xdispatch/config.h"
-    #include "operation.h"
-    #include "queue.h"
-    #include "backend.h"
-    #include "group.h"
-    #include "timer.h"
+    #include "xdispatch/operation.h"
+    #include "xdispatch/queue.h"
+    #include "xdispatch/backend.h"
+    #include "xdispatch/group.h"
+    #include "xdispatch/timer.h"
     #undef __XDISPATCH_INDIRECT__
-
-    #undef XDISPATCH_EXPORT
 
 #endif /* defined(__cplusplus) */
 

@@ -28,7 +28,7 @@
  * @{
  */
 
-#include "dispatch.h"
+#include "xdispatch/ibackend.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 
@@ -84,6 +84,9 @@ public:
         @returns the backend type behind this implementation
      */
     virtual backend_type backend() = 0;
+
+protected:
+    iqueue_impl() = default;
 
 private:
     iqueue_impl(

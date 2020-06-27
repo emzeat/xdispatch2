@@ -21,6 +21,7 @@
 
 #include "xdispatch_internal.h"
 #include "xdispatch/itimer_impl.h"
+#include "xdispatch/iqueue_impl.h"
 
 __XDISPATCH_USE_NAMESPACE
 
@@ -56,4 +57,33 @@ void timer::start(
 )
 {
     m_impl->start( d );
+}
+
+void timer::handler(
+    const operation_ptr& op
+)
+{
+    m_impl->handler( op );
+}
+
+void timer::target_queue(
+    const queue& q
+)
+{
+    const auto q_impl = q.implementation();
+    if( m_impl->backend() == q_impl->backend() )
+    {
+        m_impl->target_queue( q_impl );
+    }
+    else
+    {
+        throw std::runtime_error( "Cannot mix two different backends" );
+    }
+
+    m_target_queue = q;
+}
+
+queue timer::target_queue() const
+{
+    return m_target_queue;
 }

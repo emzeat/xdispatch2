@@ -30,7 +30,7 @@
 
 #ifndef __XDISPATCH_INDIRECT__
     # error "Please #include <xdispatch/dispatch.h> instead of this file directly."
-    # include "dispatch.h"
+    #include "dispatch.h"
 #endif
 
 __XDISPATCH_BEGIN_NAMESPACE
@@ -40,43 +40,14 @@ class timer;
 class group;
 
 /**
-  The number of nanoseconds per second
-  */
-static constexpr std::chrono::nanoseconds nsec_per_sec = std::chrono::seconds( 1 );
-/**
-  The number of nanoseconds per millisecond
-  */
-static constexpr std::chrono::nanoseconds nsec_per_msec = std::chrono::milliseconds( 1 );
-/**
-  The number of nanoseconds per microsecond
-  */
-static const std::chrono::nanoseconds nsec_per_usec = std::chrono::microseconds( 1 );
-/**
-  The number of microseconds per second
-  */
-static const std::chrono::microseconds usec_per_sec = std::chrono::seconds( 1 );
-/**
-    Three priority classes used for the three standard
-    global queues
+    Three priority classes used for the standard
+    global queues always available in the system
     */
 enum class queue_priority
 {
-    HIGH = 2, DEFAULT = 1, LOW = 0
-};
-/**
-    The backends implemented on this platform
-    */
-enum class backend_type
-{
-#if (defined BUILD_XDISPATCH_BACKEND_NAIVE)
-    naive,
-#endif
-#if (defined BUILD_XDISPATCH_BACKEND_QT5)
-    qt,
-#endif
-#if (defined BUILD_XDISPATCH_BACKEND_LIBDISPATCH)
-    libdispatch,
-#endif
+    HIGH, //!< Operations affecting the user interface to be completed quickly
+    DEFAULT, //!< Regular operation execution
+    LOW //!< Operations that perform utility tasks in the background
 };
 
 /**
@@ -115,19 +86,25 @@ create_queue(
 );
 
 /**
+    @return The queue the current operation is executed on.
+
+    @throws if not invoked from a queue
+*/
+XDISPATCH_EXPORT queue
+current_queue();
+
+/**
     @return A new timer powered by the platform default backend
 
     The timer will be stopped, call start() to execute it
 
     @param interval The interval at which the timer will fire after the timeout occured.
     @param target The queue to execute the timer on, defaults to the global_queue
-    @param starting The time after which the timer will fire for the first time
     */
 XDISPATCH_EXPORT timer
 create_timer(
     std::chrono::milliseconds interval,
-    const queue& target = global_queue(),
-    std::chrono::milliseconds delay = std::chrono::milliseconds( 0 )
+    const queue& target = global_queue()
 );
 
 /**
@@ -136,15 +113,16 @@ create_timer(
 XDISPATCH_EXPORT group
 create_group();
 
-#if (defined BUILD_XDISPATCH_BACKEND_NAIVE)
-# include "backend_libdispatch.h"
-#endif
-#if (defined BUILD_XDISPATCH_BACKEND_QT5)
+/**
+    @brief Executes operations submitted to the main queue
 
-#endif
-#if (defined BUILD_XDISPATCH_BACKEND_LIBDISPATCH)
+    This function will never return.
 
-#endif
+    Depending on the backend it may not be necessary to invoke this,
+    e.g. Qt will automatically drain its main queue
+*/
+XDISPATCH_EXPORT void
+exec();
 
 __XDISPATCH_END_NAMESPACE
 

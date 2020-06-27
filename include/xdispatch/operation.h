@@ -140,9 +140,18 @@ private:
     void ( T::*m_func )();
 };
 
+inline operation_ptr make_operation(
+    const operation_ptr& op
+)
+{
+    return op;
+}
 
 template< typename Func >
-inline operation_ptr make_operation(
+inline typename std::enable_if <
+!std::is_convertible< Func, operation_ptr >::value,
+operation_ptr
+>::type make_operation(
     const Func& f
 )
 {
@@ -151,9 +160,9 @@ inline operation_ptr make_operation(
 
 template< class T >
 inline operation_ptr make_operation(
-        T* object,
-        void( T::*function )()
-    )
+    T* object,
+    void( T::*function )()
+)
 {
     return std::make_shared< member_operation< T > >( object, function );
 }
@@ -228,8 +237,18 @@ private:
 };
 
 
-template< typename Func >
 inline iteration_operation_ptr make_iteration_operation(
+    const iteration_operation_ptr& op
+)
+{
+    return op;
+}
+
+template< typename Func >
+inline typename std::enable_if <
+!std::is_convertible< Func, iteration_operation_ptr >::value,
+iteration_operation_ptr
+>::type make_iteration_operation(
     const Func& f
 )
 {
@@ -238,9 +257,9 @@ inline iteration_operation_ptr make_iteration_operation(
 
 template< class T >
 inline iteration_operation_ptr make_iteration_operation(
-        T* object,
-        void( T::*function )( size_t )
-    )
+    T* object,
+    void( T::*function )( size_t )
+)
 {
     return std::make_shared< member_iteration_operation< T > >( object, function );
 }

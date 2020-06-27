@@ -28,7 +28,7 @@
  * @{
  */
 
-#include "dispatch.h"
+#include "xdispatch/ibackend.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 
@@ -70,7 +70,7 @@ public:
         Sets the queue the handler will be executed on
     */
     virtual void target_queue(
-        const queue&
+        const iqueue_impl_ptr&
     ) = 0;
 
     /**
@@ -86,6 +86,14 @@ public:
         Will stop the timer.
     */
     virtual void stop() = 0;
+
+    /**
+        @returns the backend type behind this implementation
+     */
+    virtual backend_type backend() = 0;
+
+protected:
+    itimer_impl() = default;
 
 private:
     itimer_impl(

@@ -30,7 +30,7 @@
 
 #ifndef __XDISPATCH_INDIRECT__
     # error "Please #include <xdispatch/dispatch.h> instead of this file directly."
-    # include "dispatch.h"
+    #include "dispatch.h"
 #endif
 
 __XDISPATCH_BEGIN_NAMESPACE
@@ -136,6 +136,17 @@ public:
     {
         notify( make_operation( f ), q );
     }
+
+    /**
+        Waits until the given time has passed
+        or all dispatched operations in the group were executed
+
+        @param t give a time here, will wait forever by default
+        @return false if the timeout occured or true if all operations were executed
+    */
+    bool wait(
+        std::chrono::milliseconds t = std::chrono::milliseconds::max()
+    );
 
     /**
         @brief assignment operator

@@ -19,48 +19,106 @@
 * @LICENSE_HEADER_END@
 */
 
-
-#ifdef _MSC_VER
-    #define _CRT_SECURE_NO_WARNINGS 1
-    #pragma warning (disable : 4996)
-#endif
-
 #include "xdispatch_internal.h"
+#include "xdispatch/itimer_impl.h"
+
+#if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
+    // #include "libdispatch/backend_internal.h"
+#endif
+#if (defined BUILD_XDISPATCH2_BACKEND_QT5)
+    // #include "libdispatch/backend_internal.h"
+#endif
+#if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
+    #include "libdispatch/backend_internal.h"
+#endif
 
 __XDISPATCH_BEGIN_NAMESPACE
 
-queue main_queue()
+static ibackend& platform_backend()
 {
-    return queue( "", iqueue_impl_ptr() );
+#if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
+    static libdispatch::backend s_backend;
+    return s_backend;
+#else
+# error "No backend on this platform"
+#endif
 }
 
+constexpr const char k_label_main[] = "de.mlba-team.xdispatch2.main";
+constexpr const char k_label_global_low[] = "de.mlba-team.xdispatch2.low";
+constexpr const char k_label_global_default[] = "de.mlba-team.xdispatch2.default";
+constexpr const char k_label_global_high[] = "de.mlba-team.xdispatch2.high";
+
+queue main_queue()
+{
+    static iqueue_impl_ptr s_instance = platform_backend().create_main_queue( k_label_main );
+    return queue( k_label_main, s_instance );
+}
+
+static queue global_queue_low()
+{
+    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_low, queue_priority::LOW );
+    return queue( k_label_global_low, s_instance );
+}
+
+static queue global_queue_default()
+{
+    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_default, queue_priority::DEFAULT );
+    return queue( k_label_global_default, s_instance );
+}
+
+static queue global_queue_high()
+{
+    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_high, queue_priority::HIGH );
+    return queue( k_label_global_high, s_instance );
+}
 
 queue global_queue(
     queue_priority p
 )
 {
-    return queue( "", iqueue_impl_ptr() );
+    switch( p )
+    {
+    case queue_priority::LOW:
+        return global_queue_low();
+    case queue_priority::DEFAULT:
+        return global_queue_default();
+    case queue_priority::HIGH:
+        return global_queue_high();
+    }
 }
 
 queue create_queue(
-    const std::string &label
+    const std::string& label
 )
+{
+    return queue( label, platform_backend().create_serial_queue( label ) );
+}
+
+queue current_queue()
 {
     return queue( "", iqueue_impl_ptr() );
 }
 
 timer create_timer(
     std::chrono::milliseconds interval,
-    const queue &target,
-    std::chrono::milliseconds delay
+    const queue& target
 )
 {
-    return timer( itimer_impl_ptr(), target );
+    auto impl = platform_backend().create_timer( target.implementation() );
+    XDISPATCH_ASSERT( impl );
+    impl->interval( interval );
+    return timer( impl, target );
 }
 
 group create_group()
 {
-    return group( igroup_impl_ptr() );
+    return group( platform_backend().create_group() );
+}
+
+void exec()
+{
+    platform_backend().exec();
 }
 
 __XDISPATCH_END_NAMESPACE

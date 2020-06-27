@@ -30,7 +30,7 @@
 
 #ifndef __XDISPATCH_INDIRECT__
     # error "Please #include <xdispatch/dispatch.h> instead of this file directly."
-    # include "dispatch.h"
+    #include "dispatch.h"
 #endif
 
 __XDISPATCH_BEGIN_NAMESPACE
