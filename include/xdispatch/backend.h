@@ -76,44 +76,6 @@ global_queue(
 );
 
 /**
-    @return A new queue powered by the platform default backend
-
-    @param label The label to assign to the new queue
-    */
-XDISPATCH_EXPORT queue
-create_queue(
-    const std::string& label
-);
-
-/**
-    @return The queue the current operation is executed on.
-
-    @throws if not invoked from a queue
-*/
-XDISPATCH_EXPORT queue
-current_queue();
-
-/**
-    @return A new timer powered by the platform default backend
-
-    The timer will be stopped, call start() to execute it
-
-    @param interval The interval at which the timer will fire after the timeout occured.
-    @param target The queue to execute the timer on, defaults to the global_queue
-    */
-XDISPATCH_EXPORT timer
-create_timer(
-    std::chrono::milliseconds interval,
-    const queue& target = global_queue()
-);
-
-/**
-    @return A new group powered by the platform default backend
-    */
-XDISPATCH_EXPORT group
-create_group();
-
-/**
     @brief Executes operations submitted to the main queue
 
     This function will never return.

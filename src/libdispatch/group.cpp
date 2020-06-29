@@ -60,12 +60,16 @@ public:
     {
         if( std::chrono::milliseconds::max() == timeout )
         {
-            return dispatch_group_wait( m_native, DISPATCH_TIME_FOREVER );
+            return 0 == dispatch_group_wait( m_native, DISPATCH_TIME_FOREVER );
+        }
+        else if( 0 == timeout.count() )
+        {
+            return 0 == dispatch_group_wait( m_native, DISPATCH_TIME_NOW );
         }
         else
         {
             const auto time = dispatch_time( DISPATCH_TIME_NOW, timeout.count() * NSEC_PER_MSEC );
-            return dispatch_group_wait( m_native, time ) == 0;
+            return 0 == dispatch_group_wait( m_native, time );
         }
     }
 

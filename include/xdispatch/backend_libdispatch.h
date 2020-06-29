@@ -29,6 +29,9 @@
  */
 
 #include "xdispatch/dispatch.h"
+#if (!BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
+    #error "The libdispatch backend is not available on this platform"
+#endif
 
 #include <dispatch/dispatch.h>
 

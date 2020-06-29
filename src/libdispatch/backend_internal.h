@@ -30,7 +30,7 @@ __XDISPATCH_BEGIN_NAMESPACE
 namespace libdispatch
 {
 
-class backend : public ibackend
+class XDISPATCH_EXPORT backend : public ibackend
 {
 public:
     iqueue_impl_ptr create_main_queue(

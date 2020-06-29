@@ -53,7 +53,14 @@ class XDISPATCH_EXPORT queue
 {
 public:
     /**
-        @brief Creates a new queue using the given implementation and name.
+        @brief Creates a new queue using the platform default backend and label.
+     */
+    explicit queue(
+        const std::string& label
+    );
+
+    /**
+        @brief Creates a new queue using the given implementation and label.
      */
     queue(
         const std::string& label,

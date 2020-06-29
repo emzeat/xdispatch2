@@ -88,32 +88,32 @@ queue global_queue(
     }
 }
 
-queue create_queue(
+queue::queue(
     const std::string& label
 )
+    : queue( label, platform_backend().create_serial_queue( label ) )
 {
-    return queue( label, platform_backend().create_serial_queue( label ) );
 }
 
-queue current_queue()
-{
-    return queue( "", iqueue_impl_ptr() );
-}
-
-timer create_timer(
+timer::timer(
     std::chrono::milliseconds interval,
     const queue& target
 )
+    : timer( [interval, target]
 {
     auto impl = platform_backend().create_timer( target.implementation() );
     XDISPATCH_ASSERT( impl );
     impl->interval( interval );
     return timer( impl, target );
 }
-
-group create_group()
+() )
 {
-    return group( platform_backend().create_group() );
+
+}
+
+group::group()
+    : group( platform_backend().create_group() )
+{
 }
 
 void exec()

@@ -53,6 +53,11 @@ class XDISPATCH_EXPORT group
 {
 public:
     /**
+        @brief Creates a new group powered by the platform default backend
+        */
+    group();
+
+    /**
         @brief Creates a new group using the given impl
      */
     explicit group(

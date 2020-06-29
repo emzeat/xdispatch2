@@ -56,6 +56,19 @@ class XDISPATCH_EXPORT timer
 {
 public:
     /**
+        Constructs a new timer powered by the platform default backend
+
+        The timer will be stopped, call start() to execute it
+
+        @param interval The interval at which the timer will fire after the timeout occured.
+        @param target The queue to execute the timer on, defaults to the global_queue
+        */
+    explicit timer(
+        std::chrono::milliseconds interval,
+        const queue& target = global_queue()
+    );
+
+    /**
         Constructs a new periodic timer using the given implementation
     */
     timer(

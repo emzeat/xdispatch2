@@ -179,3 +179,7 @@ else()
                 DESTINATION include
                 COMPONENT libxdispatch-dev)
 endif()
+
+if(BUILD_XDISPATCH2_TESTS)
+    mz_add_executable(xdispatch2_tests tests)
+endif()
