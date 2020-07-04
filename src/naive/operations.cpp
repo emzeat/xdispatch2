@@ -72,5 +72,25 @@ void delayed_operation::operator()()
     }
 }
 
+consuming_operation::consuming_operation(
+    const operation_ptr& op,
+    const consumable_ptr& consumable
+)
+    : m_op( op )
+    , m_consumable( consumable )
+{
+
+}
+
+void consuming_operation::operator()()
+{
+    m_op->operator()();
+
+    if( m_consumable )
+    {
+        m_consumable->consume();
+    }
+}
+
 }
 __XDISPATCH_END_NAMESPACE

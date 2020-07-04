@@ -50,7 +50,7 @@ void group::async(
     }
     else
     {
-        throw std::runtime_error( "Cannot mix two different backends" );
+        throw std::logic_error( "Cannot mix two different backends" );
     }
 }
 
@@ -69,7 +69,7 @@ void group::notify(
     }
     else
     {
-        throw std::runtime_error( "Cannot mix two different backends" );
+        throw std::logic_error( "Cannot mix two different backends" );
     }
 }
 

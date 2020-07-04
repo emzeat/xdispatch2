@@ -82,7 +82,7 @@ void cxx_dispatch_group_lambda(
     group.notify( [ = ]
     {
         MU_PASS( "Great!" );
-    }, xdispatch::main_queue() );
+    }, cxx_main_queue() );
 
     cxx_exec();
 

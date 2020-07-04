@@ -25,9 +25,11 @@ namespace naive
 {
 
 consumable::consumable(
-    size_t initialPayload
+    size_t initialPayload,
+    const consumable_ptr& preceeding
 )
-    : m_payload( initialPayload )
+    : m_preceeding( preceeding )
+    , m_payload( initialPayload )
 {
 }
 
@@ -35,17 +37,37 @@ void consumable::increment(
     size_t by
 )
 {
-    m_payload += by;
+    m_payload.fetch_add( by );
 }
 
 void consumable::consume()
 {
-    m_payload -= 1;
+    if( 1 == m_payload.fetch_sub( 1 ) )
+    {
+        m_barrier();
+    }
 }
 
-void consumable::waitForConsumed()
+bool consumable::waitForConsumed(
+    const std::chrono::milliseconds timeout
+)
 {
-    #error Implement blocking wait here
+    if( m_preceeding )
+    {
+        if( m_preceeding->waitForConsumed( timeout ) )
+        {
+            // satisfied, continue with this
+        }
+        else
+        {
+            return false;
+        }
+    }
+    if( 0 == m_payload.load() )
+    {
+        return true;
+    }
+    return m_barrier.wait( timeout );
 }
 
 }

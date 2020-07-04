@@ -101,8 +101,6 @@ void cxx_dispatch_group(
     MU_ASSERT_TRUE( group.wait() );
 
     // should be OK to re-use a group
-    static_assert( std::is_convertible< std::shared_ptr< foo >, xdispatch::operation_ptr >::value, "not convertible" );
-    static_assert( std::is_convertible< decltype( std::make_shared< foo >() ), xdispatch::operation_ptr >::value, "not convertible" );
     group.async( std::make_shared< foo >(), cxx_global_queue() );
     MU_ASSERT_TRUE( group.wait() );
 

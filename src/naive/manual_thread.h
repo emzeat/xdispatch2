@@ -18,41 +18,46 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
-#include "naive_thread.h"
+#ifndef XDISPATCH_NAIVE_MANUAL_THREAD_H_
+#define XDISPATCH_NAIVE_MANUAL_THREAD_H_
+
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <vector>
+
+#include "backend_internal.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
 {
 
-naive_thread::naive_thread(
-    const std::string& name
-)
-    : manual_thread( name )
-    , m_thread( &manual_thread::drain, this )
+class manual_thread : public ithread
 {
-}
+public:
+    explicit manual_thread(
+        const std::string& name
+    );
 
-naive_thread::~naive_thread()
-{
-    manual_thread::cancel();
-    XDISPATCH_ASSERT( m_thread.joinable() && "Thread should not delete itself" );
-    m_thread.join();
-}
+    ~manual_thread() override;
 
-void naive_thread::execute(
-    const operation_ptr& work
-)
-{
-    manual_thread::execute( work );
-}
+    void execute(
+        const operation_ptr& work
+    ) override;
 
-void naive_thread::execute(
-    const operation_ptr& work,
-    const queue_priority /* priority */
-)
-{
-    manual_thread::execute( work );
-}
+    void drain();
+
+    void cancel();
+
+private:
+    const std::string m_name;
+    std::mutex m_CS;
+    std::condition_variable m_cond;
+    std::vector< operation_ptr > m_ops;
+    bool m_cancelled;
+};
 
 }
 __XDISPATCH_END_NAMESPACE
+
+#endif /* XDISPATCH_NAIVE_MANUAL_THREAD_H_ */

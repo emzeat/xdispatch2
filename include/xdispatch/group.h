@@ -84,9 +84,11 @@ public:
     ~group() = default;
 
     /**
-        Dispatches an operation on the given Queue
+        Dispatches an operation on the given queue
         @param op The operation to be dispatched
-        @param q The Queue to use. If no Queue is given, the system default queue will be used
+        @param q The Queue to use. If no queue is given, the system default queue will be used
+
+        The group and queue will be retained by the system until the operation was executed.
     */
     void async(
         const operation_ptr& op,
@@ -94,8 +96,10 @@ public:
     );
 
     /**
-        Same as dispatch(operation_ptr, queue)
+        @see async(operation_ptr, queue)
+
         Will wrap the given function in an operation and put it on the queue.
+        The group and queue will be retained by the system until the operation was executed.
     */
     template< typename Func >
     inline void async(

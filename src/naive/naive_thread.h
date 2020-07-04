@@ -21,23 +21,20 @@
 #ifndef XDISPATCH_NAIVE_THREAD_H_
 #define XDISPATCH_NAIVE_THREAD_H_
 
-#include <thread>
-#include <mutex>
-#include <vector>
-
-#include "backend_internal.h"
+#include "manual_thread.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
 {
 
-class naive_thread : public ithread
-    , public ithreadpool
+class naive_thread : public manual_thread, public ithreadpool
 {
 public:
-    naive_thread();
+    explicit naive_thread(
+        const std::string& name
+    );
 
-    ~naive_thread();
+    ~naive_thread() final;
 
     void execute(
         const operation_ptr& work
@@ -49,11 +46,7 @@ public:
     ) final;
 
 private:
-    void drain();
-
     std::thread m_thread;
-    std::mutex m_CS;
-    std::vector< operation_ptr > m_ops;
 };
 
 }

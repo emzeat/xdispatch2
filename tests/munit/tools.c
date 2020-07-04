@@ -58,9 +58,10 @@ void _register_suite(
 )
 {
     mu_test_t* t = malloc( sizeof( mu_test_t ) );
+    t->name = malloc( strlen( name ) + 1 );
 
     t->function = function;
-    t->name = name;
     t->user = user;
+    strcpy( t->name, name );
     append( suite, ( void* )t );
 }

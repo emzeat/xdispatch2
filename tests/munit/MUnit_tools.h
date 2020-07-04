@@ -54,7 +54,7 @@ extern MU_messageHandler msg_handler;
 
 #ifdef __cplusplus
 #define MU_REGISTER_TEST_INSTANCE( INSTANCE, NAME, DATA ) \
-        const static auto MU_CONCAT( sInstance, __LINE__ ) = std::string(INSTANCE) + "_" + #NAME; \
+        const auto MU_CONCAT( sInstance, __LINE__ ) = std::string(INSTANCE) + "__" + #NAME; \
         _register_suite( NAME, MU_CONCAT( sInstance, __LINE__ ).c_str() , DATA )
 #endif
 

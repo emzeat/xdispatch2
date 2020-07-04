@@ -44,11 +44,6 @@ static ibackend& platform_backend()
 #endif
 }
 
-constexpr const char k_label_main[] = "de.mlba-team.xdispatch2.main";
-constexpr const char k_label_global_low[] = "de.mlba-team.xdispatch2.low";
-constexpr const char k_label_global_default[] = "de.mlba-team.xdispatch2.default";
-constexpr const char k_label_global_high[] = "de.mlba-team.xdispatch2.high";
-
 queue main_queue()
 {
     static iqueue_impl_ptr s_instance = platform_backend().create_main_queue( k_label_main );

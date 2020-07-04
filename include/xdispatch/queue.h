@@ -87,19 +87,19 @@ public:
     ~queue() = default;
 
     /**
-        Will dispatch the given operation for
-        async execution on the queue and return
-        immediately.
+        Will dispatch the given operation for async execution on the queue and return immediately.
+
+        The queue will be retained by the system until the operation was executed.
       */
     void async(
         const operation_ptr& op
     ) const;
 
     /**
-        Same as async(operation_ptr).
-        Will put the given function on the queue.
+        @see async(operation_ptr).
 
-        @see async(operation_ptr)
+        Will put the given function on the queue.
+        The group and queue will be retained by the system until the operation was executed.
     */
     template< typename Func >
     inline void async(
@@ -111,7 +111,7 @@ public:
 
     /**
         Applies the given iteration_operation for async execution
-        in this queue and returns immediately.
+        in this queue and waits for all iterations of the operation to complete execution.
 
         @param times The number of times the operation will be executed
     */
@@ -121,12 +121,9 @@ public:
     ) const;
 
     /**
-        Same as apply(sizee_t, iteration_operation_ptr).
+        @see apply(sizee_t, iteration_operation_ptr).
 
-        Will wrap the given function in an operation and put it on the
-        queue.
-
-        @see apply(iteration_operation_ptr, size_t)
+        Will wrap the given function in an operation and put it on the queue.
     */
     template< typename Func >
     inline void apply(
@@ -141,6 +138,8 @@ public:
         Applies the given operation for async execution
         in this queue after the given time and returns immediately.
 
+        The queue will be retained by the system until the operation was executed.
+
         @param delay The time to wait until the operation is applied to
                      the queue.
     */
@@ -150,9 +149,10 @@ public:
     ) const;
 
     /**
-        Same as dispatch_after(std::chrono::milliseconds, operation_ptr).
+        @see after(std::chrono::milliseconds, operation_ptr)
+
         Will wrap the given function in an operation and put it on the
-        queue for execution as soon as the delay expired
+        queue for execution as soon as the delay expired.
     */
     template< typename Func >
     inline void after(

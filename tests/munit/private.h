@@ -29,7 +29,7 @@
 typedef struct
 {
     mu_test_func function;
-    const char* name;
+    char* name;
     void* user;
 } mu_test_t;
 

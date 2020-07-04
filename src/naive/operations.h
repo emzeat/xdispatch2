@@ -62,6 +62,21 @@ private:
     const consumable_ptr m_consumable;
 };
 
+class consuming_operation : public operation
+{
+public:
+    consuming_operation(
+        const operation_ptr& op,
+        const consumable_ptr& consumable
+    );
+
+    void operator()() final;
+
+private:
+    const operation_ptr m_op;
+    const consumable_ptr m_consumable;
+};
+
 }
 __XDISPATCH_END_NAMESPACE
 

@@ -22,6 +22,7 @@
 
 #include "backend_internal.h"
 #include "naive_thread.h"
+#include "operation_manager.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
@@ -38,10 +39,12 @@ public:
         , m_priority( priority )
     {
         XDISPATCH_ASSERT( m_pool );
+        operation_queue_manager::instance().attach( m_pool );
     }
 
     ~parallel_queue_impl() final
     {
+        operation_queue_manager::instance().detach( m_pool.get() );
     }
 
     void async(
@@ -59,7 +62,7 @@ public:
         const auto completed = std::make_shared< consumable >( times );
         for( size_t i = 0; i < times; ++i )
         {
-            m_pool->execute( std::make_shared< apply_operation >( i, op, completed ), m_priority );
+            async( std::make_shared< apply_operation >( i, op, completed ) );
         }
         completed->waitForConsumed();
     }
@@ -69,7 +72,7 @@ public:
         const operation_ptr& op
     ) final
     {
-        m_pool->execute( std::make_shared< delayed_operation >( delay, op ), m_priority );
+        async( std::make_shared< delayed_operation >( delay, op ) );
     }
 
     backend_type backend() final
@@ -93,11 +96,11 @@ queue create_parallel_queue(
 }
 
 iqueue_impl_ptr backend::create_parallel_queue(
-    const std::string& /* label */,
+    const std::string& label,
     const queue_priority& priority
 )
 {
-    return std::make_shared< parallel_queue_impl >( std::make_shared< naive_thread >(), priority );
+    return std::make_shared< parallel_queue_impl >( std::make_shared< naive_thread >( label ), priority );
 }
 
 

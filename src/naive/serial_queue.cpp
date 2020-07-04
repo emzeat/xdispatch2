@@ -21,6 +21,7 @@
 #include "xdispatch/iqueue_impl.h"
 
 #include "backend_internal.h"
+#include "operation_queue.h"
 #include "naive_thread.h"
 
 #include <thread>
@@ -37,20 +38,22 @@ public:
     serial_queue_impl(
         const ithread_ptr& thread
     ) : iqueue_impl()
-        , m_thread( thread )
+        , m_queue( std::make_shared< operation_queue >( thread ) )
     {
-        XDISPATCH_ASSERT( m_thread );
+        XDISPATCH_ASSERT( thread );
+        m_queue->attach();
     }
 
     ~serial_queue_impl() final
     {
+        m_queue->detach();
     }
 
     void async(
         const operation_ptr& op
     ) final
     {
-        m_thread->execute( op );
+        m_queue->async( op );
     }
 
     void apply(
@@ -61,9 +64,12 @@ public:
         const auto completed = std::make_shared< consumable >( times );
         for( size_t i = 0; i < times; ++i )
         {
-            m_thread->execute( std::make_shared< apply_operation >( i, op, completed ) );
+            async( std::make_shared< apply_operation >( i, op, completed ) );
         }
         completed->waitForConsumed();
+
+        // FIXME(zwicker): This is blocking and will not work if invoked from within
+        //                 an operation active on this very same queue
     }
 
     void after(
@@ -71,7 +77,7 @@ public:
         const operation_ptr& op
     ) final
     {
-        m_thread->execute( std::make_shared< delayed_operation >( delay, op ) );
+        async( std::make_shared< delayed_operation >( delay, op ) );
     }
 
     backend_type backend() final
@@ -80,7 +86,7 @@ public:
     }
 
 private:
-    ithread_ptr m_thread;
+    operation_queue_ptr m_queue;
 };
 
 queue create_serial_queue(
@@ -93,10 +99,29 @@ queue create_serial_queue(
 }
 
 iqueue_impl_ptr backend::create_serial_queue(
+    const std::string& label
+)
+{
+    return std::make_shared< serial_queue_impl >( std::make_shared< naive_thread >( label ) );
+}
+
+static std::shared_ptr<manual_thread> main_thread()
+{
+    static std::shared_ptr<manual_thread> s_thread = std::make_shared< manual_thread >( k_label_main );
+    return s_thread;
+}
+
+iqueue_impl_ptr backend::create_main_queue(
     const std::string& /* label */
 )
 {
-    return std::make_shared< serial_queue_impl >( std::make_shared< naive_thread >() );
+    static iqueue_impl_ptr s_queue = std::make_shared< serial_queue_impl >( main_thread() );
+    return s_queue;
+}
+
+void backend::exec()
+{
+    main_thread()->drain();
 }
 
 }

@@ -59,6 +59,11 @@
       } \
     }
 
+constexpr const char k_label_main[] = "de.mlba-team.xdispatch2.main";
+constexpr const char k_label_global_low[] = "de.mlba-team.xdispatch2.low";
+constexpr const char k_label_global_default[] = "de.mlba-team.xdispatch2.default";
+constexpr const char k_label_global_high[] = "de.mlba-team.xdispatch2.high";
+
 #include "xdispatch/config.h"
 #include "../include/xdispatch/operation.h"
 #include "../include/xdispatch/queue.h"

@@ -26,6 +26,9 @@
 #if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
     #include "../src/libdispatch/backend_internal.h"
 #endif
+#if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
+    #include "../src/naive/backend_internal.h"
+#endif
 
 void print_log(
     const char* msg
@@ -52,6 +55,11 @@ int main( int argc, char* argv[] )
 #if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
     static xdispatch::libdispatch::backend s_libdispatch;
     register_cxx_tests( "libdispatch", &s_libdispatch );
+#endif
+
+#if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
+    static xdispatch::naive::backend s_naive;
+    register_cxx_tests( "naive", &s_naive );
 #endif
 
     register_platform_tests();

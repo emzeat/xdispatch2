@@ -18,20 +18,24 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
-#include "xdispatch/dispatch.h"
-
 #ifndef XDISPATCH_NAIVE_CONSUMABLE_H_
 #define XDISPATCH_NAIVE_CONSUMABLE_H_
+
+#include "xdispatch/barrier_operation.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
 {
 
+class consumable;
+using consumable_ptr = std::shared_ptr< consumable >;
+
 class consumable
 {
 public:
-    consumable(
-        size_t initialPayload = 0
+    explicit consumable(
+        size_t initialPayload = 0,
+        const consumable_ptr& preceeding = consumable_ptr()
     );
 
     void increment(
@@ -40,13 +44,15 @@ public:
 
     void consume();
 
-    void waitForConsumed();
+    bool waitForConsumed(
+        const std::chrono::milliseconds timeout = std::chrono::milliseconds::max()
+    );
 
 private:
+    const consumable_ptr m_preceeding;
     std::atomic<size_t> m_payload;
+    barrier_operation m_barrier;
 };
-
-using consumable_ptr = std::shared_ptr< consumable >;
 
 }
 __XDISPATCH_END_NAMESPACE
