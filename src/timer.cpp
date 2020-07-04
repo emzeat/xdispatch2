@@ -33,6 +33,12 @@ timer::timer(
     , m_target_queue( target )
 {
     XDISPATCH_ASSERT( m_impl );
+
+    const auto target_impl = target.implementation();
+    if( m_impl->backend() != target_impl->backend() )
+    {
+        throw std::logic_error( "Cannot mix two different backends" );
+    }
 }
 
 
@@ -64,23 +70,6 @@ void timer::handler(
 )
 {
     m_impl->handler( op );
-}
-
-void timer::target_queue(
-    const queue& q
-)
-{
-    const auto q_impl = q.implementation();
-    if( m_impl->backend() == q_impl->backend() )
-    {
-        m_impl->target_queue( q_impl );
-    }
-    else
-    {
-        throw std::runtime_error( "Cannot mix two different backends" );
-    }
-
-    m_target_queue = q;
 }
 
 queue timer::target_queue() const

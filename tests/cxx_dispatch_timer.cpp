@@ -74,10 +74,9 @@ void cxx_dispatch_timer(
     CXX_BEGIN_BACKEND_TEST( cxx_dispatch_timer );
 
     MU_MESSAGE( "Testing periodic timer" );
-    auto tested_timer = cxx_create_timer();
+    auto tested_timer = cxx_create_timer( cxx_main_queue() );
     tested_timer.interval( std::chrono::seconds( 2 ) );
     tested_timer.handler( std::make_shared<test_periodic>() );
-    tested_timer.target_queue( cxx_main_queue() );
     s_checked_time.start();
     tested_timer.start();
     cxx_exec();

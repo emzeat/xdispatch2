@@ -21,9 +21,10 @@
 
 #include "xdispatch_internal.h"
 #include "xdispatch/itimer_impl.h"
+#include "xdispatch/iqueue_impl.h"
 
 #if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
-    // #include "libdispatch/backend_internal.h"
+    #include "naive/backend_internal.h"
 #endif
 #if (defined BUILD_XDISPATCH2_BACKEND_QT5)
     // #include "libdispatch/backend_internal.h"
@@ -34,11 +35,31 @@
 
 __XDISPATCH_BEGIN_NAMESPACE
 
+static ibackend& backend_for_type(
+    backend_type type
+)
+{
+    switch( type )
+    {
+#if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
+    case backend_type::libdispatch:
+        static libdispatch::backend s_backend_libdispatch;
+        return s_backend_libdispatch;
+#endif
+    default:
+#if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
+        static naive::backend s_backend_naive;
+        return s_backend_naive;
+#endif
+    }
+}
+
 static ibackend& platform_backend()
 {
 #if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
-    static libdispatch::backend s_backend;
-    return s_backend;
+    return backend_for_type( backend_type::libdispatch );
+#elif (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
+    return backend_for_type( backend_type::naive );
 #else
 # error "No backend on this platform"
 #endif
@@ -96,7 +117,8 @@ timer::timer(
 )
     : timer( [interval, target]
 {
-    auto impl = platform_backend().create_timer( target.implementation() );
+    const auto q_type = target.implementation()->backend();
+    auto impl = backend_for_type( q_type ).create_timer( target.implementation() );
     XDISPATCH_ASSERT( impl );
     impl->interval( interval );
     return timer( impl, target );

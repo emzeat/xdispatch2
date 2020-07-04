@@ -162,13 +162,6 @@ public:
     }
 
     /**
-        Sets the queue the handler will be executed on
-    */
-    void target_queue(
-        const queue&
-    );
-
-    /**
         @returns the queue the handler will be executed on
     */
     queue target_queue() const;
