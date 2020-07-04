@@ -21,6 +21,7 @@
 
 #include "execution.h"
 #include "../xdispatch_internal.h"
+#include "xdispatch/thread_utils.h"
 
 #include "dispatch/dispatch.h"
 
@@ -33,30 +34,12 @@ namespace libdispatch
 {
 
 #if (defined DEBUG)
-inline void set_debugger_threadname(
-    const std::string& name = std::string()
-)
-{
-#  if (defined __linux__)
-    prctl( PR_SET_NAME, ( unsigned long )( name.c_str() ), 0, 0, 0 ); // NOLINT(runtime/int)
-#  elif (defined __APPLE__)
-    pthread_setname_np( name.c_str() );
-#  else
-    // noop
-#  endif
-}
-
 inline void set_debugger_threadname_from_queue()
 {
-#  ifdef __APPLE__
-    // disable deprecation warning for get_current_queue
-#     pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#  endif
-    set_debugger_threadname( dispatch_queue_get_label( dispatch_get_current_queue() ) );
+    thread_utils::set_current_thread_name( dispatch_queue_get_label( DISPATCH_CURRENT_QUEUE_LABEL ) );
 }
 #else
 #  define set_debugger_threadname_from_queue()
-#  define set_debugger_threadname( ... )
 #endif
 
 void run_wrapper(
@@ -74,7 +57,6 @@ void run_wrapper(
     {
         set_debugger_threadname_from_queue();
         ( *wrappedOp )();
-        set_debugger_threadname();
     }
 #if !(defined DEBUG)
     catch( const std::exception& e )
@@ -143,7 +125,6 @@ void _xdispatch2_run_iter_wrap(
     {
         set_debugger_threadname_from_queue();
         ( *wrapped_op )( index );
-        set_debugger_threadname();
     }
 #if !(defined DEBUG)
     catch( const std::exception& e )
