@@ -22,6 +22,10 @@
 #include "xdispatch_internal.h"
 #include "xdispatch/thread_utils.h"
 
+#if (defined MZ_LINUX)
+    #include <sys/prctl.h>
+#endif
+
 __XDISPATCH_BEGIN_NAMESPACE
 
 void thread_utils::set_current_thread_name(

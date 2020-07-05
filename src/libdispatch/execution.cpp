@@ -25,10 +25,6 @@
 
 #include "dispatch/dispatch.h"
 
-#if (defined __linux__)
-    #include <sys/prctl.h>
-#endif
-
 __XDISPATCH_BEGIN_NAMESPACE
 namespace libdispatch
 {
