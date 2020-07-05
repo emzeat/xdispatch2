@@ -27,7 +27,7 @@
     #include <sys/time.h>
     #include <sys/resource.h>
     #include <unistd.h>
-    #include <sys/types.h>
+    #include <sys/syscall.h>
 #endif
 
 __XDISPATCH_BEGIN_NAMESPACE
@@ -69,7 +69,7 @@ void thread_utils::set_current_thread_priority(
         nice = 0;
         break;
     }
-    const int tid = static_cast<int>( gettid() );
+    const int tid = static_cast<int>( syscall( SYS_gettid ) );
     setpriority( PRIO_PROCESS, tid, nice );
 #elif (defined MZ_MACOS || defined MZ_IOS)
     const qos_class_t qos_class = map_priority_to_qos( priority );
