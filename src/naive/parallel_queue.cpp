@@ -110,11 +110,11 @@ queue create_parallel_queue(
 
 iqueue_impl_ptr backend::create_parallel_queue(
     const std::string& label,
-    const queue_priority& priority,
+    queue_priority priority,
     backend_type backend
 )
 {
-    return std::make_shared< parallel_queue_impl >( std::make_shared< naive_thread >( label ), priority, backend );
+    return std::make_shared< parallel_queue_impl >( std::make_shared< naive_thread >( label, priority ), priority, backend );
 }
 
 

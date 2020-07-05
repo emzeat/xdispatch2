@@ -89,7 +89,7 @@ public:
         // FIXME(zwicker): This will be creating a temporary queue for no good reason
         //                 and can probably be optimized to share an existing thread
         const auto this_ptr = shared_from_this();
-        const auto notify_q = create_serial_queue( k_label_global_low + std::string( "_notify" ) );
+        const auto notify_q = create_serial_queue( k_label_global_low + std::string( "_notify" ), queue_priority::UTILITY );
         notify_q.async( [op, q, this_ptr]
         {
             this_ptr->wait( std::chrono::milliseconds::max() );

@@ -42,7 +42,7 @@ void cxx_dispatch_queue_lambda(
 
     std::atomic<int>* worker = new std::atomic<int>( 0 );
 
-    xdispatch::queue q = cxx_global_queue( xdispatch::queue_priority::HIGH );
+    xdispatch::queue q = cxx_global_queue( xdispatch::queue_priority::USER_INITIATED );
 
     q.apply( RUN_TIMES, [ = ]( size_t i )
     {

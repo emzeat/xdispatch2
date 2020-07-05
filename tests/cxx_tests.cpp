@@ -64,7 +64,7 @@ xdispatch::queue cxx_create_queue(
 {
     std::lock_guard<std::mutex> lock( s_backend_CS );
     MU_ASSERT_NOT_NULL( s_backend_tested );
-    const auto impl = s_backend_tested->create_serial_queue( label );
+    const auto impl = s_backend_tested->create_serial_queue( label, xdispatch::queue_priority::DEFAULT );
     MU_ASSERT_NOT_NULL( impl.get() );
     return xdispatch::queue( label, impl );
 }
@@ -81,14 +81,20 @@ xdispatch::queue cxx_global_queue(
         const char* q_name = nullptr;
         switch( priority )
         {
-        case xdispatch::queue_priority::LOW:
-            q_name = "cxx_global_queue_LOW";
+        case xdispatch::queue_priority::USER_INTERACTIVE:
+            q_name = "cxx_global_queue_USER_INTERACTIVE";
+            break;
+        case xdispatch::queue_priority::USER_INITIATED:
+            q_name = "cxx_global_queue_USER_INITIATED";
+            break;
+        case xdispatch::queue_priority::UTILITY:
+            q_name = "cxx_global_queue_UTILITY";
+            break;
+        case xdispatch::queue_priority::BACKGROUND:
+            q_name = "cxx_global_queue_UTILITY";
             break;
         case xdispatch::queue_priority::DEFAULT:
             q_name = "cxx_global_queue_DEFAULT";
-            break;
-        case xdispatch::queue_priority::HIGH:
-            q_name = "cxx_global_queue_HIGH";
             break;
         }
 

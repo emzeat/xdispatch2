@@ -25,9 +25,10 @@ namespace naive
 {
 
 naive_thread::naive_thread(
-    const std::string& name
+    const std::string& name,
+    queue_priority priority
 )
-    : manual_thread( name )
+    : manual_thread( name, priority )
     , m_thread( &manual_thread::drain, this )
 {
 }

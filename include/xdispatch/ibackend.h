@@ -58,12 +58,13 @@ public:
     ) = 0;
 
     virtual iqueue_impl_ptr create_serial_queue(
-        const std::string& label
+        const std::string& label,
+        queue_priority priority
     ) = 0;
 
     virtual iqueue_impl_ptr create_parallel_queue(
         const std::string& label,
-        const queue_priority& priority
+        queue_priority priority
     ) = 0;
 
     virtual igroup_impl_ptr create_group() = 0;

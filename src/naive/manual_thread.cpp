@@ -26,10 +26,12 @@ namespace naive
 {
 
 manual_thread::manual_thread(
-    const std::string& name
+    const std::string& name,
+    queue_priority priority
 )
     : ithread()
     , m_name( name )
+    , m_priority( priority )
     , m_cancelled( false )
 {
 }
@@ -50,6 +52,7 @@ void manual_thread::execute(
 void manual_thread::drain()
 {
     thread_utils::set_current_thread_name( m_name );
+    thread_utils::set_current_thread_priority( m_priority );
     while( !m_cancelled )
     {
         std::vector< operation_ptr > ops;

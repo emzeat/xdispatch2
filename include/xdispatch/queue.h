@@ -56,7 +56,8 @@ public:
         @brief Creates a new queue using the platform default backend and label.
      */
     explicit queue(
-        const std::string& label
+        const std::string& label,
+        queue_priority priority = queue_priority::DEFAULT
     );
 
     /**

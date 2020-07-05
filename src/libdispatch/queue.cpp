@@ -19,6 +19,7 @@
 */
 
 #include "xdispatch/iqueue_impl.h"
+#include "xdispatch/thread_utils.h"
 
 #include "backend_internal.h"
 #include "execution.h"
@@ -108,26 +109,32 @@ iqueue_impl_ptr backend::create_main_queue(
 }
 
 iqueue_impl_ptr backend::create_serial_queue(
-    const std::string& label
+    const std::string& label,
+    queue_priority priority
 )
 {
-    object_scope_T< dispatch_queue_t > native( dispatch_queue_create( label.c_str(), nullptr ) );
+    dispatch_queue_attr_t qos_attr = dispatch_queue_attr_make_with_qos_class( DISPATCH_QUEUE_SERIAL, thread_utils::map_priority_to_qos( priority ), 0 );
+    object_scope_T< dispatch_queue_t > native( dispatch_queue_create( label.c_str(), qos_attr ) );
     return std::make_shared< queue_impl >( native.take() );
 }
 
 iqueue_impl_ptr backend::create_parallel_queue(
     const std::string& /* label */,
-    const queue_priority& priority
+    queue_priority priority
 )
 {
     switch( priority )
     {
-    case queue_priority::HIGH:
-        return std::make_shared< queue_impl >( dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_HIGH, 0 ) );
+    case queue_priority::USER_INTERACTIVE:
+        return std::make_shared< queue_impl >( dispatch_get_global_queue( QOS_CLASS_USER_INTERACTIVE, 0 ) );
+    case queue_priority::USER_INITIATED:
+        return std::make_shared< queue_impl >( dispatch_get_global_queue( QOS_CLASS_USER_INITIATED, 0 ) );
+    case queue_priority::UTILITY:
+        return std::make_shared< queue_impl >( dispatch_get_global_queue( QOS_CLASS_UTILITY, 0 ) );
     case queue_priority::DEFAULT:
-        return std::make_shared< queue_impl >( dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 ) );
-    case queue_priority::LOW:
-        return std::make_shared< queue_impl >( dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_LOW, 0 ) );
+        return std::make_shared< queue_impl >( dispatch_get_global_queue( QOS_CLASS_DEFAULT, 0 ) );
+    case queue_priority::BACKGROUND:
+        return std::make_shared< queue_impl >( dispatch_get_global_queue( QOS_CLASS_BACKGROUND, 0 ) );
     }
 }
 

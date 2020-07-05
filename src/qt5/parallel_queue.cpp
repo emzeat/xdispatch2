@@ -23,6 +23,7 @@
 #include <QtCore/QPointer>
 
 #include "backend_internal.h"
+#include "xdispatch/thread_utils.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace qt5
@@ -32,9 +33,13 @@ class ThreadPoolProxy : public ithreadpool
 {
 public:
     ThreadPoolProxy(
-        QThreadPool* pool
+        QThreadPool* pool,
+        const std::string& label,
+        queue_priority priority
     )
         : m_pool( pool )
+        , m_label( label )
+        , m_priority( priority )
     {
         XDISPATCH_ASSERT( pool );
     }
@@ -55,44 +60,57 @@ public:
         class OperationRunnable : public QRunnable
         {
         public:
-            explicit OperationRunnable(
-                const operation_ptr& op
+            OperationRunnable(
+                const operation_ptr& op,
+                const std::string& label,
+                queue_priority priority
             )
                 : m_operation( op )
+                , m_label( label )
+                , m_priority( priority )
             {
                 setAutoDelete( true );
             }
 
             void run() final
             {
-                // FIXME: The label is getting lost here
+                thread_utils::set_current_thread_name( m_label );
+                thread_utils::set_current_thread_priority( m_priority );
                 execute_operation_on_this_thread( *m_operation );
             }
 
         private:
             const operation_ptr m_operation;
+            const std::string& m_label;
+            const queue_priority m_priority;
         };
 
         int p = 0;
         switch( priority )
         {
-        case queue_priority::LOW:
+        case queue_priority::BACKGROUND:
             p = 0;
             break;
         case queue_priority::DEFAULT:
-            p = 50;
+        case queue_priority::UTILITY:
+            p = 20;
             break;
-        case queue_priority::HIGH:
+        case queue_priority::USER_INITIATED:
+            p = 40;
+            break;
+        case queue_priority::USER_INTERACTIVE:
             p = 100;
             break;
         }
 
         XDISPATCH_ASSERT( m_pool );
-        m_pool->start( new OperationRunnable( work ), p );
+        m_pool->start( new OperationRunnable( work, m_label, m_priority ), p );
     }
 
 private:
     QPointer<QThreadPool> m_pool;
+    const std::string m_label;
+    const queue_priority m_priority;
 };
 
 queue create_parallel_queue(
@@ -102,12 +120,12 @@ queue create_parallel_queue(
 )
 {
     XDISPATCH_ASSERT( pool );
-    return naive::create_parallel_queue( label,  std::make_shared< ThreadPoolProxy >( pool ), priority, backend_type::qt5 );
+    return naive::create_parallel_queue( label, std::make_shared< ThreadPoolProxy >( pool, label, priority ), priority, backend_type::qt5 );
 }
 
 iqueue_impl_ptr backend::create_parallel_queue(
     const std::string& label,
-    const queue_priority& priority
+    queue_priority priority
 )
 {
     return qt5::create_parallel_queue( label, QThreadPool::globalInstance(), priority ).implementation();

@@ -40,17 +40,6 @@ class timer;
 class group;
 
 /**
-    Three priority classes used for the standard
-    global queues always available in the system
-    */
-enum class queue_priority
-{
-    HIGH, //!< Operations affecting the user interface to be completed quickly
-    DEFAULT, //!< Regular operation execution
-    LOW //!< Operations that perform utility tasks in the background
-};
-
-/**
     Returns the main queue. This is the queue running
     within the main thread. Thus normally only items put
     on this queue can change the GUI.

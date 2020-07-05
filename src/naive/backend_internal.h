@@ -44,15 +44,16 @@ public:
     }
 
     iqueue_impl_ptr create_serial_queue(
-        const std::string& label
+        const std::string& label,
+        queue_priority priority
     ) override
     {
-        return create_serial_queue( label, backend_type::naive );
+        return create_serial_queue( label, priority, backend_type::naive );
     }
 
     iqueue_impl_ptr create_parallel_queue(
         const std::string& label,
-        const queue_priority& priority
+        queue_priority priority
     ) override
     {
         return create_parallel_queue( label, priority, backend_type::naive );
@@ -85,12 +86,13 @@ protected:
 
     iqueue_impl_ptr create_serial_queue(
         const std::string& label,
+        queue_priority priority,
         backend_type backend
     );
 
     iqueue_impl_ptr create_parallel_queue(
         const std::string& label,
-        const queue_priority& priority,
+        queue_priority priority,
         backend_type backend
     );
 
@@ -103,6 +105,13 @@ protected:
         backend_type backend
     );
 };
+
+queue
+create_serial_queue(
+    const std::string& label,
+    queue_priority priority,
+    backend_type backend = backend_type::naive
+);
 
 queue
 create_serial_queue(

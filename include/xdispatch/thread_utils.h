@@ -22,7 +22,11 @@
 #ifndef XDISPATCH_THREAD_UTILS_H_
 #define XDISPATCH_THREAD_UTILS_H_
 
-#include "xdispatch/dispatch_decl.h"
+#include "xdispatch/dispatch.h"
+
+#if (defined __APPLE__)
+    #include <sys/qos.h>
+#endif
 
 __XDISPATCH_BEGIN_NAMESPACE
 
@@ -42,6 +46,24 @@ public:
     static void set_current_thread_name(
         const std::string& name
     );
+
+    /**
+        @brief Sets the priority of the current thread
+
+        The assigned priority will take effect immediately
+     */
+    static void set_current_thread_priority(
+        queue_priority priority
+    );
+
+#if (defined __APPLE__)
+    /**
+        @returns the qos class mapped to the given queue_priority
+    */
+    static qos_class_t map_priority_to_qos(
+        queue_priority priority
+    );
+#endif
 
 private:
     thread_utils() = delete;

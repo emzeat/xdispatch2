@@ -98,11 +98,17 @@ queue create_serial_queue(
     backend_type backend
 )
 {
-    if( thread )
-    {
-        return queue( label, std::make_shared< serial_queue_impl >( thread, backend ) );
-    }
-    return queue( label, std::make_shared< serial_queue_impl >( std::make_shared< naive_thread >( label ), backend ) );
+    XDISPATCH_ASSERT( thread );
+    return queue( label, std::make_shared< serial_queue_impl >( thread, backend ) );
+}
+
+queue create_serial_queue(
+    const std::string& label,
+    queue_priority priority,
+    backend_type backend
+)
+{
+    return queue( label, std::make_shared< serial_queue_impl >( std::make_shared< naive_thread >( label, priority ), backend ) );
 }
 
 queue create_serial_queue(
@@ -115,15 +121,16 @@ queue create_serial_queue(
 
 iqueue_impl_ptr backend::create_serial_queue(
     const std::string& label,
+    queue_priority priority,
     backend_type backend
 )
 {
-    return std::make_shared< serial_queue_impl >( std::make_shared< naive_thread >( label ), backend );
+    return std::make_shared< serial_queue_impl >( std::make_shared< naive_thread >( label, priority ), backend );
 }
 
 static std::shared_ptr<manual_thread> main_thread()
 {
-    static std::shared_ptr<manual_thread> s_thread = std::make_shared< manual_thread >( k_label_main );
+    static std::shared_ptr<manual_thread> s_thread = std::make_shared< manual_thread >( k_label_main, queue_priority::USER_INTERACTIVE );
     return s_thread;
 }
 

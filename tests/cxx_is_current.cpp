@@ -38,8 +38,13 @@ void cxx_is_current(
 
     group.async( []
     {
-        MU_ASSERT_TRUE( cxx_global_queue( xdispatch::queue_priority::LOW ).is_current_queue() );
-    }, cxx_global_queue( xdispatch::queue_priority::LOW ) );
+        MU_ASSERT_TRUE( cxx_global_queue( xdispatch::queue_priority::BACKGROUND ).is_current_queue() );
+    }, cxx_global_queue( xdispatch::queue_priority::BACKGROUND ) );
+
+    group.async( []
+    {
+        MU_ASSERT_TRUE( cxx_global_queue( xdispatch::queue_priority::UTILITY ).is_current_queue() );
+    }, cxx_global_queue( xdispatch::queue_priority::UTILITY ) );
 
     group.async( []
     {
@@ -48,8 +53,13 @@ void cxx_is_current(
 
     group.async( []
     {
-        MU_ASSERT_TRUE( cxx_global_queue( xdispatch::queue_priority::HIGH ).is_current_queue() );
-    }, cxx_global_queue( xdispatch::queue_priority::HIGH ) );
+        MU_ASSERT_TRUE( cxx_global_queue( xdispatch::queue_priority::USER_INITIATED ).is_current_queue() );
+    }, cxx_global_queue( xdispatch::queue_priority::USER_INITIATED ) );
+
+    group.async( []
+    {
+        MU_ASSERT_TRUE( cxx_global_queue( xdispatch::queue_priority::USER_INTERACTIVE ).is_current_queue() );
+    }, cxx_global_queue( xdispatch::queue_priority::USER_INTERACTIVE ) );
 
     group.notify( []
     {

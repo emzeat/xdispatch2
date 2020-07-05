@@ -45,7 +45,7 @@ namespace naive
 XDISPATCH_EXPORT queue
 create_serial_queue(
     const std::string& label,
-    const ithread_ptr& thread = ithread_ptr()
+    const ithread_ptr& thread
 );
 
 /**

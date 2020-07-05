@@ -42,17 +42,17 @@ void platform_test_main_queue(
     MU_END_TEST;
 }
 
-
-void platform_test_low_queue(
+template<xdispatch::queue_priority p>
+void platform_test_global_queue(
     void*
 )
 {
-    MU_BEGIN_TEST( platform_test_low_queue );
-    auto low = xdispatch::global_queue( xdispatch::queue_priority::LOW );
+    MU_BEGIN_TEST( platform_test_global_queue );
+    auto global = xdispatch::global_queue( p );
 
-    low.async( []
+    global.async( []
     {
-        MU_PASS( "Platform low prio queue works" );
+        MU_PASS( "Platform global queue works" );
     } );
 
     xdispatch::exec();
@@ -60,45 +60,6 @@ void platform_test_low_queue(
     MU_FAIL( "Should never reach this" );
     MU_END_TEST;
 }
-
-
-void platform_test_high_queue(
-    void*
-)
-{
-    MU_BEGIN_TEST( platform_test_high_queue );
-    auto high = xdispatch::global_queue( xdispatch::queue_priority::HIGH );
-
-    high.async( []
-    {
-        MU_PASS( "Platform high prio queue works" );
-    } );
-
-    xdispatch::exec();
-
-    MU_FAIL( "Should never reach this" );
-    MU_END_TEST;
-}
-
-
-void platform_test_default_queue(
-    void*
-)
-{
-    MU_BEGIN_TEST( platform_test_default_queue );
-    auto def = xdispatch::global_queue( xdispatch::queue_priority::DEFAULT );
-
-    def.async( []
-    {
-        MU_PASS( "Platform default prio queue works" );
-    } );
-
-    xdispatch::exec();
-
-    MU_FAIL( "Should never reach this" );
-    MU_END_TEST;
-}
-
 
 void platform_test_custom_queue(
     void*
@@ -161,9 +122,11 @@ void platform_test_group(
 void register_platform_tests()
 {
     MU_REGISTER_TEST( platform_test_main_queue );
-    MU_REGISTER_TEST( platform_test_low_queue );
-    MU_REGISTER_TEST( platform_test_default_queue );
-    MU_REGISTER_TEST( platform_test_high_queue );
+    MU_REGISTER_TEST( platform_test_global_queue<xdispatch::queue_priority::USER_INTERACTIVE> );
+    MU_REGISTER_TEST( platform_test_global_queue<xdispatch::queue_priority::USER_INITIATED> );
+    MU_REGISTER_TEST( platform_test_global_queue<xdispatch::queue_priority::UTILITY> );
+    MU_REGISTER_TEST( platform_test_global_queue<xdispatch::queue_priority::DEFAULT> );
+    MU_REGISTER_TEST( platform_test_global_queue<xdispatch::queue_priority::BACKGROUND> );
     MU_REGISTER_TEST( platform_test_custom_queue );
     MU_REGISTER_TEST( platform_test_timer );
     MU_REGISTER_TEST( platform_test_group );

@@ -36,7 +36,8 @@ class manual_thread : public ithread
 {
 public:
     explicit manual_thread(
-        const std::string& name
+        const std::string& name,
+        queue_priority priority
     );
 
     ~manual_thread() override;
@@ -51,6 +52,7 @@ public:
 
 private:
     const std::string m_name;
+    const queue_priority m_priority;
     std::mutex m_CS;
     std::condition_variable m_cond;
     std::vector< operation_ptr > m_ops;

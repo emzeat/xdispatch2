@@ -71,21 +71,27 @@ queue main_queue()
     return queue( k_label_main, s_instance );
 }
 
-static queue global_queue_low()
+static queue global_queue_USER_INTERACTIVE()
 {
-    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_low, queue_priority::LOW );
+    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_low, queue_priority::USER_INTERACTIVE );
     return queue( k_label_global_low, s_instance );
 }
 
-static queue global_queue_default()
+static queue global_queue_USER_INITIATED()
 {
-    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_default, queue_priority::DEFAULT );
+    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_default, queue_priority::USER_INITIATED );
     return queue( k_label_global_default, s_instance );
 }
 
-static queue global_queue_high()
+static queue global_queue_UTILITY()
 {
-    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_high, queue_priority::HIGH );
+    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_default, queue_priority::UTILITY );
+    return queue( k_label_global_default, s_instance );
+}
+
+static queue global_queue_BACKGROUND()
+{
+    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_high, queue_priority::BACKGROUND );
     return queue( k_label_global_high, s_instance );
 }
 
@@ -95,19 +101,23 @@ queue global_queue(
 {
     switch( p )
     {
-    case queue_priority::LOW:
-        return global_queue_low();
+    case queue_priority::USER_INTERACTIVE:
+        return global_queue_USER_INTERACTIVE();
+    case queue_priority::USER_INITIATED:
+        return global_queue_USER_INITIATED();
     case queue_priority::DEFAULT:
-        return global_queue_default();
-    case queue_priority::HIGH:
-        return global_queue_high();
+    case queue_priority::UTILITY:
+        return global_queue_UTILITY();
+    case queue_priority::BACKGROUND:
+        return global_queue_BACKGROUND();
     }
 }
 
 queue::queue(
-    const std::string& label
+    const std::string& label,
+    queue_priority priority
 )
-    : queue( label, platform_backend().create_serial_queue( label ) )
+    : queue( label, platform_backend().create_serial_queue( label, priority ) )
 {
 }
 

@@ -60,11 +60,13 @@ class ThreadProxy : public ithread, public QObject
 public:
     ThreadProxy(
         QThread* thread,
+        bool deleteThread,
         const std::string& label,
-        bool deleteThread
+        queue_priority priority
     )
         : m_thread( thread )
         , m_label( label )
+        , m_priority( priority )
         , m_deleteThread( deleteThread )
     {
         XDISPATCH_ASSERT( m_thread );
@@ -97,6 +99,7 @@ protected:
         if( ExecuteOperationEvent::Type() == event->type() )
         {
             thread_utils::set_current_thread_name( m_label );
+            thread_utils::set_current_thread_priority( m_priority );
             static_cast<ExecuteOperationEvent*>( event )->execute();
         }
 
@@ -105,26 +108,29 @@ protected:
 
 private:
     QThread* m_thread;
-    std::string m_label;
+    const std::string m_label;
+    const queue_priority m_priority;
     const bool m_deleteThread;
 };
 
 queue create_serial_queue(
     const std::string& label,
-    QThread* thread
+    QThread* thread,
+    queue_priority priority
 )
 {
     XDISPATCH_ASSERT( thread );
-    return naive::create_serial_queue( label, std::make_shared< ThreadProxy >( thread, label, /* delete */ false ), backend_type::qt5 );
+    return naive::create_serial_queue( label, std::make_shared< ThreadProxy >( thread, /* delete */ false, label, priority ), backend_type::qt5 );
 }
 
 iqueue_impl_ptr backend::create_serial_queue(
-    const std::string& label
+    const std::string& label,
+    queue_priority priority
 )
 {
     std::unique_ptr<QThread> thread( new QThread );
     thread->start();
-    return naive::create_serial_queue( label, std::make_shared< ThreadProxy >( thread.release(), label, /* delete */ true ), backend_type::qt5 ).implementation();
+    return naive::create_serial_queue( label, std::make_shared< ThreadProxy >( thread.release(),  /* delete */ true, label, priority ), backend_type::qt5 ).implementation();
 }
 
 iqueue_impl_ptr backend::create_main_queue(

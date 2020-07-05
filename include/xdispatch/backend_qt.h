@@ -46,7 +46,8 @@ namespace qt5
 XDISPATCH_EXPORT queue
 create_serial_queue(
     const std::string& label,
-    QThread* thread
+    QThread* thread,
+    queue_priority priority = queue_priority::DEFAULT
 );
 
 /**

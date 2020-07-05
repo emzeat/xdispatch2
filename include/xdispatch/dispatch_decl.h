@@ -75,6 +75,20 @@ static const std::chrono::nanoseconds nsec_per_usec = std::chrono::microseconds(
   */
 static const std::chrono::microseconds usec_per_sec = std::chrono::seconds( 1 );
 
+/**
+    Priority classes used to classify operations executed
+    on a queue to help the system with managing resources
+    */
+enum class queue_priority
+{
+    DEFAULT, //!< Default classification for the given platform, used when no other priority is set
+
+    USER_INTERACTIVE, //!< Operations affecting the user interface rendering
+    USER_INITIATED, //!< Operations not impacting the user interface but blocking the user from continueing
+    UTILITY, //!< Operations for ongoing operations that the user started or gets informed about
+    BACKGROUND //!< Operations that perform utility tasks in the background which are free to take longer
+};
+
 __XDISPATCH_END_NAMESPACE
 
 /** @} */

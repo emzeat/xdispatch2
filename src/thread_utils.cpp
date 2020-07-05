@@ -24,6 +24,9 @@
 
 #if (defined MZ_LINUX)
     #include <sys/prctl.h>
+    #include <sys/time.h>
+    #include <sys/resource.h>
+    #include <sys/types.h>
 #endif
 
 __XDISPATCH_BEGIN_NAMESPACE
@@ -40,5 +43,72 @@ void thread_utils::set_current_thread_name(
 #   error "implement thread name";
 #endif
 }
+
+void thread_utils::set_current_thread_priority(
+    queue_priority priority
+)
+{
+#if (defined MZ_LINUX)
+    int nice = 0;
+    switch( priority )
+    {
+    case queue_priority::USER_INTERACTIVE:
+        nice = 5;
+        break;
+    case queue_priority::USER_INITIATED:
+        nice = 4;
+        break;
+    case queue_priority::UTILITY:
+        nice = 3;
+        break;
+    case queue_priority::DEFAULT:
+        nice = 0;
+        break;
+    case queue_priority::BACKGROUND:
+        nice = 0;
+        break;
+    }
+    const int tid = static_cast<int>( gettid() );
+    setpriority( PRIO_PROCESS, tid, priority );
+#elif (defined MZ_MACOS || defined MZ_IOS)
+    const qos_class_t qos_class = map_priority_to_qos( priority );
+    pthread_set_qos_class_self_np( qos_class, 0 );
+#ifdef DEBUG
+    qos_class_t qos_actual = QOS_CLASS_DEFAULT;
+    pthread_get_qos_class_np( pthread_self(), &qos_actual, nullptr );
+    XDISPATCH_ASSERT( qos_actual == qos_class );
+#endif
+#else
+#   error "implement thread name";
+#endif
+}
+
+#if (defined __APPLE__)
+qos_class_t thread_utils::map_priority_to_qos(
+    queue_priority priority
+)
+{
+    qos_class_t qos_class = QOS_CLASS_DEFAULT;
+    switch( priority )
+    {
+    case queue_priority::USER_INTERACTIVE:
+        qos_class = QOS_CLASS_USER_INTERACTIVE;
+        break;
+    case queue_priority::USER_INITIATED:
+        qos_class = QOS_CLASS_USER_INITIATED;
+        break;
+    case queue_priority::UTILITY:
+        qos_class = QOS_CLASS_UTILITY;
+        break;
+    case queue_priority::DEFAULT:
+        qos_class = QOS_CLASS_DEFAULT;
+        break;
+    case queue_priority::BACKGROUND:
+        qos_class = QOS_CLASS_BACKGROUND;
+        break;
+    }
+    return qos_class;
+}
+#endif
 
 __XDISPATCH_END_NAMESPACE

@@ -31,7 +31,8 @@ class naive_thread : public manual_thread, public ithreadpool
 {
 public:
     explicit naive_thread(
-        const std::string& name
+        const std::string& name,
+        queue_priority priority
     );
 
     ~naive_thread() final;
