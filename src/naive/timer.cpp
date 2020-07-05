@@ -99,7 +99,7 @@ public:
                 const auto interval = this_ptr->m_interval;
                 lock.unlock();
 
-                handler->operator()();
+                execute_operation_on_this_thread( *handler );
                 std::this_thread::sleep_for( interval );
 
                 lock.lock();

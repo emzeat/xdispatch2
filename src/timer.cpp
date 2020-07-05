@@ -69,6 +69,7 @@ void timer::handler(
     const operation_ptr& op
 )
 {
+    queue_operation_with_d( *op, m_target_queue.implementation().get() );
     m_impl->handler( op );
 }
 

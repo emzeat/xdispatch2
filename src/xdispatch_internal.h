@@ -71,6 +71,16 @@ constexpr const char k_label_global_high[] = "de.mlba-team.xdispatch2.high";
 #include "../include/xdispatch/group.h"
 #include "../include/xdispatch/timer.h"
 
+__XDISPATCH_BEGIN_NAMESPACE
+
+void queue_operation_with_d( operation&, void* );
+void queue_operation_with_d( iteration_operation&, void* );
+void execute_operation_on_this_thread( operation& );
+void execute_operation_on_this_thread( iteration_operation&, size_t );
+bool operation_is_run_with_d( void const* const );
+
+__XDISPATCH_END_NAMESPACE
+
 #undef __XDISPATCH_INDIRECT__
 
 #endif /* XDISPATCH_INTERNAL_H_ */

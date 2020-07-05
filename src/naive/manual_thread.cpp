@@ -64,7 +64,7 @@ void manual_thread::drain()
 
         for( const auto& op : ops )
         {
-            op->operator()();
+            execute_operation_on_this_thread( *op );
         }
     }
 }

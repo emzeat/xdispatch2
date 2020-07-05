@@ -34,6 +34,7 @@ void cxx_dispatch_group_lambda( void* );
 void cxx_dispatch_queue_lambda( void* );
 void cxx_dispatch_serialqueue_lambda( void* );
 void cxx_free_lambda( void* );
+void cxx_is_current( void* );
 
 void register_cxx_tests(
     const char* name,
@@ -49,6 +50,7 @@ void register_cxx_tests(
     MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_queue_lambda, backend );
     MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_serialqueue_lambda, backend );
     MU_REGISTER_TEST_INSTANCE( name, cxx_free_lambda, backend );
+    MU_REGISTER_TEST_INSTANCE( name, cxx_is_current, backend );
 }
 
 static std::mutex s_backend_CS;

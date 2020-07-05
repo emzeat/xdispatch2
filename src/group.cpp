@@ -46,6 +46,7 @@ void group::async(
     const auto q_impl = q.implementation();
     if( m_impl->backend() == q_impl->backend() )
     {
+        queue_operation_with_d( *op, q_impl.get() );
         m_impl->async( op, q_impl );
     }
     else
@@ -65,6 +66,7 @@ void group::notify(
     const auto q_impl = q.implementation();
     if( m_impl->backend() == q_impl->backend() )
     {
+        queue_operation_with_d( *op, q_impl.get() );
         m_impl->notify( op, q_impl );
     }
     else

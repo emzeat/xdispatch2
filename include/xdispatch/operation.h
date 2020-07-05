@@ -48,11 +48,17 @@ __XDISPATCH_BEGIN_NAMESPACE
 class XDISPATCH_EXPORT operation
 {
 public:
-    operation() = default;
+    operation();
 
     virtual ~operation() = default;
 
+protected:
     virtual void operator()() = 0;
+
+private:
+    void* m_d;
+    friend void queue_operation_with_d( operation&, void* );
+    friend void execute_operation_on_this_thread( operation& );
 };
 
 using operation_ptr = std::shared_ptr< operation >;
@@ -68,13 +74,19 @@ using operation_ptr = std::shared_ptr< operation >;
 class XDISPATCH_EXPORT iteration_operation
 {
 public:
-    iteration_operation() = default;
+    iteration_operation();
 
     virtual ~iteration_operation() = default;
 
+protected:
     virtual void operator()(
         size_t index
     ) = 0;
+
+private:
+    void* m_d;
+    friend void queue_operation_with_d( iteration_operation&, void* );
+    friend void execute_operation_on_this_thread( iteration_operation&, size_t );
 };
 
 using iteration_operation_ptr = std::shared_ptr< iteration_operation >;

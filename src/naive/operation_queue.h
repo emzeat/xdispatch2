@@ -78,7 +78,7 @@ private:
     void run();
 
     void process_job(
-        const operation_ptr& job
+        operation& job
     );
 };
 

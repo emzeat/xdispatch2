@@ -19,6 +19,7 @@
 */
 
 #include "operations.h"
+#include "../xdispatch_internal.h"
 
 #include <thread>
 
@@ -39,7 +40,7 @@ apply_operation::apply_operation(
 
 void apply_operation::operator()()
 {
-    m_op->operator()( m_index );
+    execute_operation_on_this_thread( *m_op, m_index );
 
     if( m_consumable )
     {
@@ -64,7 +65,7 @@ void delayed_operation::operator()()
     // FIXME(zwicker): This is very rough and may be blocking a thread - refine!
     std::this_thread::sleep_for( m_delay );
 
-    m_op->operator()();
+    execute_operation_on_this_thread( *m_op );
 
     if( m_consumable )
     {
@@ -84,7 +85,7 @@ consuming_operation::consuming_operation(
 
 void consuming_operation::operator()()
 {
-    m_op->operator()();
+    execute_operation_on_this_thread( *m_op );
 
     if( m_consumable )
     {

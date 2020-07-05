@@ -56,7 +56,7 @@ void run_wrapper(
 #endif
     {
         set_debugger_threadname_from_queue();
-        ( *wrappedOp )();
+        execute_operation_on_this_thread( *wrappedOp );
     }
 #if !(defined DEBUG)
     catch( const std::exception& e )
@@ -124,7 +124,7 @@ void _xdispatch2_run_iter_wrap(
 #endif
     {
         set_debugger_threadname_from_queue();
-        ( *wrapped_op )( index );
+        execute_operation_on_this_thread( *wrapped_op, index );
     }
 #if !(defined DEBUG)
     catch( const std::exception& e )

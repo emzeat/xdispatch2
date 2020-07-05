@@ -39,6 +39,7 @@ void queue::async(
 ) const
 {
     XDISPATCH_ASSERT( op );
+    queue_operation_with_d( *op, m_impl.get() );
     m_impl->async( op );
 }
 
@@ -49,6 +50,7 @@ void queue::apply(
 ) const
 {
     XDISPATCH_ASSERT( op );
+    queue_operation_with_d( *op, m_impl.get() );
     m_impl->apply( times, op );
 }
 
@@ -78,4 +80,9 @@ bool queue::operator==(
 iqueue_impl_ptr queue::implementation() const
 {
     return m_impl;
+}
+
+bool queue::is_current_queue() const
+{
+    return operation_is_run_with_d( m_impl.get() );
 }

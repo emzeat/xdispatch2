@@ -53,7 +53,7 @@ void operation_queue::run()
 
     for( const operation_ptr& job : jobs )
     {
-        process_job( job );
+        process_job( *job );
     }
 }
 
@@ -133,10 +133,10 @@ void operation_queue::detach()
 
 
 void operation_queue::process_job(
-    const operation_ptr& job
+    operation& job
 )
 {
-    ( *job )();
+    execute_operation_on_this_thread( job );
 }
 
 }
