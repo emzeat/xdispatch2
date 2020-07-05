@@ -1,0 +1,27 @@
+kind: pipeline
+type: docker
+name: ubuntu-1604-clang
+
+steps:
+- name: submodules
+  image: alpine/git
+  commands:
+    - git fetch --tags
+    - git submodule update --init --recursive
+
+- name: build
+  image: heimdall.mlba-team.de:5000/builder-1604-cache:latest
+  privileged: true
+  commands:
+    - cd build
+    - bash ./generator.sh mode=release compiler=clang generator=ninja location=inside
+    - cd clang-ninja-release
+    - ninja -j 12
+
+- name: test
+  image: heimdall.mlba-team.de:5000/builder-1604-cache:latest
+  environment:
+    USER: test_runner
+  commands:
+    - cd build/clang-ninja-release/bin
+    - ./xdispatch2_tests
