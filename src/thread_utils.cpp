@@ -26,7 +26,6 @@
     #include <sys/prctl.h>
     #include <sys/time.h>
     #include <sys/resource.h>
-    #define _GNU_SOURCE
     #include <unistd.h>
     #include <sys/types.h>
 #endif
