@@ -55,6 +55,14 @@ void group::async(
     }
 }
 
+void group::async(
+    const operation_ptr& op,
+    queue_priority priority
+)
+{
+    async( op, global_queue( priority ) );
+}
+
 
 void group::notify(
     const operation_ptr& op,

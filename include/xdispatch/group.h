@@ -86,13 +86,25 @@ public:
     /**
         Dispatches an operation on the given queue
         @param op The operation to be dispatched
-        @param q The Queue to use. If no queue is given, the system default queue will be used
+        @param q The queue to use. If no queue is given, the system default queue will be used
 
         The group and queue will be retained by the system until the operation was executed.
     */
     void async(
         const operation_ptr& op,
         const queue& q = global_queue()
+    );
+
+    /**
+        Dispatches an operation on the global queue with the given priority
+        @param op The operation to be dispatched
+        @param priority The priority of the global queue to be used
+
+        The group and queue will be retained by the system until the operation was executed.
+    */
+    void async(
+        const operation_ptr& op,
+        queue_priority priority
     );
 
     /**
@@ -109,6 +121,22 @@ public:
     {
         async( make_operation( f ), q );
     }
+
+    /**
+        @see async(operation_ptr, queue)
+
+        Will wrap the given function in an operation and put it on the queue with the given priority
+        The group and queue will be retained by the system until the operation was executed.
+    */
+    template< typename Func >
+    inline void async(
+        const Func& f,
+        queue_priority priority
+    )
+    {
+        async( make_operation( f ), priority );
+    }
+
 
     /**
         This function schedules a notification operation to be submitted to the specified
