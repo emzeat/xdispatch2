@@ -88,6 +88,7 @@ static int test_selection = -1;
 static char* test_selection_name = NULL;
 static char keep_running = 0;
 char verbose = 0;
+mu_test_t* current_test = NULL;
 
 enum modes
 {
@@ -609,7 +610,9 @@ int MU_runTest(
     }
 
     test = ( mu_test_t* )curr->data;
+    current_test = test;
     test->function( test->user );
+    current_test = NULL;
 
     return EXIT_SUCCESS;
 } /* MU_runTest */

@@ -40,11 +40,11 @@ void _begin_test(
 
     if( verbose )
     {
-        printf( "[%i] Running test '%s'...\n", pid, name );
+        printf( "[%i] Running test '%s' (%s)...\n", pid, current_test->name, name );
     }
     else
     {
-        printf( "Running test '%s'...", name );
+        printf( "Running test '%s'...", current_test->name );
     }
 
     fflush( stdout );

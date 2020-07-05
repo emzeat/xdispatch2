@@ -34,6 +34,7 @@ typedef struct
 } mu_test_t;
 
 extern char verbose;
+extern mu_test_t* current_test;
 
 #include "typedefs.h"
 
