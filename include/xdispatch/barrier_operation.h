@@ -33,7 +33,7 @@ __XDISPATCH_BEGIN_NAMESPACE
  * @brief Implements a barrier operation which may be used to synchronize
  *        with the execution of an operation
  */
-class barrier_operation : public operation
+class XDISPATCH_EXPORT barrier_operation : public operation
 {
 public:
     barrier_operation();
