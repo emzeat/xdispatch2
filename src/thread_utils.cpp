@@ -26,6 +26,8 @@
     #include <sys/prctl.h>
     #include <sys/time.h>
     #include <sys/resource.h>
+    #define _GNU_SOURCE
+    #include <unistd.h>
     #include <sys/types.h>
 #endif
 
@@ -69,7 +71,7 @@ void thread_utils::set_current_thread_priority(
         break;
     }
     const int tid = static_cast<int>( gettid() );
-    setpriority( PRIO_PROCESS, tid, priority );
+    setpriority( PRIO_PROCESS, tid, nice );
 #elif (defined MZ_MACOS || defined MZ_IOS)
     const qos_class_t qos_class = map_priority_to_qos( priority );
     pthread_set_qos_class_self_np( qos_class, 0 );
