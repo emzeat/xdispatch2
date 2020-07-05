@@ -41,7 +41,7 @@ enum class backend_type
     naive,
 #endif
 #if (defined BUILD_XDISPATCH2_BACKEND_QT5)
-    qt,
+    qt5,
 #endif
 #if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
     libdispatch,

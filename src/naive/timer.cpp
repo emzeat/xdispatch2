@@ -32,9 +32,11 @@ namespace naive
 class timer_impl : public itimer_impl, public std::enable_shared_from_this<timer_impl>
 {
 public:
-    explicit timer_impl(
-        const iqueue_impl_ptr& queue
+    timer_impl(
+        const iqueue_impl_ptr& queue,
+        backend_type backend
     ) : itimer_impl()
+        , m_backend( backend )
         , m_interval( 0 )
         , m_queue( queue )
         , m_handler()
@@ -117,10 +119,11 @@ public:
 
     backend_type backend() final
     {
-        return backend_type::naive;
+        return m_backend;
     }
 
 private:
+    const backend_type m_backend;
     std::mutex m_CS;
     std::chrono::milliseconds m_interval;
     iqueue_impl_ptr m_queue;
@@ -130,10 +133,11 @@ private:
 };
 
 itimer_impl_ptr backend::create_timer(
-    const iqueue_impl_ptr& queue
+    const iqueue_impl_ptr& queue,
+    backend_type backend
 )
 {
-    return std::make_shared< timer_impl >( queue );
+    return std::make_shared< timer_impl >( queue, backend );
 }
 
 }

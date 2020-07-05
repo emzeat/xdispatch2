@@ -30,6 +30,10 @@
 #if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
     #include "../src/naive/backend_internal.h"
 #endif
+#if (defined BUILD_XDISPATCH2_BACKEND_QT5)
+    #include <QtCore/QCoreApplication>
+    #include "../src/qt5/backend_internal.h"
+#endif
 
 void print_log(
     const char* msg
@@ -61,6 +65,12 @@ int main( int argc, char* argv[] )
 #if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
     static xdispatch::naive::backend s_naive;
     register_cxx_tests( "naive", &s_naive );
+#endif
+
+#if (defined BUILD_XDISPATCH2_BACKEND_QT5)
+    QCoreApplication app( argc, argv );
+    static xdispatch::qt5::backend s_qt5;
+    register_cxx_tests( "qt5", &s_qt5 );
 #endif
 
     register_platform_tests();

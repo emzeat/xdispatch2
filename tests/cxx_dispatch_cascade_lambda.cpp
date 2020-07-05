@@ -49,7 +49,7 @@ void cxx_dispatch_cascade_lambda(
             q.async( [ = ]{
                 MU_ASSERT_EQUAL( no3, 120 );
                 int no4 = no3 + 3 ;
-                q.async( [ = ]{
+                cxx_main_queue().async( [ = ]{
                     MU_ASSERT_EQUAL( no4, 123 );
                     MU_PASS( "And Out" );
                 } );

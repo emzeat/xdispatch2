@@ -49,7 +49,7 @@ void cxx_dispatch_queue_lambda(
         ++( *worker );
     } );
 
-    cxx_global_queue( xdispatch::queue_priority::LOW ).async( [ = ]
+    cxx_main_queue().async( [ = ]
     {
         MU_ASSERT_EQUAL( *worker, RUN_TIMES );
         delete worker;

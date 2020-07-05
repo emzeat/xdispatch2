@@ -32,8 +32,11 @@ namespace naive
 class group_impl : public igroup_impl, public std::enable_shared_from_this< group_impl >
 {
 public:
-    group_impl()
+    group_impl(
+        backend_type backend
+    )
         : igroup_impl()
+        , m_backend( backend )
         , m_consumable( std::make_shared<consumable>() )
     {
     }
@@ -96,16 +99,19 @@ public:
 
     backend_type backend() final
     {
-        return backend_type::naive;
+        return m_backend;
     }
 
 private:
+    const backend_type m_backend;
     consumable_ptr m_consumable;
 };
 
-igroup_impl_ptr backend::create_group()
+igroup_impl_ptr backend::create_group(
+    backend_type backend
+)
 {
-    return std::make_shared< group_impl >();
+    return std::make_shared< group_impl >( backend );
 }
 
 }

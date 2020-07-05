@@ -38,30 +38,86 @@ class XDISPATCH_EXPORT backend : public ibackend
 public:
     iqueue_impl_ptr create_main_queue(
         const std::string& label
-    ) final;
+    ) override
+    {
+        return create_main_queue( label, backend_type::naive );
+    }
 
     iqueue_impl_ptr create_serial_queue(
         const std::string& label
-    ) final;
+    ) override
+    {
+        return create_serial_queue( label, backend_type::naive );
+    }
 
     iqueue_impl_ptr create_parallel_queue(
         const std::string& label,
         const queue_priority& priority
-    ) final;
+    ) override
+    {
+        return create_parallel_queue( label, priority, backend_type::naive );
+    }
 
-    igroup_impl_ptr create_group() final;
+    igroup_impl_ptr create_group() override
+    {
+        return create_group( backend_type::naive );
+    }
 
     itimer_impl_ptr create_timer(
         const iqueue_impl_ptr& queue
-    ) final;
+    ) override
+    {
+        return create_timer( queue, backend_type::naive );
+    }
 
-    backend_type type() const final
+    backend_type type() const override
     {
         return backend_type::naive;
     }
 
-    void exec() final;
+    void exec() override;
+
+protected:
+    iqueue_impl_ptr create_main_queue(
+        const std::string& label,
+        backend_type backend
+    );
+
+    iqueue_impl_ptr create_serial_queue(
+        const std::string& label,
+        backend_type backend
+    );
+
+    iqueue_impl_ptr create_parallel_queue(
+        const std::string& label,
+        const queue_priority& priority,
+        backend_type backend
+    );
+
+    igroup_impl_ptr create_group(
+        backend_type backend
+    );
+
+    itimer_impl_ptr create_timer(
+        const iqueue_impl_ptr& queue,
+        backend_type backend
+    );
 };
+
+queue
+create_serial_queue(
+    const std::string& label,
+    const ithread_ptr& thread,
+    backend_type backend
+);
+
+queue
+create_parallel_queue(
+    const std::string& label,
+    const ithreadpool_ptr& pool,
+    queue_priority priority,
+    backend_type backend
+);
 
 }
 __XDISPATCH_END_NAMESPACE

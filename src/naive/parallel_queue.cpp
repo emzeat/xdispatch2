@@ -33,8 +33,10 @@ class parallel_queue_impl : public iqueue_impl
 public:
     parallel_queue_impl(
         const ithreadpool_ptr& pool,
-        const queue_priority priority
+        const queue_priority priority,
+        backend_type backend
     ) : iqueue_impl()
+        , m_backend( backend )
         , m_pool( pool )
         , m_priority( priority )
     {
@@ -77,10 +79,11 @@ public:
 
     backend_type backend() final
     {
-        return backend_type::naive;
+        return m_backend;
     }
 
 private:
+    const backend_type m_backend;
     ithreadpool_ptr m_pool;
     const queue_priority m_priority;
 };
@@ -91,16 +94,27 @@ queue create_parallel_queue(
     queue_priority priority
 )
 {
+    return create_parallel_queue( label, pool, priority, backend_type::naive );
+}
+
+queue create_parallel_queue(
+    const std::string& label,
+    const ithreadpool_ptr& pool,
+    queue_priority priority,
+    backend_type backend
+)
+{
     XDISPATCH_ASSERT( pool );
-    return queue( label, std::make_shared< parallel_queue_impl >( pool, priority ) );
+    return queue( label, std::make_shared< parallel_queue_impl >( pool, priority, backend ) );
 }
 
 iqueue_impl_ptr backend::create_parallel_queue(
     const std::string& label,
-    const queue_priority& priority
+    const queue_priority& priority,
+    backend_type backend
 )
 {
-    return std::make_shared< parallel_queue_impl >( std::make_shared< naive_thread >( label ), priority );
+    return std::make_shared< parallel_queue_impl >( std::make_shared< naive_thread >( label ), priority, backend );
 }
 
 

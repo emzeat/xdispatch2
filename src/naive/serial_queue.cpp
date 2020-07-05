@@ -36,8 +36,10 @@ class serial_queue_impl : public iqueue_impl
 {
 public:
     serial_queue_impl(
-        const ithread_ptr& thread
+        const ithread_ptr& thread,
+        backend_type backend
     ) : iqueue_impl()
+        , m_backend( backend )
         , m_queue( std::make_shared< operation_queue >( thread ) )
     {
         XDISPATCH_ASSERT( thread );
@@ -82,30 +84,41 @@ public:
 
     backend_type backend() final
     {
-        return backend_type::naive;
+        return m_backend;
     }
 
 private:
+    const backend_type m_backend;
     operation_queue_ptr m_queue;
 };
+
+queue create_serial_queue(
+    const std::string& label,
+    const ithread_ptr& thread,
+    backend_type backend
+)
+{
+    if( thread )
+    {
+        return queue( label, std::make_shared< serial_queue_impl >( thread, backend ) );
+    }
+    return queue( label, std::make_shared< serial_queue_impl >( std::make_shared< naive_thread >( label ), backend ) );
+}
 
 queue create_serial_queue(
     const std::string& label,
     const ithread_ptr& thread
 )
 {
-    if( thread )
-    {
-        return queue( label, std::make_shared< serial_queue_impl >( thread ) );
-    }
-    return queue( label, std::make_shared< serial_queue_impl >( std::make_shared< naive_thread >( label ) ) );
+    return create_serial_queue( label, thread, backend_type::naive );
 }
 
 iqueue_impl_ptr backend::create_serial_queue(
-    const std::string& label
+    const std::string& label,
+    backend_type backend
 )
 {
-    return std::make_shared< serial_queue_impl >( std::make_shared< naive_thread >( label ) );
+    return std::make_shared< serial_queue_impl >( std::make_shared< naive_thread >( label ), backend );
 }
 
 static std::shared_ptr<manual_thread> main_thread()
@@ -115,10 +128,11 @@ static std::shared_ptr<manual_thread> main_thread()
 }
 
 iqueue_impl_ptr backend::create_main_queue(
-    const std::string& /* label */
+    const std::string& /* label */,
+    backend_type backend
 )
 {
-    static iqueue_impl_ptr s_queue = std::make_shared< serial_queue_impl >( main_thread() );
+    static iqueue_impl_ptr s_queue = std::make_shared< serial_queue_impl >( main_thread(), backend );
     return s_queue;
 }
 
