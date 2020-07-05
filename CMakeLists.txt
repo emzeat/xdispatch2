@@ -30,9 +30,15 @@ endif()
 
 # build options
    set(BUILD_XDISPATCH2_BACKEND_NAIVE ON)
-option(BUILD_XDISPATCH2_BACKEND_QT5 "Build the qt5 backend" ON)
-option(BUILD_XDISPATCH2_BACKEND_LIBDISPATCH "Build the libdispatch backend" ON)
-option(BUILD_XDISPATCH2_TESTS "Build the xdispatch2 test target" OFF)
+if( MZ_IOS OR MZ_MACOS )
+    option(BUILD_XDISPATCH2_BACKEND_QT5 "Build the qt5 backend" ON)
+    option(BUILD_XDISPATCH2_BACKEND_LIBDISPATCH "Build the libdispatch backend" ON)
+    option(BUILD_XDISPATCH2_TESTS "Build the xdispatch2 test target" OFF)
+elseif( MZ_LINUX )
+    option(BUILD_XDISPATCH2_BACKEND_QT5 "Build the qt5 backend" ON)
+    option(BUILD_XDISPATCH2_BACKEND_LIBDISPATCH "Build the libdispatch backend" OFF)
+    option(BUILD_XDISPATCH2_TESTS "Build the xdispatch2 test target" OFF)
+endif()
 
 # configuration and version information
 find_package(Git)
