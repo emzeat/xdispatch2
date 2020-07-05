@@ -156,7 +156,7 @@ if(MZ_IOS)
                 ARCHIVE DESTINATION lib)
     install(DIRECTORY include/xdispatch
                 DESTINATION include
-                PATTERN "*.svn" EXCLUDE)
+                PATTERN "*.git" EXCLUDE)
 
 elseif(MZ_MACOS)
     set_target_properties( xdispatch PROPERTIES

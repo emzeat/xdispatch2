@@ -22,6 +22,7 @@
 #include "munit/MUnit.h"
 #include "cxx_tests.h"
 #include "platform_tests.h"
+#include "signal_tests.h"
 
 #if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
     #include "../src/libdispatch/backend_internal.h"
@@ -63,6 +64,7 @@ int main( int argc, char* argv[] )
 #endif
 
     register_platform_tests();
+    register_signal_tests();
 
     ret = MU_main( argc, argv );
 

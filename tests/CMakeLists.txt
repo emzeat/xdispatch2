@@ -28,6 +28,8 @@ file( GLOB TEST_CXX
   cxx_*.h
   platform_*.cpp
   platform_*.h
+  signal_*.cpp
+  signal_*.h
 )
 
 # includes

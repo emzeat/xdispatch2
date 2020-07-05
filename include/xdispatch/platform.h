@@ -50,4 +50,10 @@
 #include <atomic>
 #include <type_traits>
 
+#ifdef _WIN32
+    #define XDISPATCH_WARN_UNUSED_RETURN(Ret) _Check_Return_ Ret
+#else
+    #define XDISPATCH_WARN_UNUSED_RETURN(Ret) Ret __attribute__((warn_unused_result))
+#endif
+
 #endif // XDISPATCH_PLATFORM_H_
