@@ -83,8 +83,11 @@ public:
         const iqueue_impl_ptr& q
     ) final
     {
+        // FIXME(zwicker): This will be creating a temporary queue for no good reason
+        //                 and can probably be optimized to share an existing thread
         const auto this_ptr = shared_from_this();
-        global_queue().async( [op, q, this_ptr]
+        const auto notify_q = create_serial_queue( k_label_global_low + std::string( "_notify" ) );
+        notify_q.async( [op, q, this_ptr]
         {
             this_ptr->wait( std::chrono::milliseconds::max() );
             q->async( op );

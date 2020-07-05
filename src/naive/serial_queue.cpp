@@ -94,8 +94,11 @@ queue create_serial_queue(
     const ithread_ptr& thread
 )
 {
-    XDISPATCH_ASSERT( thread );
-    return queue( label, std::make_shared< serial_queue_impl >( thread ) );
+    if( thread )
+    {
+        return queue( label, std::make_shared< serial_queue_impl >( thread ) );
+    }
+    return queue( label, std::make_shared< serial_queue_impl >( std::make_shared< naive_thread >( label ) ) );
 }
 
 iqueue_impl_ptr backend::create_serial_queue(

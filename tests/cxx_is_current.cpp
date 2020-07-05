@@ -54,9 +54,9 @@ void cxx_is_current(
     group.notify( []
     {
         MU_PASS( "Seems to work" );
-    } );
+    }, cxx_main_queue() );
 
-    xdispatch::exec();
+    cxx_exec();
 
     MU_FAIL( "Should never reach this" );
     MU_END_TEST;
