@@ -120,6 +120,7 @@ queue create_serial_queue(
 )
 {
     XDISPATCH_ASSERT( thread );
+    thread->setObjectName( QString::fromStdString( label ) );
     return naive::create_serial_queue( label, std::make_shared< ThreadProxy >( thread, /* delete */ false, label, priority ), backend_type::qt5 );
 }
 
