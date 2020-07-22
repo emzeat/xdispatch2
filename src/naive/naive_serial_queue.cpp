@@ -20,40 +20,42 @@
 
 #include "xdispatch/iqueue_impl.h"
 
-#include "backend_internal.h"
+#include "naive_backend_internal.h"
+#include "naive_operation_queue.h"
 #include "naive_thread.h"
-#include "operation_manager.h"
+
+#include <thread>
+#include <mutex>
+#include <vector>
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
 {
 
-class parallel_queue_impl : public iqueue_impl
+class serial_queue_impl : public iqueue_impl
 {
 public:
-    parallel_queue_impl(
-        const ithreadpool_ptr& pool,
-        const queue_priority priority,
+    serial_queue_impl(
+        const ithread_ptr& thread,
         backend_type backend
     ) : iqueue_impl()
         , m_backend( backend )
-        , m_pool( pool )
-        , m_priority( priority )
+        , m_queue( std::make_shared< operation_queue >( thread ) )
     {
-        XDISPATCH_ASSERT( m_pool );
-        operation_queue_manager::instance().attach( m_pool );
+        XDISPATCH_ASSERT( thread );
+        m_queue->attach();
     }
 
-    ~parallel_queue_impl() final
+    ~serial_queue_impl() final
     {
-        operation_queue_manager::instance().detach( m_pool.get() );
+        m_queue->detach();
     }
 
     void async(
         const operation_ptr& op
     ) final
     {
-        m_pool->execute( op, m_priority );
+        m_queue->async( op );
     }
 
     void apply(
@@ -67,6 +69,9 @@ public:
             async( std::make_shared< apply_operation >( i, op, completed ) );
         }
         completed->waitForConsumed();
+
+        // FIXME(zwicker): This is blocking and will not work if invoked from within
+        //                 an operation active on this very same queue
     }
 
     void after(
@@ -84,39 +89,64 @@ public:
 
 private:
     const backend_type m_backend;
-    ithreadpool_ptr m_pool;
-    const queue_priority m_priority;
+    operation_queue_ptr m_queue;
 };
 
-queue create_parallel_queue(
+queue create_serial_queue(
     const std::string& label,
-    const ithreadpool_ptr& pool,
-    queue_priority priority
-)
-{
-    return create_parallel_queue( label, pool, priority, backend_type::naive );
-}
-
-queue create_parallel_queue(
-    const std::string& label,
-    const ithreadpool_ptr& pool,
-    queue_priority priority,
+    const ithread_ptr& thread,
     backend_type backend
 )
 {
-    XDISPATCH_ASSERT( pool );
-    return queue( label, std::make_shared< parallel_queue_impl >( pool, priority, backend ) );
+    XDISPATCH_ASSERT( thread );
+    return queue( label, std::make_shared< serial_queue_impl >( thread, backend ) );
 }
 
-iqueue_impl_ptr backend::create_parallel_queue(
+queue create_serial_queue(
     const std::string& label,
     queue_priority priority,
     backend_type backend
 )
 {
-    return std::make_shared< parallel_queue_impl >( std::make_shared< naive_thread >( label, priority ), priority, backend );
+    return queue( label, std::make_shared< serial_queue_impl >( std::make_shared< naive_thread >( label, priority ), backend ) );
 }
 
+queue create_serial_queue(
+    const std::string& label,
+    const ithread_ptr& thread
+)
+{
+    return create_serial_queue( label, thread, backend_type::naive );
+}
+
+iqueue_impl_ptr backend::create_serial_queue(
+    const std::string& label,
+    queue_priority priority,
+    backend_type backend
+)
+{
+    return std::make_shared< serial_queue_impl >( std::make_shared< naive_thread >( label, priority ), backend );
+}
+
+static std::shared_ptr<manual_thread> main_thread()
+{
+    static std::shared_ptr<manual_thread> s_thread = std::make_shared< manual_thread >( k_label_main, queue_priority::USER_INTERACTIVE );
+    return s_thread;
+}
+
+iqueue_impl_ptr backend::create_main_queue(
+    const std::string& /* label */,
+    backend_type backend
+)
+{
+    static iqueue_impl_ptr s_queue = std::make_shared< serial_queue_impl >( main_thread(), backend );
+    return s_queue;
+}
+
+void backend::exec()
+{
+    main_thread()->drain();
+}
 
 }
 __XDISPATCH_END_NAMESPACE

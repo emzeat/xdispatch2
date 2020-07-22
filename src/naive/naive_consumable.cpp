@@ -18,7 +18,7 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
-#include "consumable.h"
+#include "naive_consumable.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive

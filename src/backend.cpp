@@ -24,13 +24,13 @@
 #include "xdispatch/iqueue_impl.h"
 
 #if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
-    #include "naive/backend_internal.h"
+    #include "naive/naive_backend_internal.h"
 #endif
 #if (defined BUILD_XDISPATCH2_BACKEND_QT5)
-    // #include "libdispatch/backend_internal.h"
+    #include "qt5/qt5_backend_internal.h"
 #endif
 #if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
-    #include "libdispatch/backend_internal.h"
+    #include "libdispatch/libdispatch_backend_internal.h"
 #endif
 
 __XDISPATCH_BEGIN_NAMESPACE
@@ -46,6 +46,11 @@ static ibackend& backend_for_type(
         static libdispatch::backend s_backend_libdispatch;
         return s_backend_libdispatch;
 #endif
+#if (defined BUILD_XDISPATCH2_BACKEND_QT5)
+    case backend_type::qt5:
+        static qt5::backend s_backend_qt5;
+        return s_backend_qt5;
+#endif
     default:
 #if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
         static naive::backend s_backend_naive;
@@ -58,6 +63,8 @@ static ibackend& platform_backend()
 {
 #if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
     return backend_for_type( backend_type::libdispatch );
+#elif (defined BUILD_XDISPATCH2_BACKEND_QT5)
+    return backend_for_type( backend_type::qt5 );
 #elif (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
     return backend_for_type( backend_type::naive );
 #else

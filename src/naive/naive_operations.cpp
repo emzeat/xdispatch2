@@ -18,7 +18,7 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
-#include "operations.h"
+#include "naive_operations.h"
 #include "../xdispatch_internal.h"
 
 #include <thread>

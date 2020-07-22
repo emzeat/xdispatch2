@@ -21,9 +21,9 @@
 #include "xdispatch/igroup_impl.h"
 #include "xdispatch/iqueue_impl.h"
 
-#include "backend_internal.h"
-#include "consumable.h"
-#include "operations.h"
+#include "naive_backend_internal.h"
+#include "naive_consumable.h"
+#include "naive_operations.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive

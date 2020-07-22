@@ -19,7 +19,7 @@
 * @LICENSE_HEADER_END@
 */
 
-#include "operation_manager.h"
+#include "naive_operation_manager.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive

@@ -21,7 +21,7 @@
 #ifndef XDISPATCH_NAIVE_THREAD_H_
 #define XDISPATCH_NAIVE_THREAD_H_
 
-#include "manual_thread.h"
+#include "naive_manual_thread.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive

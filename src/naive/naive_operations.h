@@ -19,7 +19,7 @@
 */
 
 #include "xdispatch/dispatch.h"
-#include "consumable.h"
+#include "naive_consumable.h"
 
 #ifndef XDISPATCH_NAIVE_OPERATIONS_H_
 #define XDISPATCH_NAIVE_OPERATIONS_H_

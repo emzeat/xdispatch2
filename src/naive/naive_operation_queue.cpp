@@ -19,8 +19,8 @@
 * @LICENSE_HEADER_END@
 */
 
-#include "operation_queue.h"
-#include "operation_manager.h"
+#include "naive_operation_queue.h"
+#include "naive_operation_manager.h"
 #include "naive_thread.h"
 
 __XDISPATCH_BEGIN_NAMESPACE

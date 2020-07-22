@@ -26,7 +26,7 @@
 #include <condition_variable>
 #include <vector>
 
-#include "backend_internal.h"
+#include "naive_backend_internal.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive

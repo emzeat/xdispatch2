@@ -18,7 +18,7 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
-#include "manual_thread.h"
+#include "naive_manual_thread.h"
 #include "xdispatch/thread_utils.h"
 
 __XDISPATCH_BEGIN_NAMESPACE

@@ -22,7 +22,7 @@
 #include <QtCore/QRunnable>
 #include <QtCore/QPointer>
 
-#include "backend_internal.h"
+#include "qt5_backend_internal.h"
 #include "xdispatch/thread_utils.h"
 
 __XDISPATCH_BEGIN_NAMESPACE

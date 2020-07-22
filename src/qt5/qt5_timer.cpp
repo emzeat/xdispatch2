@@ -18,7 +18,7 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
-#include "backend_internal.h"
+#include "qt5_backend_internal.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace qt5

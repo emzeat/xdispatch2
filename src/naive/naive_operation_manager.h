@@ -24,7 +24,7 @@
 
 #include <vector>
 
-#include "backend_internal.h"
+#include "naive_backend_internal.h"
 #include "naive_thread.h"
 
 __XDISPATCH_BEGIN_NAMESPACE

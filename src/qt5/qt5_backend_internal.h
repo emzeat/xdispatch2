@@ -25,7 +25,7 @@
 #if !(defined BUILD_XDISPATCH2_BACKEND_NAIVE)
     # error "Naive backend is required to build qt5 backend"
 #endif
-#include "../naive/backend_internal.h"
+#include "../naive/naive_backend_internal.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace qt5

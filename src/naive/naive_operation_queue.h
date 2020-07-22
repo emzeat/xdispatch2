@@ -25,7 +25,7 @@
 #include <list>
 #include <mutex>
 
-#include "backend_internal.h"
+#include "naive_backend_internal.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive

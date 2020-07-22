@@ -20,8 +20,8 @@
 
 #include "xdispatch/igroup_impl.h"
 
-#include "backend_internal.h"
-#include "execution.h"
+#include "libdispatch_backend_internal.h"
+#include "libdispatch_execution.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace libdispatch

@@ -22,8 +22,8 @@
 
 #include "xdispatch/itimer_impl.h"
 
-#include "backend_internal.h"
-#include "operations.h"
+#include "naive_backend_internal.h"
+#include "naive_operations.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive

@@ -26,8 +26,8 @@
 
 #include "../xdispatch_internal.h"
 
-#include "consumable.h"
-#include "operations.h"
+#include "naive_consumable.h"
+#include "naive_operations.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
