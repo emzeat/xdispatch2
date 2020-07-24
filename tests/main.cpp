@@ -25,14 +25,14 @@
 #include "signal_tests.h"
 
 #if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
-    #include "../src/libdispatch/backend_internal.h"
+    #include "../src/libdispatch/libdispatch_backend_internal.h"
 #endif
 #if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
-    #include "../src/naive/backend_internal.h"
+    #include "../src/naive/naive_backend_internal.h"
 #endif
 #if (defined BUILD_XDISPATCH2_BACKEND_QT5)
     #include <QtCore/QCoreApplication>
-    #include "../src/qt5/backend_internal.h"
+    #include "../src/qt5/qt5_backend_internal.h"
 #endif
 
 void print_log(
