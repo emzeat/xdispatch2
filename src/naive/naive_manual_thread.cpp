@@ -45,7 +45,7 @@ void manual_thread::execute(
 )
 {
     std::lock_guard<std::mutex> guard( m_CS );
-    m_ops.push_back( work );
+    m_queued_ops.push_back( work );
     m_cond.notify_all();
 }
 
@@ -55,21 +55,23 @@ void manual_thread::drain()
     thread_utils::set_current_thread_priority( m_priority );
     while( !m_cancelled )
     {
-        std::vector< operation_ptr > ops;
+        std::vector< operation_ptr > active_ops;
         {
             std::unique_lock<std::mutex> guard( m_CS );
-            if( m_ops.empty() )
+            if( m_queued_ops.empty() )
             {
                 m_cond.wait( guard );
             }
-            std::swap( m_ops, ops );
+            std::swap( m_queued_ops, active_ops );
         }
 
-        for( const auto& op : ops )
+        for( const auto& op : active_ops )
         {
             execute_operation_on_this_thread( *op );
         }
     }
+
+    m_cancelled = false;
 }
 
 void manual_thread::cancel()

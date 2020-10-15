@@ -49,22 +49,37 @@ public:
         queue_priority priority
     );
 
+    /**
+        @brief Destructor
+     */
     ~manual_thread() override;
 
+    /**
+        Executes all queued operations on the calling thread
+        until interruped via cancel()
+     */
+    void drain();
+
+    /**
+        Signals an active call to drain() that
+        it should return on the next possible occassion.
+     */
+    void cancel();
+
+protected:
+    /**
+        @copydoc IThread::execute
+     */
     void execute(
         const operation_ptr& work
     ) override;
-
-    void drain();
-
-    void cancel();
 
 private:
     const std::string m_name;
     const queue_priority m_priority;
     std::mutex m_CS;
     std::condition_variable m_cond;
-    std::vector< operation_ptr > m_ops;
+    std::vector< operation_ptr > m_queued_ops;
     bool m_cancelled;
 };
 
