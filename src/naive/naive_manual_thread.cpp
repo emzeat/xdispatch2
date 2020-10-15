@@ -49,7 +49,7 @@ void manual_thread::execute(
     m_cond.notify_all();
 }
 
-void manual_thread::drain()
+void manual_thread::run()
 {
     thread_utils::set_current_thread_name( m_name );
     thread_utils::set_current_thread_priority( m_priority );

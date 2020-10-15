@@ -1,5 +1,5 @@
 /*
-* operation_manager.cpp
+* operation_queue_manager.cpp
 *
 * Copyright (c) 2012-2018 Marius Zwicker
 * All rights reserved.
@@ -19,7 +19,7 @@
 * @LICENSE_HEADER_END@
 */
 
-#include "naive_operation_manager.h"
+#include "naive_operation_queue_manager.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
@@ -36,7 +36,7 @@ void operation_queue_manager::attach(
 {
     m_thread.execute( make_operation( [q, this]
     {
-        m_queues.push_back( q );
+        m_queues.push_back( std::move( q ) );
     } ) );
 }
 

@@ -1,5 +1,5 @@
 /*
-* operation_manager.h
+* operation_queue_manager.h
 *
 * Copyright (c) 2012-2018 Marius Zwicker
 * All rights reserved.
@@ -19,8 +19,8 @@
 * @LICENSE_HEADER_END@
 */
 
-#ifndef XDISPATCH_NAIVE_OPERATION_MANAGER_H_
-#define XDISPATCH_NAIVE_OPERATION_MANAGER_H_
+#ifndef XDISPATCH_NAIVE_OPERATION_QUEUE_MANAGER_H_
+#define XDISPATCH_NAIVE_OPERATION_QUEUE_MANAGER_H_
 
 #include <vector>
 
@@ -33,19 +33,49 @@ namespace naive
 
 using void_ptr = std::shared_ptr<void>;
 
+/**
+    @brief Provides the root for all operation queues
+
+    This is used by operation queues to manage their lifetime
+    such that an operation queue will only go out of scope when
+    its last operation goes out of scope.
+
+    The manager is optimized
+ */
 class operation_queue_manager
 {
 public:
     ~operation_queue_manager();
 
+    /**
+        @brief Attaches the given queue to the manager
+
+        Once the call returns the queue will remain alive until
+        explicitly detached from the manager again.
+
+        It is safe to call this function from multiple
+        threads at the same time.
+     */
     void attach(
         void_ptr q
     );
 
+    /**
+        @brief Detaches the given queue from the manager
+
+        Once the call returns the queue will go out of
+        any time - there is no guarantee as to when.
+
+        It is safe to call this function from multiple
+        threads at the same time.
+     */
     void detach(
         void const* const q
     );
 
+    /**
+        @return The global instance of the operation manager
+     */
     static operation_queue_manager& instance();
 
 private:
@@ -59,4 +89,4 @@ private:
 }
 __XDISPATCH_END_NAMESPACE
 
-#endif // XDISPATCH_NAIVE_OPERATION_MANAGER_H_
+#endif // XDISPATCH_NAIVE_OPERATION_QUEUE_MANAGER_H_

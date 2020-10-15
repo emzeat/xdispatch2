@@ -20,8 +20,9 @@
 */
 
 #include "naive_operation_queue.h"
-#include "naive_operation_manager.h"
+#include "naive_operation_queue_manager.h"
 #include "naive_thread.h"
+#include "naive_inverse_lockguard.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
@@ -32,39 +33,100 @@ operation_queue::operation_queue(
 )
     : m_jobs()
     , m_CS()
+    , m_active_drain( false )
     , m_notify_operation()
     , m_thread( thread )
 {
 }
 
+// helper to introduce a delay into a loop condition
+inline bool yield_drain()
+{
+    std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
+    return true;
+}
+
 operation_queue::~operation_queue()
 {
-    m_thread.reset();
-    std::lock_guard<std::mutex> lock( m_CS );
-}
-
-void operation_queue::run()
-{
-    std::list< operation_ptr > jobs;
+    // ensure no new notifications can get queued
+    // wait for calls to drain() to return so that
+    // no dangling pointer access may happen on a different
+    // thread.
+    bool active_drain = false;
+    do
     {
         std::lock_guard<std::mutex> lock( m_CS );
-        std::swap( m_jobs, jobs );
+        m_notify_operation.reset();
+        active_drain = m_active_drain;
     }
+    // delay to give other threads a chance to proceed
+    // if the drain is active
+    while( active_drain && yield_drain() );
 
-    for( const operation_ptr& job : jobs )
-    {
-        process_job( *job );
-    }
+    // release the thread
+    m_thread.reset();
 }
 
+class drain_scope
+{
+public:
+    drain_scope(
+        bool& active_drain
+    )
+        : m_active_drain( active_drain )
+    {
+        m_active_drain = true;
+    }
+
+    ~drain_scope()
+    {
+        m_active_drain = false;
+    }
+
+private:
+    bool& m_active_drain;
+};
+
+void operation_queue::drain()
+{
+    std::lock_guard<std::mutex> lock( m_CS );
+    drain_scope scope( m_active_drain );
+    // we need to satisfy two constraints here:
+    // 1. do not remove the entry from m_jobs
+    //    until AFTER it has been executed so that async()
+    //    can test if all operations in m_jobs have COMPLETED
+    //    by checking if m_jobs is empty
+    // 2. make sure not to free an operation while m_CS is
+    //    locked so that recursive scenarios are supported
+    while( !m_jobs.empty() )
+    {
+        operation_ptr job;
+        std::swap( m_jobs.front(), job );
+        {
+            inverse_lock_guard<std::mutex> unlock( m_CS );
+            if( job )
+            {
+                process_job( *job );
+                job.reset();
+            }
+        }
+        m_jobs.pop_front();
+    }
+}
 
 void operation_queue::async(
     const operation_ptr& job
 )
 {
+    // preallocate outside the lock
+    operation_ptr job2 = job;
+
     std::lock_guard<std::mutex> lock( m_CS );
+    // we only need to notify, i.e. wake the thread
+    // if all previous jobs have been COMPLETED. Elsewise
+    // the thread is awake anyways and we can spare the overhead
     const bool notify = m_jobs.empty();
-    m_jobs.push_back( job );
+    m_jobs.push_back( std::move( job2 ) );
     if( notify && m_notify_operation )
     {
         m_thread->execute( m_notify_operation );
@@ -73,28 +135,8 @@ void operation_queue::async(
 
 void operation_queue::attach()
 {
-    class run_operation : public operation
-    {
-    public:
-        explicit run_operation(
-            operation_queue& q
-        )
-            : operation()
-            , m_q( q )
-        {
-        }
-
-        void operator()() final
-        {
-            m_q.run();
-        }
-
-    private:
-        operation_queue& m_q;
-    };
-
     std::lock_guard<std::mutex> lock( m_CS );
-    m_notify_operation = std::make_shared<run_operation>( *this );
+    m_notify_operation = make_operation( this, &operation_queue::drain );
 
     const auto this_ptr = shared_from_this();
     XDISPATCH_ASSERT( this_ptr );
@@ -103,32 +145,34 @@ void operation_queue::attach()
 
 void operation_queue::detach()
 {
+    bool empty = false;
     {
         std::lock_guard<std::mutex> lock( m_CS );
+        empty = m_jobs.empty();
         m_notify_operation.reset();
     }
 
-    class detach_operation : public operation
+    if( empty )
     {
-    public:
-        explicit detach_operation(
-            operation_queue const* const q
-        )
-            : operation()
-            , m_q( q )
+        // if there was no jobs remaining at the time the notify
+        // operation was reset, there is no chance anymore for an
+        // operation to be dispatched. As such we can cut it short
+        // and skip the wakeup of our thread, directly unregistering
+        // with the manager instead as no barrier is needed
+        operation_queue_manager::instance().detach( this );
+    }
+    else
+    {
+        // queue a final operation which will be executed after
+        // all others which have been queued so far. The final
+        // operation will make sure to unregister with the queue
+        // manager and hence release the operation_queue
+        const auto detach_op = make_operation( [this]
         {
-        }
-
-        void operator()() final
-        {
-            operation_queue_manager::instance().detach( m_q );
-        }
-
-    private:
-        operation_queue const* const m_q;
-    };
-
-    async( std::make_shared<detach_operation>( this ) );
+            operation_queue_manager::instance().detach( this );
+        } );
+        async( detach_op );
+    }
 }
 
 

@@ -145,7 +145,7 @@ iqueue_impl_ptr backend::create_main_queue(
 
 void backend::exec()
 {
-    main_thread()->drain();
+    main_thread()->run();
 }
 
 }

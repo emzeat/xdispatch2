@@ -56,7 +56,7 @@ public:
         Executes all queued operations on the calling thread
         until interruped via cancel()
      */
-    void drain();
+    void run();
 
     /**
         Signals an active call to drain() that

@@ -32,50 +32,83 @@ namespace naive
 {
 
 /**
- * Manages the access to an opengl context.
- *
- * When needing a current context, the work
- * is wrapped as functor or lambda and dispatched
- * on this queue using sync() or async(). It is
- * garuanteed the managed context is current when
- * the dispatched work is finally executed. So
- * there is no need to call makeCurrent() or
- * doneCurrent() manually.
- *
- * A separate thread automatically processing dispatched
- * items has to be launched using start(). When not using
- * such a thread, drain() can be used to process all
- * pending items. Behaviour is undefined when using drain()
- * after calling start() or when calling start() while
- * a call to drain() is active.
+    A threadsafe queue which will maintain operations for execution
+
+    After creation the owner of the operation_queue is required to
+    attach() it so that the queue registers with the manager and its
+    notification and lifetime management become active.
+
+    If an operation is queued it will be automatically dispatched
+    onto the associated thread. Unnecessary thread wakeups will
+    be optimized by not waking an already active thread again.
+
+    As soon as the owner has no use for the operation_queue
+    and also has no intend to queue operations to it anymore, it
+    is required to detach() it. This will dispatch one last
+    operation which acts as a kind of barrier making sure that
+    the queue unregisters with the manager again and goes out of
+    scope with the last operation completing.
+
+    @see operation_queue_manager
  */
 class operation_queue : public std::enable_shared_from_this< operation_queue >
 {
 public:
     /**
-     * Creates a new queue managing the access to
-     * the given opengl context
+        @param thread The thread implementation that all queued operations
+                      will be eventually executed on
      */
     explicit operation_queue(
-        const ithread_ptr&
+        const ithread_ptr& thread
     );
+
+    /**
+        @brief Destructor
+     */
     ~operation_queue();
 
+    /**
+        @brief Enqueues the passed job for async execution in the queue
+
+        @remark A queue needs to have been attached for this to show an effect
+     */
     void async(
         const operation_ptr& job
     );
 
+    /**
+        @brief Marks the queue as active
+
+        After attaching a queue it is registered with the queue manager
+        and may receive operations for async execution. It is ensured
+        that the queue object cannot go out of scope until detach()
+        has been called.
+
+        @see operation_queue_manager
+     */
     void attach();
 
+    /**
+        @brief Marks the queue as inactive
+
+        No further operations can be queued for async execution anymore.
+
+        The queue will unregister from the queue manager as soon
+        as the last operation which had been queued until this point
+        has executed. After unregistering the queue will go out of scope.
+
+        @see operation_queue_manager
+     */
     void detach();
 
 private:
     std::list< operation_ptr > m_jobs;
     std::mutex m_CS;
+    bool m_active_drain;
     operation_ptr m_notify_operation;
     ithread_ptr m_thread;
 
-    void run();
+    void drain();
 
     void process_job(
         operation& job

@@ -24,6 +24,7 @@
 
 #include "naive_backend_internal.h"
 #include "naive_operations.h"
+#include "naive_inverse_lockguard.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
@@ -99,12 +100,10 @@ public:
             {
                 const auto handler = this_ptr->m_handler;
                 const auto interval = this_ptr->m_interval;
-                lock.unlock();
 
+                inverse_lock_guard< std::mutex >unlock( this_ptr->m_CS );
                 execute_operation_on_this_thread( *handler );
                 std::this_thread::sleep_for( interval );
-
-                lock.lock();
             }
         } );
 

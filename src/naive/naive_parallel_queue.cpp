@@ -23,7 +23,7 @@
 #include "naive_backend_internal.h"
 #include "naive_thread.h"
 #include "naive_threadpool.h"
-#include "naive_operation_manager.h"
+#include "naive_operation_queue_manager.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
