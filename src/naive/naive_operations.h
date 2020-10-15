@@ -28,15 +28,27 @@ __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
 {
 
+/**
+    @brief An operation grouping an iteration operation and
+           invoking iterator together in a single call
+ */
 class apply_operation : public operation
 {
 public:
+    /**
+       @param index The iterator for which to call op
+       @param op The iteration operation to be executed with index
+       @param consumable The consumable to notify when done
+     */
     apply_operation(
         size_t index,
         const iteration_operation_ptr& op,
         const consumable_ptr& consumable = consumable_ptr()
     );
 
+    /**
+        @copydoc operation::operator()()
+     */
     void operator()() final;
 
 private:
@@ -45,15 +57,27 @@ private:
     const consumable_ptr m_consumable;
 };
 
+/**
+    @brief An operation delaying the execution of
+           another through simple blocking
+ */
 class delayed_operation : public operation
 {
 public:
+    /**
+       @param delay The time to block and hence delay op
+       @param op The operation to be executed after delay
+       @param consumable The consumable to notify when done
+     */
     delayed_operation(
         std::chrono::milliseconds delay,
         const operation_ptr& op,
         const consumable_ptr& consumable = consumable_ptr()
     );
 
+    /**
+        @copydoc operation::operator()()
+     */
     void operator()() final;
 
 private:
@@ -62,14 +86,24 @@ private:
     const consumable_ptr m_consumable;
 };
 
+/**
+    @brief An operation notifying a consumable when done
+ */
 class consuming_operation : public operation
 {
 public:
+    /**
+       @param op The operation to be executed
+       @param consumable The consumable to notify when done
+     */
     consuming_operation(
         const operation_ptr& op,
         const consumable_ptr& consumable
     );
 
+    /**
+        @copydoc operation::operator()()
+     */
     void operator()() final;
 
 private:
