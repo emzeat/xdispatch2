@@ -39,8 +39,6 @@ class manual_thread : public ithread
 {
 public:
     /**
-        @brief Creates a new thread
-
         @param name The name by which the thread is known
         @param priority The default priority for which the thread will execute
      */

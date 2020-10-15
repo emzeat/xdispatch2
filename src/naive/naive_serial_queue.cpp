@@ -108,7 +108,7 @@ queue create_serial_queue(
     backend_type backend
 )
 {
-    return queue( label, std::make_shared< serial_queue_impl >( std::make_shared< naive_thread >( label, priority ), backend ) );
+    return queue( label, std::make_shared< serial_queue_impl >( std::make_shared< thread >( label, priority ), backend ) );
 }
 
 queue create_serial_queue(
@@ -125,7 +125,7 @@ iqueue_impl_ptr backend::create_serial_queue(
     backend_type backend
 )
 {
-    return std::make_shared< serial_queue_impl >( std::make_shared< naive_thread >( label, priority ), backend );
+    return std::make_shared< serial_queue_impl >( std::make_shared< thread >( label, priority ), backend );
 }
 
 static std::shared_ptr<manual_thread> main_thread()

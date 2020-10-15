@@ -18,33 +18,27 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
-#include "naive_thread.h"
+#include "naive_threadpool.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
 {
 
-thread::thread(
+threadpool::threadpool(
     const std::string& name,
     queue_priority priority
 )
-    : manual_thread( name, priority )
-    , m_thread( &manual_thread::drain, this )
+    : ithreadpool()
+    , m_thread( name, priority )
 {
 }
 
-thread::~thread()
-{
-    manual_thread::cancel();
-    XDISPATCH_ASSERT( m_thread.joinable() && "Thread should not delete itself" );
-    m_thread.join();
-}
-
-void thread::execute(
-    const operation_ptr& work
+void threadpool::execute(
+    const operation_ptr& work,
+    const queue_priority /* priority */
 )
 {
-    manual_thread::execute( work );
+    m_thread.execute( work );
 }
 
 }

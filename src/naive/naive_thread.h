@@ -27,23 +27,31 @@ __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
 {
 
-class naive_thread : public manual_thread, public ithreadpool
+/**
+    An implementation of ithread executing on its own thread
+ */
+class thread : public manual_thread
 {
 public:
-    explicit naive_thread(
+    /**
+        @param name The name by which the thread is known
+        @param priority The default priority for which the thread will execute
+     */
+    thread(
         const std::string& name,
         queue_priority priority
     );
 
-    ~naive_thread() final;
+    /**
+        @brief Destructor
+     */
+    ~thread() final;
 
+    /**
+        @copydoc manual_thread::execute
+     */
     void execute(
         const operation_ptr& work
-    ) final;
-
-    void execute(
-        const operation_ptr& work,
-        const queue_priority /* priority */
     ) final;
 
 private:

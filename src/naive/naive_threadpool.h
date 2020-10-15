@@ -18,34 +18,44 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
+#ifndef XDISPATCH_NAIVE_THREADPOOL_H_
+#define XDISPATCH_NAIVE_THREADPOOL_H_
+
 #include "naive_thread.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
 {
 
-thread::thread(
-    const std::string& name,
-    queue_priority priority
-)
-    : manual_thread( name, priority )
-    , m_thread( &manual_thread::drain, this )
+/**
+    An implementation of ithreadpool executing in a single thread
+    for sake of simplicity.
+ */
+class threadpool : public ithreadpool
 {
-}
+public:
+    /**
+        @param name The name by which the threadpool is known
+        @param priority The default priority for which the threadpool will execute
+     */
+    threadpool(
+        const std::string& name,
+        queue_priority priority
+    );
 
-thread::~thread()
-{
-    manual_thread::cancel();
-    XDISPATCH_ASSERT( m_thread.joinable() && "Thread should not delete itself" );
-    m_thread.join();
-}
+    /**
+        @copydoc ithreadpool::execute
+     */
+    void execute(
+        const operation_ptr& work,
+        const queue_priority priority
+    ) final;
 
-void thread::execute(
-    const operation_ptr& work
-)
-{
-    manual_thread::execute( work );
-}
+private:
+    thread m_thread;
+};
 
 }
 __XDISPATCH_END_NAMESPACE
+
+#endif /* XDISPATCH_NAIVE_THREADPOOL_H_ */

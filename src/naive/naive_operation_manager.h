@@ -51,7 +51,7 @@ public:
 private:
     operation_queue_manager();
 
-    naive_thread m_thread;
+    thread m_thread;
     std::vector< void_ptr > m_queues;
 };
 

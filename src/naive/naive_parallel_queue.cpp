@@ -22,6 +22,7 @@
 
 #include "naive_backend_internal.h"
 #include "naive_thread.h"
+#include "naive_threadpool.h"
 #include "naive_operation_manager.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
@@ -114,7 +115,7 @@ iqueue_impl_ptr backend::create_parallel_queue(
     backend_type backend
 )
 {
-    return std::make_shared< parallel_queue_impl >( std::make_shared< naive_thread >( label, priority ), priority, backend );
+    return std::make_shared< parallel_queue_impl >( std::make_shared< threadpool >( label, priority ), priority, backend );
 }
 
 

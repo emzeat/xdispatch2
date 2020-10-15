@@ -62,7 +62,7 @@ public:
 
         @param interval The interval at which the timer will fire after the timeout occured.
         @param target The queue to execute the timer on, defaults to the global_queue
-        */
+    */
     explicit timer(
         std::chrono::milliseconds interval,
         const queue& target = global_queue()
@@ -70,6 +70,12 @@ public:
 
     /**
         Constructs a new periodic timer using the given implementation
+
+        @param impl The implementation to be used
+        @param target The queue on which a handler is executed after the timeout
+
+        @throws std::logic_error if the impl backend is of a different type than
+                the backend handling target
     */
     timer(
         const itimer_impl_ptr& impl,

@@ -132,10 +132,11 @@ timer::timer(
     std::chrono::milliseconds interval,
     const queue& target
 )
-    : timer( [interval, target]
+    : timer( [interval, &target]
 {
-    const auto q_type = target.implementation()->backend();
-    auto impl = backend_for_type( q_type ).create_timer( target.implementation() );
+    const auto q_impl = target.implementation();
+    const auto q_backend_type = q_impl->backend();
+    const auto impl = backend_for_type( q_backend_type ).create_timer( q_impl );
     XDISPATCH_ASSERT( impl );
     impl->interval( interval );
     return timer( impl, target );
