@@ -33,7 +33,7 @@
 
 #include "xdispatch/dispatch.h"
 #if (!BUILD_XDISPATCH2_BACKEND_QT5)
-    #error "The naive backend is not available on this platform"
+    #error "The qt5 backend is not available on this platform"
 #endif
 
 __XDISPATCH_BEGIN_NAMESPACE
