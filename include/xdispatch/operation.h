@@ -53,9 +53,14 @@ public:
     virtual ~operation() = default;
 
 protected:
+    /**
+        Will be invoked when the operation gets executed
+        after it had been queued.
+     */
     virtual void operator()() = 0;
 
 private:
+    // opaque data pointer for internal book keeping
     void* m_d;
     friend void queue_operation_with_d( operation&, void* );
     friend void execute_operation_on_this_thread( operation& );
@@ -79,11 +84,19 @@ public:
     virtual ~iteration_operation() = default;
 
 protected:
+    /**
+        Will be invoked when the operation gets executed
+        after it had been queued.
+
+        @param index The iterator position for which
+                     the operation is executed
+     */
     virtual void operator()(
         size_t index
     ) = 0;
 
 private:
+    // opaque data pointer for internal book keeping
     void* m_d;
     friend void queue_operation_with_d( iteration_operation&, void* );
     friend void execute_operation_on_this_thread( iteration_operation&, size_t );

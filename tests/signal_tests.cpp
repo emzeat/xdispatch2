@@ -22,6 +22,7 @@
 
 #include <xdispatch/dispatch.h>
 #include <xdispatch/signals.h>
+#include <xdispatch/signals_barrier.h>
 
 #include "signal_tests.h"
 
@@ -112,10 +113,79 @@ void signal_test_recursive_disconnect(
     MU_END_TEST;
 }
 
+void signal_test_barrier(
+    void*
+)
+{
+    MU_BEGIN_TEST( signal_test_barrier );
+
+    xdispatch::signal<void( void )> void_signal;
+    xdispatch::signal_barrier<void( void )> barrier( void_signal );
+
+    MU_ASSERT_NOT_TRUE( barrier.wait( std::chrono::milliseconds( 0 ) ) );
+    xdispatch::global_queue().async( [&] { void_signal(); } );
+    MU_ASSERT_TRUE( barrier.wait() );
+    MU_ASSERT_TRUE( barrier.wait( std::chrono::milliseconds( 0 ) ) );
+
+    MU_PASS( "Signal raised" );
+    MU_END_TEST;
+}
+
+void signal_test_barrier_value(
+    void*
+)
+{
+    MU_BEGIN_TEST( signal_test_barrier_value );
+
+    xdispatch::signal<void( int )> int_signal;
+    xdispatch::signal_barrier<void( int )> barrier( int_signal );
+
+    MU_ASSERT_NOT_TRUE( barrier.wait( std::chrono::milliseconds( 0 ) ) );
+    try
+    {
+        MU_ASSERT_EQUAL( 0, barrier.value() );
+        MU_FAIL( "Should raise std::runtime_error" );
+    }
+    catch( std::runtime_error& e )
+    {
+    }
+    try
+    {
+        MU_ASSERT_EQUAL( 0, barrier.value<0>() );
+    }
+    catch( std::runtime_error& e )
+    {
+    }
+    try
+    {
+        MU_ASSERT_EQUAL( 0, std::get<0>( barrier.values() ) );
+    }
+    catch( std::runtime_error& e )
+    {
+    }
+
+    xdispatch::global_queue().async( [&] { int_signal( 24 ); } );
+    MU_ASSERT_TRUE( barrier.wait() );
+    MU_ASSERT_TRUE( barrier.wait( std::chrono::milliseconds( 0 ) ) );
+    MU_ASSERT_EQUAL( 24, barrier.value() );
+    MU_ASSERT_EQUAL( 24, barrier.value<0>() );
+    MU_ASSERT_EQUAL( 24, std::get<0>( barrier.values() ) );
+
+    int_signal( 80 );
+    MU_ASSERT_EQUAL( 24, barrier.value() );
+    MU_ASSERT_EQUAL( 24, barrier.value<0>() );
+    MU_ASSERT_EQUAL( 24, std::get<0>( barrier.values() ) );
+
+    MU_PASS( "Signal raised" );
+    MU_END_TEST;
+}
+
 void register_signal_tests()
 {
     MU_REGISTER_TEST( signal_test_void_connection );
     MU_REGISTER_TEST( signal_test_int_connection );
     MU_REGISTER_TEST( signal_test_disconnect );
     MU_REGISTER_TEST( signal_test_recursive_disconnect );
+    MU_REGISTER_TEST( signal_test_barrier );
+    MU_REGISTER_TEST( signal_test_barrier_value );
 }

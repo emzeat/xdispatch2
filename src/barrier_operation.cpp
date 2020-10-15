@@ -53,6 +53,12 @@ bool barrier_operation::wait(
     return ( std::cv_status::no_timeout == t );
 }
 
+bool barrier_operation::has_passed() const
+{
+    std::unique_lock< std::mutex > lock( m_mutex );
+    return false == m_should_wait;
+}
+
 void barrier_operation::operator()()
 {
     std::unique_lock< std::mutex > lock( m_mutex );

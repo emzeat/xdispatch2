@@ -37,10 +37,19 @@ __XDISPATCH_BEGIN_NAMESPACE
 template<typename Signature>
 class signal_barrier;
 
+/**
+ * @brief Implements a barrier which may be used to synchronize
+ *        with the next raise of a signal
+ */
 template<typename... Args>
 class signal_barrier<void( Args... )>
 {
 public:
+    /**
+        @brief Constructs a new barrier
+
+        @param signal The signal against which to synchronize
+     */
     explicit signal_barrier(
         signal< void( Args... ) >& signal
     )
@@ -50,20 +59,61 @@ public:
     {
         m_values = std::make_tuple( values... );
         m_barrier();
+        m_connection.disconnect();
     } ) )
     {
     }
 
-    inline void wait(
+    /**
+        @brief Will wait for the signal to be raised
+
+        If the signal has been raised since the barrier has been
+        constructed, the call will return immediately
+
+        @param timeout the maximum time to wait for the signal
+
+        @returns true if the signal was raised or false if the timeout
+                 expired before the signal
+     */
+    inline bool wait(
         std::chrono::milliseconds timeout = std::chrono::milliseconds::max()
     )
     {
-        m_barrier.wait( timeout );
+        return m_barrier.wait( timeout );
     }
 
+    /**
+        @return The values that had been emitted as part of the raise
+                which caused the barrier to unblock.
+
+        Further raises of the signal will leave the values unchanged.
+
+        @throws std::runtime_error if called before the signal had been raised
+     */
     inline std::tuple< Args ... > values() const
     {
-        return m_values;
+        if( m_barrier.has_passed() )
+        {
+            return m_values;
+        }
+        throw std::runtime_error( "Barrier was not signalled yet" );
+    }
+
+    /**
+        @return The value that had been emitted as part of the raise
+                which caused the barrier to unblock.
+
+        Further raises of the signal will leave the value unchanged.
+
+        @tparam index Use this to retrieve the passed value in case the
+                      signal carries more than one argument
+
+        @throws std::runtime_error if called before the signal had been raised
+     */
+    template<int index = 0>
+    inline typename std::tuple_element<index, std::tuple< Args ... > >::type value() const
+    {
+        return std::get<index>( values() );
     }
 
 private:

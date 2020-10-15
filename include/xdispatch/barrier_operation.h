@@ -41,20 +41,34 @@ public:
     /**
         @brief Will wait for the operation to be executed
 
+        If the operation was already executed,
+        the call will return immediately.
+
         @param timeout the maximum time to wait for execution
 
-        @returns true if the operation was executed or false if the timout
+        @returns true if the operation was executed or false if the timeout
                  expired before the operation completed its execution
      */
     bool wait(
         std::chrono::milliseconds timeout = std::chrono::milliseconds::max()
     );
 
+    /**
+        @returns true if the operation was already executed.
+
+        This is identical to calling wait( std::chrono::milliseconds( 0 ) )
+        but implemented in a slightly more efficient manner
+     */
+    bool has_passed() const;
+
+    /**
+        @copydoc operation::operator()()
+     */
     void operator()() final;
 
 private:
     bool m_should_wait;
-    std::mutex m_mutex;
+    mutable std::mutex m_mutex;
     std::condition_variable m_cond;
 };
 
