@@ -29,8 +29,8 @@
  */
 
 #include "xdispatch/dispatch.h"
-#include "xdispatch/ithread.h"
-#include "xdispatch/ithreadpool.h"
+#include "xdispatch/backend_naive_ithread.h"
+#include "xdispatch/backend_naive_ithreadpool.h"
 #if (!BUILD_XDISPATCH2_BACKEND_NAIVE)
     #error "The naive backend is not available on this platform"
 #endif

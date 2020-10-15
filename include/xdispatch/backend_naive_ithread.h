@@ -1,5 +1,5 @@
 /*
-* ithreadpool.h
+* ithread.h
 *
 * Copyright (c) 2011-2018 MLBA-Team
 * All rights reserved.
@@ -20,48 +20,52 @@
 */
 
 
-#ifndef XDISPATCH_ITHREADPOOL_H_
-#define XDISPATCH_ITHREADPOOL_H_
+#ifndef XDISPATCH_NAIVE_ITHREAD_H_
+#define XDISPATCH_NAIVE_ITHREAD_H_
 
 /**
  * @addtogroup xdispatch
  * @{
  */
 
-#include "xdispatch/dispatch.h"
+#include "xdispatch/dispatch"
 
 __XDISPATCH_BEGIN_NAMESPACE
+namespace naive
+{
 
 /**
-    @brief Defines an interface to be implemented by a thread pool instance
+    @brief Defines an interface to be implemented by a thread instance
 
-    The pool will be notified whenever work is pending that should be
+    The thread will be notified whenever work is pending that should be
     executed.
  */
-class ithreadpool
+class ithread
 {
 public:
-    virtual ~ithreadpool() = default;
+    virtual ~ithread() = default;
 
     /**
-        @brief Notifies the pool about the new work to be executed
+        @brief Notifies the thread about the new work to be executed
 
-        @param work the work to be executed on the thread
-        @param priority The priority with which the work is to be executed
+        @param work The work to be executed on the thread
+
+        @remark Can be invoked in the context of any thread. It is the implementation's
+                responsibility to ensure the work gets executed in a single threaded fashion
 
         Notify may be invoked from multiple threads at the same time and also while a
         previously scheduled work is actively executing.
      */
     virtual void execute(
-        const operation_ptr& work,
-        const queue_priority priority
+        const operation_ptr& work
     ) = 0;
 };
 
-using ithreadpool_ptr = std::shared_ptr< ithreadpool >;
+using ithread_ptr = std::shared_ptr< ithread >;
 
+}
 __XDISPATCH_END_NAMESPACE
 
 /** @} */
 
-#endif /* XDISPATCH_ITHREADPOOL_H_ */
+#endif /* XDISPATCH_NAIVE_ITHREAD_H_ */
