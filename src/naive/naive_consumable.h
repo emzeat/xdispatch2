@@ -30,27 +30,64 @@ namespace naive
 class consumable;
 using consumable_ptr = std::shared_ptr< consumable >;
 
+/**
+    @brief Manages a list of resources which can be consumed
+
+    This is similar to a counting semaphore but in a backward
+    way in that a caller will get unblocked when no resources
+    are left, not when a resource is left as with a semaphore.
+
+    Consumables can be daisy-chained to model a dependent list
+    of resources that need to be drained up before proceeding.
+ */
 class consumable
 {
 public:
+    /**
+        @brief Creates a new consumable
+
+        @param resources The initial number of resources
+                    that can be consumed from the very beginning
+        @param preceeding A preceeding consumable that needs to be
+                    freed up as well before this consumable
+                    is considered as fully consumed
+     */
     explicit consumable(
-        size_t initialPayload = 0,
+        size_t resources = 0,
         const consumable_ptr& preceeding = consumable_ptr()
     );
 
-    void increment(
-        size_t by = 1
-    );
+    /**
+        @brief Adds an additional free resource to the consumable
 
-    void consume();
+        If the consumable had already been fully consumed by the
+        time this is called, this will have no effect and the
+        consumable remain fully consumed.
+     */
+    void add_resource();
 
-    bool waitForConsumed(
+    /**
+        @brief Consumes a resource removing it from the list of
+               available resources
+     */
+    void consume_resource();
+
+    /**
+        @brief Blocks until all resources to be consumed or the
+               given timeout has passed whatever comes first
+
+        @param timeout The maximum time to wait for resources to be used
+
+        @return true if all resources have been consumed before the
+                timeout has elapsed
+     */
+    bool wait_for_consumed(
         const std::chrono::milliseconds timeout = std::chrono::milliseconds::max()
     );
 
 private:
     const consumable_ptr m_preceeding;
-    std::atomic<size_t> m_payload;
+    std::atomic<size_t> m_resources;
     barrier_operation m_barrier;
 };
 

@@ -66,7 +66,7 @@ public:
         {
             async( std::make_shared< apply_operation >( i, op, completed ) );
         }
-        completed->waitForConsumed();
+        completed->wait_for_consumed();
     }
 
     void after(

@@ -44,7 +44,7 @@ void apply_operation::operator()()
 
     if( m_consumable )
     {
-        m_consumable->consume();
+        m_consumable->consume_resource();
     }
 }
 
@@ -69,7 +69,7 @@ void delayed_operation::operator()()
 
     if( m_consumable )
     {
-        m_consumable->consume();
+        m_consumable->consume_resource();
     }
 }
 
@@ -89,7 +89,7 @@ void consuming_operation::operator()()
 
     if( m_consumable )
     {
-        m_consumable->consume();
+        m_consumable->consume_resource();
     }
 }
 

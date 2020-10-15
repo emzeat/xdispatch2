@@ -19,42 +19,47 @@
 */
 
 #include "naive_consumable.h"
+#include "naive_backend_internal.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
 {
 
 consumable::consumable(
-    size_t initialPayload,
+    size_t resources,
     const consumable_ptr& preceeding
 )
     : m_preceeding( preceeding )
-    , m_payload( initialPayload )
+    , m_resources( resources )
 {
 }
 
-void consumable::increment(
-    size_t by
-)
+void consumable::add_resource()
 {
-    m_payload.fetch_add( by );
+    m_resources.fetch_add( size_t( 1 ) );
 }
 
-void consumable::consume()
+void consumable::consume_resource()
 {
-    if( 1 == m_payload.fetch_sub( 1 ) )
+    // brief test to verify resources will never get negative
+    XDISPATCH_ASSERT( m_resources.load() > 0 );
+    // when we consume the last resource, i.e.
+    // the count is one at the time of this call
+    // we can complete the barrier
+    if( 1 == m_resources.fetch_sub( size_t( 1 ) ) )
     {
         m_barrier();
     }
 }
 
-bool consumable::waitForConsumed(
+bool consumable::wait_for_consumed(
     const std::chrono::milliseconds timeout
 )
 {
+    // make sure that the preceeding consumable is satisfied
     if( m_preceeding )
     {
-        if( m_preceeding->waitForConsumed( timeout ) )
+        if( m_preceeding->wait_for_consumed( timeout ) )
         {
             // satisfied, continue with this
         }
@@ -63,7 +68,10 @@ bool consumable::waitForConsumed(
             return false;
         }
     }
-    if( 0 == m_payload.load() )
+    // if no resources have been available or consumed
+    // the barrier will never be completed but the consumable
+    // can be considered as fully satisfied still
+    if( 0 == m_resources.load() )
     {
         return true;
     }

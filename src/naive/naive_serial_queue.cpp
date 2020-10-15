@@ -68,7 +68,7 @@ public:
         {
             async( std::make_shared< apply_operation >( i, op, completed ) );
         }
-        completed->waitForConsumed();
+        completed->wait_for_consumed();
 
         // FIXME(zwicker): This is blocking and will not work if invoked from within
         //                 an operation active on this very same queue

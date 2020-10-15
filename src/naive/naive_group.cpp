@@ -52,7 +52,7 @@ public:
     {
         const auto c = std::atomic_load( &m_consumable );
         XDISPATCH_ASSERT( c );
-        c->increment();
+        c->add_resource();
         q->async( std::make_shared<consuming_operation>( op, c ) );
     }
 
@@ -61,9 +61,9 @@ public:
     ) final
     {
         // swap the previous consumable with a new one that all operations
-        // submitted after this call will be added and which waits on the
+        // submitted after this call will be added to and which waits on the
         // previous consumable in a chain. Use a compare/exchange and retry
-        // whenver the consumable was already swapped by another thread
+        // whenever the consumable was already swapped by another thread
         consumable_ptr old_c;
         consumable_ptr new_c;
         do
@@ -74,7 +74,7 @@ public:
         while( !std::atomic_compare_exchange_weak( &m_consumable, &old_c, new_c ) );
         XDISPATCH_ASSERT( old_c );
         XDISPATCH_ASSERT( new_c );
-        return old_c->waitForConsumed( timeout );
+        return old_c->wait_for_consumed( timeout );
 
         // FIXME(zwicker): This is blocking and will not work if invoked from within
         //                 an operation active on the same queue as one of the operations
