@@ -24,7 +24,8 @@
 
 #include "xdispatch/dispatch.h"
 
-#if (defined __APPLE__)
+#if (defined XDISPATCH2_HAVE_PTHREAD_SET_QOS_CLASS_SELF_NP)
+    #include <pthread.h>
     #include <sys/qos.h>
 #endif
 
@@ -56,7 +57,7 @@ public:
         queue_priority priority
     );
 
-#if (defined __APPLE__)
+#if (defined XDISPATCH2_HAVE_PTHREAD_SET_QOS_CLASS_SELF_NP)
     /**
         @returns the qos class mapped to the given queue_priority
     */

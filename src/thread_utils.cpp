@@ -22,8 +22,11 @@
 #include "xdispatch_internal.h"
 #include "xdispatch/thread_utils.h"
 
-#if (defined MZ_LINUX)
+#if (defined XDISPATCH2_HAVE_PRCTL)
     #include <sys/prctl.h>
+#endif
+
+#if (defined XDISPATCH2_HAVE_SETPRIORITY)
     #include <sys/time.h>
     #include <sys/resource.h>
     #include <unistd.h>
@@ -36,12 +39,16 @@ void thread_utils::set_current_thread_name(
     const std::string& name
 )
 {
-#if (defined MZ_LINUX)
-    prctl( PR_SET_NAME, ( unsigned long )( name.c_str() ), 0, 0, 0 ); // NOLINT(runtime/int)
-#elif (defined MZ_MACOS || defined MZ_IOS)
+#if (defined XDISPATCH2_HAVE_PTHREAD_SETNAME_NP)
+
     pthread_setname_np( name.c_str() );
-#else
-#   error "implement thread name";
+
+#endif
+
+#if (defined XDISPATCH2_HAVE_PRCTL)
+
+    prctl( PR_SET_NAME, ( unsigned long )( name.c_str() ), 0, 0, 0 ); // NOLINT(runtime/int)
+
 #endif
 }
 
@@ -49,7 +56,19 @@ void thread_utils::set_current_thread_priority(
     queue_priority priority
 )
 {
-#if (defined MZ_LINUX)
+#if (defined XDISPATCH2_HAVE_PTHREAD_SET_QOS_CLASS_SELF_NP)
+
+    const qos_class_t qos_class = map_priority_to_qos( priority );
+    pthread_set_qos_class_self_np( qos_class, 0 );
+
+#ifdef DEBUG
+    qos_class_t qos_actual = QOS_CLASS_DEFAULT;
+    pthread_get_qos_class_np( pthread_self(), &qos_actual, nullptr );
+    XDISPATCH_ASSERT( qos_actual == qos_class );
+#endif
+
+#elif (defined XDISPATCH2_HAVE_SETPRIORITY)
+
     int nice = 0;
     switch( priority )
     {
@@ -71,20 +90,12 @@ void thread_utils::set_current_thread_priority(
     }
     const int tid = static_cast<int>( syscall( SYS_gettid ) );
     setpriority( PRIO_PROCESS, tid, nice );
-#elif (defined MZ_MACOS || defined MZ_IOS)
-    const qos_class_t qos_class = map_priority_to_qos( priority );
-    pthread_set_qos_class_self_np( qos_class, 0 );
-#ifdef DEBUG
-    qos_class_t qos_actual = QOS_CLASS_DEFAULT;
-    pthread_get_qos_class_np( pthread_self(), &qos_actual, nullptr );
-    XDISPATCH_ASSERT( qos_actual == qos_class );
-#endif
-#else
-#   error "implement thread name";
+
 #endif
 }
 
-#if (defined __APPLE__)
+#if (defined XDISPATCH2_HAVE_PTHREAD_SET_QOS_CLASS_SELF_NP)
+
 qos_class_t thread_utils::map_priority_to_qos(
     queue_priority priority
 )
@@ -110,6 +121,7 @@ qos_class_t thread_utils::map_priority_to_qos(
     }
     return qos_class;
 }
+
 #endif
 
 __XDISPATCH_END_NAMESPACE

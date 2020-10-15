@@ -1,4 +1,4 @@
-  /*
+/*
 * config.h
 *
 * Copyright (c) 2011-2018 MLBA-Team
@@ -33,6 +33,14 @@
 #cmakedefine BUILD_XDISPATCH2_BACKEND_QT5 1
 
 #cmakedefine BUILD_XDISPATCH2_BACKEND_LIBDISPATCH 1
+
+#cmakedefine XDISPATCH2_HAVE_PTHREAD_SETNAME_NP
+
+#cmakedefine XDISPATCH2_HAVE_PTHREAD_SET_QOS_CLASS_SELF_NP
+
+#cmakedefine XDISPATCH2_HAVE_PRCTL
+
+#cmakedefine XDISPATCH2_HAVE_SETPRIORITY
 
 /** @} */
 

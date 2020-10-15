@@ -32,10 +32,19 @@ __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
 {
 
+/**
+    An implementation of ithread which needs to be manually drained
+ */
 class manual_thread : public ithread
 {
 public:
-    explicit manual_thread(
+    /**
+        @brief Creates a new thread
+
+        @param name The name by which the thread is known
+        @param priority The default priority for which the thread will execute
+     */
+    manual_thread(
         const std::string& name,
         queue_priority priority
     );

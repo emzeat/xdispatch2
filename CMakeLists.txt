@@ -20,6 +20,7 @@
 #
 
 cmake_minimum_required(VERSION 2.8)
+include(CheckSymbolExists)
 project(xdispatch2)
 
 # build scripts
@@ -28,17 +29,23 @@ if(NOT HAS_MZ_GLOBAL)
     include(build/macros.cmake)
 endif()
 
+# check for platform features
+check_symbol_exists( dispatch_queue_create "dispatch/dispatch.h" XDISPATCH2_HAVE_LIBDISPATCH_NATIVE )
+check_symbol_exists( pthread_setname_np "pthread.h" XDISPATCH2_HAVE_PTHREAD_SETNAME_NP )
+check_symbol_exists( pthread_set_qos_class_self_np "pthread.h;sys/qos.h" XDISPATCH2_HAVE_PTHREAD_SET_QOS_CLASS_SELF_NP )
+check_symbol_exists( prctl "sys/prctl.h" XDISPATCH2_HAVE_PRCTL )
+check_symbol_exists( setpriority "sys/resource.h;sys/syscall.h" XDISPATCH2_HAVE_SETPRIORITY )
+
 # build options
-   set(BUILD_XDISPATCH2_BACKEND_NAIVE ON)
-if( MZ_IOS OR MZ_MACOS )
-    option(BUILD_XDISPATCH2_BACKEND_QT5 "Build the qt5 backend" ON)
+set(BUILD_XDISPATCH2_BACKEND_NAIVE ON)
+option(BUILD_XDISPATCH2_BACKEND_QT5 "Build the qt5 backend" ON)
+option(BUILD_XDISPATCH2_TESTS "Build the xdispatch2 test target" OFF)
+if( XDISPATCH2_HAVE_LIBDISPATCH_NATIVE )
     option(BUILD_XDISPATCH2_BACKEND_LIBDISPATCH "Build the libdispatch backend" ON)
-    option(BUILD_XDISPATCH2_TESTS "Build the xdispatch2 test target" OFF)
-elseif( MZ_LINUX )
-    option(BUILD_XDISPATCH2_BACKEND_QT5 "Build the qt5 backend" ON)
+else()
     option(BUILD_XDISPATCH2_BACKEND_LIBDISPATCH "Build the libdispatch backend" OFF)
-    option(BUILD_XDISPATCH2_TESTS "Build the xdispatch2 test target" OFF)
 endif()
+
 
 # configuration and version information
 find_package(Git)
@@ -81,10 +88,6 @@ endif()
 # generate the build time configuration header
 configure_file(config.h.in
     ${CMAKE_CURRENT_BINARY_DIR}/include/xdispatch/config.h
-)
-include_directories(
-    ${CMAKE_CURRENT_BINARY_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 # core lib
@@ -153,6 +156,11 @@ set_target_properties( xdispatch PROPERTIES
     VERSION ${XDISPATCH_WC_TAG}
     SOVERSION ${XDISPATCH_WC_TAG}
     INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include;${CMAKE_CURRENT_BINARY_DIR}/include"
+)
+
+target_include_directories( xdispatch
+    PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/include
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 if(MZ_IOS)
