@@ -29,7 +29,7 @@ __XDISPATCH_BEGIN_NAMESPACE
 namespace qt5
 {
 
-class ThreadPoolProxy : public ithreadpool
+class ThreadPoolProxy : public naive::ithreadpool
 {
 public:
     ThreadPoolProxy(
@@ -128,7 +128,8 @@ iqueue_impl_ptr backend::create_parallel_queue(
     queue_priority priority
 )
 {
-    return qt5::create_parallel_queue( label, QThreadPool::globalInstance(), priority ).implementation();
+    static QThreadPool* s_backend_pool = new QThreadPool; // this is an intentional leak so that the destructor cannot block on tasks
+    return qt5::create_parallel_queue( label, s_backend_pool, priority ).implementation();
 }
 
 

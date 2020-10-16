@@ -55,7 +55,7 @@ private:
     const operation_ptr m_work;
 };
 
-class ThreadProxy : public ithread, public QObject
+class ThreadProxy : public naive::ithread, public QObject
 {
 public:
     ThreadProxy(
@@ -130,6 +130,7 @@ iqueue_impl_ptr backend::create_serial_queue(
 )
 {
     std::unique_ptr<QThread> thread( new QThread );
+    thread->setObjectName( QString::fromStdString( label ) );
     thread->start();
     return naive::create_serial_queue( label, std::make_shared< ThreadProxy >( thread.release(),  /* delete */ true, label, priority ), backend_type::qt5 ).implementation();
 }

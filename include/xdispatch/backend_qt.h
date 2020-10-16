@@ -52,6 +52,11 @@ create_serial_queue(
 
 /**
     @return A new parallel queue powered by the given pool
+
+    @remarks Make sure not to destroy the pool from an operation
+             running on the same pool as QThreadPool blocks in the
+             destructor until all active tasks have completed which
+             will cause a deadlock
     */
 XDISPATCH_EXPORT queue
 create_parallel_queue(
