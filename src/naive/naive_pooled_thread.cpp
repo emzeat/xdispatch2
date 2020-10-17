@@ -18,45 +18,34 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
-#ifndef XDISPATCH_NAIVE_INVERSE_LOCKGUARD_H_
-#define XDISPATCH_NAIVE_INVERSE_LOCKGUARD_H_
-
-#include <mutex>
-
-#include "naive_backend_internal.h"
+#include "naive_pooled_thread.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
 {
 
-/**
-    @brief Inverse to std::lock_guard
-
-    Will unlock on construction and relock
-    the mutex on destruction
- */
-template <class _Mutex>
-class inverse_lock_guard
+pooled_thread::pooled_thread(
+    const std::string& name,
+    queue_priority priority,
+    const ithreadpool_ptr& pool
+)
+    : ithread()
+    , m_name( name )
+    , m_priority( priority )
+    , m_pool( pool )
 {
-public:
-    inverse_lock_guard(
-        _Mutex& cs
-    )
-        : m_CS( cs )
-    {
-        m_CS.unlock();
-    }
+}
 
-    ~inverse_lock_guard()
-    {
-        m_CS.lock();
-    }
+pooled_thread::~pooled_thread()
+{
+}
 
-private:
-    _Mutex& m_CS;
-};
+void pooled_thread::execute(
+    const operation_ptr& work
+)
+{
+    m_pool->execute( work, m_priority );
+}
 
 }
 __XDISPATCH_END_NAMESPACE
-
-#endif /* XDISPATCH_NAIVE_INVERSE_LOCKGUARD_H_ */

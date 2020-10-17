@@ -18,45 +18,24 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
-#ifndef XDISPATCH_NAIVE_INVERSE_LOCKGUARD_H_
-#define XDISPATCH_NAIVE_INVERSE_LOCKGUARD_H_
+#ifndef XDISPATCH_NAIVE_TRACE_H_
+#define XDISPATCH_NAIVE_TRACE_H_
 
-#include <mutex>
+#include "naive_manual_thread.h"
 
-#include "naive_backend_internal.h"
+#include <iostream>
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
 {
 
-/**
-    @brief Inverse to std::lock_guard
+bool is_trace_enabled();
 
-    Will unlock on construction and relock
-    the mutex on destruction
- */
-template <class _Mutex>
-class inverse_lock_guard
-{
-public:
-    inverse_lock_guard(
-        _Mutex& cs
-    )
-        : m_CS( cs )
-    {
-        m_CS.unlock();
-    }
-
-    ~inverse_lock_guard()
-    {
-        m_CS.lock();
-    }
-
-private:
-    _Mutex& m_CS;
-};
+#define XDISPATCH_TRACE() \
+    for( bool enabled = naive::is_trace_enabled(); enabled; enabled = false ) \
+        std::cout << "[xdispatch2] "
 
 }
 __XDISPATCH_END_NAMESPACE
 
-#endif /* XDISPATCH_NAIVE_INVERSE_LOCKGUARD_H_ */
+#endif /* XDISPATCH_NAIVE_TRACE_H_ */

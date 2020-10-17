@@ -66,6 +66,16 @@ public:
     );
 #endif
 
+    /**
+        @brief Gets the ideal number of threads for running on this system
+
+        The number is determined by querying the available cores (both
+        physical and logical).
+
+        If this information cannot detemrined, a default of 4 will be used.
+     */
+    static size_t system_thread_count();
+
 private:
     thread_utils() = delete;
 };

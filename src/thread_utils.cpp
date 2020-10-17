@@ -21,6 +21,7 @@
 
 #include "xdispatch_internal.h"
 #include "xdispatch/thread_utils.h"
+#include "naive/naive_trace.h"
 
 #if (defined XDISPATCH2_HAVE_PRCTL)
     #include <sys/prctl.h>
@@ -31,6 +32,14 @@
     #include <sys/resource.h>
     #include <unistd.h>
     #include <sys/syscall.h>
+#endif
+
+#if (defined XDISPATCH2_HAVE_SYSCTL)
+    #include <sys/sysctl.h>
+#endif
+
+#if (defined XDISPATCH2_HAVE_SYSCONF)
+    #include <unistd.h>
 #endif
 
 __XDISPATCH_BEGIN_NAMESPACE
@@ -123,5 +132,39 @@ qos_class_t thread_utils::map_priority_to_qos(
 }
 
 #endif
+
+size_t thread_utils::system_thread_count()
+{
+#if (defined XDISPATCH2_HAVE_SYSCONF) &&  (defined XDISPATCH2_HAVE_SYSCONF_SC_NPROCESSORS_ONLN)
+    const auto nprocessors = sysconf( _SC_NPROCESSORS_ONLN );
+    if( nprocessors < 0 )
+    {
+        XDISPATCH_TRACE() << "system_thread_count failed: " << strerror( errno ) << std::endl;
+    }
+    else
+    {
+        return nprocessors;
+    }
+#endif
+
+#if (defined XDISPATCH2_HAVE_SYSCTL) && (defined XDISPATCH2_HAVE_SYSCTL_HW_NCPU)
+    int value = 0;
+    size_t length = sizeof( value );
+    int mib [] = { CTL_HW, HW_NCPU };
+
+    if( -1 == sysctl( mib, 2, &value, &length, NULL, 0 ) )
+    {
+        XDISPATCH_TRACE() << "system_thread_count failed: " << strerror( errno ) << std::endl;
+    }
+    else
+    {
+        return value;
+    }
+#endif
+
+    // default
+    return 4;
+}
+
 
 __XDISPATCH_END_NAMESPACE

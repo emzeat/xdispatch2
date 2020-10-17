@@ -22,7 +22,8 @@
 
 #include "naive_backend_internal.h"
 #include "naive_operation_queue.h"
-#include "naive_thread.h"
+#include "naive_pooled_thread.h"
+#include "naive_threadpool.h"
 
 #include <thread>
 #include <mutex>
@@ -108,7 +109,8 @@ queue create_serial_queue(
     backend_type backend
 )
 {
-    return queue( label, std::make_shared< serial_queue_impl >( std::make_shared< thread >( label, priority ), backend ) );
+    auto thread = std::make_shared< pooled_thread >( label, priority, threadpool::instance() );
+    return queue( label, std::make_shared< serial_queue_impl >( std::move( thread ), backend ) );
 }
 
 queue create_serial_queue(
@@ -125,7 +127,8 @@ iqueue_impl_ptr backend::create_serial_queue(
     backend_type backend
 )
 {
-    return std::make_shared< serial_queue_impl >( std::make_shared< thread >( label, priority ), backend );
+    auto thread = std::make_shared< pooled_thread >( label, priority, threadpool::instance() );
+    return std::make_shared< serial_queue_impl >( std::move( thread ), backend );
 }
 
 static std::shared_ptr<manual_thread> main_thread()

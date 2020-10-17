@@ -23,9 +23,16 @@
 
 #include "naive_thread.h"
 
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <list>
+
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
 {
+
+using thread_ptr = std::shared_ptr< std::thread >;
 
 /**
     An implementation of ithreadpool executing in a single thread
@@ -35,13 +42,14 @@ class threadpool : public ithreadpool
 {
 public:
     /**
-        @param name The name by which the threadpool is known
-        @param priority The default priority for which the threadpool will execute
+        @brief Constructor
      */
-    threadpool(
-        const std::string& name,
-        queue_priority priority
-    );
+    threadpool();
+
+    /**
+        @brief Destructor
+     */
+    ~threadpool() final;
 
     /**
         @copydoc ithreadpool::execute
@@ -51,8 +59,40 @@ public:
         const queue_priority priority
     ) final;
 
+    /**
+        @brief Marks a thread as blocked, i.e. waiting on a resource
+
+        Use this to notify the pool that it may spawn additional threads
+        without overallocating the system's processor count as the calling
+        thread is blocking on a resource
+     */
+    void thread_blocked();
+
+    /**
+        @brief Marks a thread as unblocked, i.e. busy again
+
+        Use this to notify the pool that a previously blocked thread
+        has obtained its resource and will now make use of CPU resources
+        again.
+     */
+    void thread_unblocked();
+
+    /**
+        @return the shared pool instance
+     */
+    static ithreadpool_ptr instance();
+
 private:
-    thread m_thread;
+    void schedule();
+    void run_thread();
+
+    std::mutex m_CS;
+    std::condition_variable m_cond;
+    std::size_t m_max_threads;
+    std::vector< thread_ptr > m_threads;
+    std::size_t m_idle_threads;
+    std::list< operation_ptr > m_operations;
+    bool m_cancelled;
 };
 
 }
