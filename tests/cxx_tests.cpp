@@ -35,6 +35,8 @@ void cxx_dispatch_queue_lambda( void* );
 void cxx_dispatch_serialqueue_lambda( void* );
 void cxx_free_lambda( void* );
 void cxx_is_current( void* );
+void cxx_dispatch_priority_custom( void* );
+void cxx_dispatch_priority_global( void* );
 
 void register_cxx_tests(
     const char* name,
@@ -51,6 +53,8 @@ void register_cxx_tests(
     MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_serialqueue_lambda, backend );
     MU_REGISTER_TEST_INSTANCE( name, cxx_free_lambda, backend );
     MU_REGISTER_TEST_INSTANCE( name, cxx_is_current, backend );
+    MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_priority_custom, backend );
+    MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_priority_global, backend );
 }
 
 static std::mutex s_backend_CS;
@@ -59,12 +63,13 @@ static std::map< xdispatch::queue_priority, xdispatch::queue > s_backend_global_
 static std::unique_ptr< xdispatch::queue > s_backend_main_queue;
 
 xdispatch::queue cxx_create_queue(
-    const char* label
+    const char* label,
+    xdispatch::queue_priority priority
 )
 {
     std::lock_guard<std::mutex> lock( s_backend_CS );
     MU_ASSERT_NOT_NULL( s_backend_tested );
-    const auto impl = s_backend_tested->create_serial_queue( label, xdispatch::queue_priority::DEFAULT );
+    const auto impl = s_backend_tested->create_serial_queue( label, priority );
     MU_ASSERT_NOT_NULL( impl.get() );
     return xdispatch::queue( label, impl );
 }

@@ -44,7 +44,8 @@ xdispatch::queue cxx_global_queue(
 );
 
 xdispatch::queue cxx_create_queue(
-    const char* label
+    const char* label,
+    xdispatch::queue_priority priority = xdispatch::queue_priority::DEFAULT
 );
 
 xdispatch::group cxx_create_group();

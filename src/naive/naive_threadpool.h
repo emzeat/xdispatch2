@@ -60,24 +60,6 @@ public:
     ) final;
 
     /**
-        @brief Marks a thread as blocked, i.e. waiting on a resource
-
-        Use this to notify the pool that it may spawn additional threads
-        without overallocating the system's processor count as the calling
-        thread is blocking on a resource
-     */
-    void thread_blocked();
-
-    /**
-        @brief Marks a thread as unblocked, i.e. busy again
-
-        Use this to notify the pool that a previously blocked thread
-        has obtained its resource and will now make use of CPU resources
-        again.
-     */
-    void thread_unblocked();
-
-    /**
         @return the shared pool instance
      */
     static ithreadpool_ptr instance();
@@ -91,7 +73,7 @@ private:
     std::size_t m_max_threads;
     std::vector< thread_ptr > m_threads;
     std::size_t m_idle_threads;
-    std::list< operation_ptr > m_operations;
+    std::list< operation_ptr > m_operations[4];
     bool m_cancelled;
 };
 

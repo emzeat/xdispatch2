@@ -123,19 +123,8 @@ iqueue_impl_ptr backend::create_parallel_queue(
     queue_priority priority
 )
 {
-    switch( priority )
-    {
-    case queue_priority::USER_INTERACTIVE:
-        return std::make_shared< queue_impl >( dispatch_get_global_queue( QOS_CLASS_USER_INTERACTIVE, 0 ) );
-    case queue_priority::USER_INITIATED:
-        return std::make_shared< queue_impl >( dispatch_get_global_queue( QOS_CLASS_USER_INITIATED, 0 ) );
-    case queue_priority::UTILITY:
-        return std::make_shared< queue_impl >( dispatch_get_global_queue( QOS_CLASS_UTILITY, 0 ) );
-    case queue_priority::DEFAULT:
-        return std::make_shared< queue_impl >( dispatch_get_global_queue( QOS_CLASS_DEFAULT, 0 ) );
-    case queue_priority::BACKGROUND:
-        return std::make_shared< queue_impl >( dispatch_get_global_queue( QOS_CLASS_BACKGROUND, 0 ) );
-    }
+    const auto qos = thread_utils::map_priority_to_qos( priority );
+    return std::make_shared< queue_impl >( dispatch_get_global_queue( qos, 0 ) );
 }
 
 }

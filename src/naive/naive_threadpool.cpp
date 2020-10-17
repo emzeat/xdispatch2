@@ -31,13 +31,16 @@ namespace naive
 threadpool::threadpool()
     : ithreadpool()
     , m_CS()
-    , m_max_threads( thread_utils::system_thread_count() )
+    , m_max_threads( 0 )
     , m_threads()
     , m_idle_threads( 0 )
     , m_operations()
     , m_cancelled( false )
 {
-    XDISPATCH_TRACE() << "threadpool with " << m_max_threads << " ideal threads" << std::endl;
+    // we are overcommitting by default so that it becomes less likely
+    // that operations get starved due to threads blocking on resources
+    m_max_threads = 2 * thread_utils::system_thread_count();
+    XDISPATCH_TRACE() << "threadpool with " << m_max_threads << " system threads" << std::endl;
 }
 
 threadpool::~threadpool()
@@ -57,27 +60,31 @@ threadpool::~threadpool()
 
 void threadpool::execute(
     const operation_ptr& work,
-    const queue_priority /* priority */
+    const queue_priority priority
 )
 {
     std::lock_guard<std::mutex> lock( m_CS );
-    m_operations.push_back( work );
-    schedule();
-}
+    int index = -1;
+    switch( priority )
+    {
+    case queue_priority::USER_INTERACTIVE:
+        index = 0;
+        break;
+    case queue_priority::USER_INITIATED:
+        index = 1;
+        break;
+    case queue_priority::UTILITY:
+    case queue_priority::DEFAULT:
+    default:
+        index = 2;
+        break;
+    case queue_priority::BACKGROUND:
+        index = 3;
+        break;
+    }
 
-void threadpool::thread_blocked()
-{
-    std::lock_guard<std::mutex> lock( m_CS );
-    ++m_max_threads;
-    XDISPATCH_TRACE() << "increased threads to " << m_max_threads << std::endl;
-    schedule();
-}
-
-void threadpool::thread_unblocked()
-{
-    std::lock_guard<std::mutex> lock( m_CS );
-    --m_max_threads;
-    XDISPATCH_TRACE() << "lowered threads again to " << m_max_threads << std::endl;
+    XDISPATCH_ASSERT( index >= 0 );
+    m_operations[index].push_back( work );
     schedule();
 }
 
@@ -109,8 +116,8 @@ void threadpool::schedule()
     // and the operation will be picked up as soon as a thread is available
     else
     {
-        XDISPATCH_TRACE() << "fully loaded - threads=" << active_threads
-                          << ", idle=" << m_idle_threads << std::endl;
+        //        XDISPATCH_TRACE() << "fully loaded - threads=" << active_threads
+        //                          << ", idle=" << m_idle_threads << std::endl;
     }
 }
 
@@ -122,15 +129,21 @@ void threadpool::run_thread()
     {
         operation_ptr op;
         {
-            if( m_operations.empty() )
+            // search for the next operation starting with the highest priority
+            for( auto& ops_prio : m_operations )
+            {
+                if( !ops_prio.empty() )
+                {
+                    op = ops_prio.front();
+                    ops_prio.pop_front();
+                    break;
+                }
+            }
+            // suspend when no operations are queued
+            if( !op )
             {
                 ++m_idle_threads;
                 m_cond.wait( lock );
-            }
-            if( !m_operations.empty() )
-            {
-                op = m_operations.front();
-                m_operations.pop_front();
             }
         }
 
