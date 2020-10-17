@@ -24,18 +24,25 @@
 #include "naive_thread.h"
 #include "naive_inverse_lockguard.h"
 
+#include "xdispatch/thread_utils.h"
+#include "../trace_utils.h"
+
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
 {
 
 operation_queue::operation_queue(
-    const ithread_ptr& thread
+    const ithreadpool_ptr& threadpool,
+    const std::string& label,
+    queue_priority priority
 )
-    : m_jobs()
+    : m_label( label )
+    , m_priority( priority )
+    , m_jobs()
     , m_CS()
     , m_active_drain( false )
     , m_notify_operation()
-    , m_thread( thread )
+    , m_threadpool( threadpool )
 {
 }
 
@@ -63,8 +70,8 @@ operation_queue::~operation_queue()
     // if the drain is active
     while( active_drain && yield_drain() );
 
-    // release the thread
-    m_thread.reset();
+    // release the threadpool
+    m_threadpool.reset();
 }
 
 class drain_scope
@@ -89,6 +96,11 @@ private:
 
 void operation_queue::drain()
 {
+    if( trace_utils::is_debug_enabled() )
+    {
+        thread_utils::set_current_thread_name( m_label );
+    }
+
     std::lock_guard<std::mutex> lock( m_CS );
     drain_scope scope( m_active_drain );
     // we need to satisfy two constraints here:
@@ -129,7 +141,7 @@ void operation_queue::async(
     m_jobs.push_back( std::move( job2 ) );
     if( notify && m_notify_operation )
     {
-        m_thread->execute( m_notify_operation );
+        m_threadpool->execute( m_notify_operation, m_priority );
     }
 }
 

@@ -33,9 +33,9 @@ namespace naive
 {
 
 /**
-    An implementation of ithread which needs to be manually drained
+    An implementation of ithreadpool which needs to be manually drained
  */
-class manual_thread : public ithread
+class manual_thread : public ithreadpool
 {
 public:
     /**
@@ -64,12 +64,12 @@ public:
      */
     void cancel();
 
-protected:
     /**
-        @copydoc IThread::execute
+        @copydoc IThreadPool::execute
      */
     void execute(
-        const operation_ptr& work
+        const operation_ptr& work,
+        queue_priority priority = queue_priority::DEFAULT
     ) override;
 
 private:

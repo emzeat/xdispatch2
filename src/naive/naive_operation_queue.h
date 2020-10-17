@@ -55,11 +55,15 @@ class operation_queue : public std::enable_shared_from_this< operation_queue >
 {
 public:
     /**
-        @param thread The thread implementation that all queued operations
-                      will be eventually executed on
+        @param threadpool The threadpool implementation that all queued operations
+                          will be eventually executed on
+        @param label The label by which the queue is known
+        @param priority The priority at which the queue operates
      */
-    explicit operation_queue(
-        const ithread_ptr& thread
+    operation_queue(
+        const ithreadpool_ptr& thread,
+        const std::string& label,
+        queue_priority priority
     );
 
     /**
@@ -102,11 +106,13 @@ public:
     void detach();
 
 private:
+    const std::string m_label;
+    const queue_priority m_priority;
     std::list< operation_ptr > m_jobs;
     std::mutex m_CS;
     bool m_active_drain;
     operation_ptr m_notify_operation;
-    ithread_ptr m_thread;
+    ithreadpool_ptr m_threadpool;
 
     void drain();
 

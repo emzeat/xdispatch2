@@ -18,33 +18,30 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
-#include "naive_pooled_thread.h"
+#include "naive_external_thread.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
 {
 
-pooled_thread::pooled_thread(
-    const std::string& name,
-    queue_priority priority,
-    const ithreadpool_ptr& pool
+external_thread::external_thread(
+    const ithread_ptr& thread
 )
-    : ithread()
-    , m_name( name )
-    , m_priority( priority )
-    , m_pool( pool )
+    : ithreadpool()
+    , m_thread( thread )
 {
 }
 
-pooled_thread::~pooled_thread()
+external_thread::~external_thread()
 {
 }
 
-void pooled_thread::execute(
-    const operation_ptr& work
+void external_thread::execute(
+    const operation_ptr& work,
+    queue_priority /* priority */
 )
 {
-    m_pool->execute( work, m_priority );
+    m_thread->execute( work );
 }
 
 }

@@ -47,13 +47,6 @@ public:
      */
     ~thread() final;
 
-    /**
-        @copydoc manual_thread::execute
-     */
-    void execute(
-        const operation_ptr& work
-    ) final;
-
 private:
     std::thread m_thread;
 };

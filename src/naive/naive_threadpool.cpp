@@ -19,7 +19,7 @@
 */
 
 #include "naive_threadpool.h"
-#include "naive_trace.h"
+#include "../trace_utils.h"
 #include "naive_inverse_lockguard.h"
 
 #include "xdispatch/thread_utils.h"

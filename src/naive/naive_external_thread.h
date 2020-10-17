@@ -18,8 +18,8 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
-#ifndef XDISPATCH_NAIVE_POOLED_THREAD_H_
-#define XDISPATCH_NAIVE_POOLED_THREAD_H_
+#ifndef XDISPATCH_NAIVE_EXTERNAL_THREAD_H_
+#define XDISPATCH_NAIVE_EXTERNAL_THREAD_H_
 
 #include "xdispatch/backend_naive_ithread.h"
 #include "xdispatch/backend_naive_ithreadpool.h"
@@ -29,41 +29,36 @@ namespace naive
 {
 
 /**
-    An implementation of ithread executing on a threadpool
+    An implementation of a threadpool executed on an externally provided thread
  */
-class pooled_thread : public ithread
+class external_thread : public ithreadpool
 {
 public:
     /**
-        @param name The name by which the thread is known
-        @param priority The default priority for which the thread will execute
-        @param pool The pool on which to execute
+        @param thread The thread on which the pool will be executed
      */
-    pooled_thread(
-        const std::string& name,
-        queue_priority priority,
-        const ithreadpool_ptr& pool
+    explicit external_thread(
+        const ithread_ptr& thread
     );
 
     /**
         @brief Destructor
      */
-    ~pooled_thread() final;
+    ~external_thread() final;
 
     /**
-        @copydoc ithread::execute
+        @copydoc ithreadpool::execute
      */
     void execute(
-        const operation_ptr& work
+        const operation_ptr& work,
+        queue_priority priority
     ) final;
 
 private:
-    std::string m_name;
-    queue_priority m_priority;
-    ithreadpool_ptr m_pool;
+    ithread_ptr m_thread;
 };
 
 }
 __XDISPATCH_END_NAMESPACE
 
-#endif /* XDISPATCH_NAIVE_POOLED_THREAD_H_ */
+#endif /* XDISPATCH_NAIVE_EXTERNAL_THREAD_H_ */

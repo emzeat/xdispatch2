@@ -29,7 +29,7 @@ manual_thread::manual_thread(
     const std::string& name,
     queue_priority priority
 )
-    : ithread()
+    : ithreadpool()
     , m_name( name )
     , m_priority( priority )
     , m_cancelled( false )
@@ -41,7 +41,8 @@ manual_thread::~manual_thread()
 }
 
 void manual_thread::execute(
-    const operation_ptr& work
+    const operation_ptr& work,
+    queue_priority /* priority */
 )
 {
     std::lock_guard<std::mutex> guard( m_CS );

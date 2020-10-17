@@ -18,31 +18,29 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
-#include "naive_trace.h"
+#ifndef XDISPATCH_TRACE_UTILS_H_
+#define XDISPATCH_TRACE_UTILS_H_
 
-#include <cstdlib>
+#include <iostream>
+
+#include "xdispatch_internal.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
-namespace naive
-{
 
-static bool is_env_enabled(
-    const char* env_variable
-)
+class trace_utils
 {
-    const char* value = std::getenv( env_variable );
-    if( value && 1 == std::atoi( value ) )
-    {
-        return true;
-    }
-    return false;
-}
+public:
+    static bool is_trace_enabled();
+    static bool is_debug_enabled();
 
-bool is_trace_enabled()
-{
-    static bool s_trace_enabled = is_env_enabled( "XDISPATCH2_TRACE" );
-    return s_trace_enabled;
-}
+private:
+    trace_utils() = delete;
+};
 
-}
+#define XDISPATCH_TRACE() \
+    for( bool enabled = trace_utils::is_trace_enabled(); enabled; enabled = false ) \
+        std::cout << "[xdispatch2] "
+
 __XDISPATCH_END_NAMESPACE
+
+#endif /* XDISPATCH_TRACE_UTILS_H_ */

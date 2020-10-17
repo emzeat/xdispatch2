@@ -21,7 +21,7 @@
 
 #include "xdispatch_internal.h"
 #include "xdispatch/thread_utils.h"
-#include "naive/naive_trace.h"
+#include "trace_utils.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -166,7 +166,8 @@ size_t thread_utils::system_thread_count()
 #endif
 
     // default
-    return 4;
+    XDISPATCH_TRACE() << "system_thread_count using hardcoded default on this platform" << std::endl;
+    return 2;
 }
 
 

@@ -40,12 +40,5 @@ thread::~thread()
     m_thread.join();
 }
 
-void thread::execute(
-    const operation_ptr& work
-)
-{
-    manual_thread::execute( work );
-}
-
 }
 __XDISPATCH_END_NAMESPACE

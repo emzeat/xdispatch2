@@ -22,7 +22,7 @@
 
 #include "naive_backend_internal.h"
 #include "naive_operation_queue.h"
-#include "naive_pooled_thread.h"
+#include "naive_external_thread.h"
 #include "naive_threadpool.h"
 
 #include <thread>
@@ -37,13 +37,15 @@ class serial_queue_impl : public iqueue_impl
 {
 public:
     serial_queue_impl(
-        const ithread_ptr& thread,
+        const ithreadpool_ptr& threadpool,
+        const std::string& label,
+        queue_priority priority,
         backend_type backend
     ) : iqueue_impl()
         , m_backend( backend )
-        , m_queue( std::make_shared< operation_queue >( thread ) )
+        , m_queue( std::make_shared< operation_queue >( threadpool, label, priority ) )
     {
-        XDISPATCH_ASSERT( thread );
+        XDISPATCH_ASSERT( threadpool );
         m_queue->attach();
     }
 
@@ -100,7 +102,8 @@ queue create_serial_queue(
 )
 {
     XDISPATCH_ASSERT( thread );
-    return queue( label, std::make_shared< serial_queue_impl >( thread, backend ) );
+    const auto pool = std::make_shared< external_thread >( thread );
+    return queue( label, std::make_shared< serial_queue_impl >( pool, label, queue_priority::DEFAULT, backend ) );
 }
 
 queue create_serial_queue(
@@ -109,8 +112,7 @@ queue create_serial_queue(
     backend_type backend
 )
 {
-    auto thread = std::make_shared< pooled_thread >( label, priority, threadpool::instance() );
-    return queue( label, std::make_shared< serial_queue_impl >( std::move( thread ), backend ) );
+    return queue( label, std::make_shared< serial_queue_impl >( threadpool::instance(), label, priority, backend ) );
 }
 
 queue create_serial_queue(
@@ -127,8 +129,7 @@ iqueue_impl_ptr backend::create_serial_queue(
     backend_type backend
 )
 {
-    auto thread = std::make_shared< pooled_thread >( label, priority, threadpool::instance() );
-    return std::make_shared< serial_queue_impl >( std::move( thread ), backend );
+    return std::make_shared< serial_queue_impl >( threadpool::instance(), label, priority, backend );
 }
 
 static std::shared_ptr<manual_thread> main_thread()
@@ -138,11 +139,11 @@ static std::shared_ptr<manual_thread> main_thread()
 }
 
 iqueue_impl_ptr backend::create_main_queue(
-    const std::string& /* label */,
+    const std::string& label,
     backend_type backend
 )
 {
-    static iqueue_impl_ptr s_queue = std::make_shared< serial_queue_impl >( main_thread(), backend );
+    static iqueue_impl_ptr s_queue = std::make_shared< serial_queue_impl >( main_thread(), label, queue_priority::USER_INTERACTIVE, backend );
     return s_queue;
 }
 
