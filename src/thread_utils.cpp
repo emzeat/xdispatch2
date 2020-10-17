@@ -24,6 +24,7 @@
 #include "naive/naive_trace.h"
 
 #include <stdio.h>
+#include <string.h>
 
 #if (defined XDISPATCH2_HAVE_PRCTL)
     #include <sys/prctl.h>
