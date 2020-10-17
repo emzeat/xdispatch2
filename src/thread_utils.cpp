@@ -23,6 +23,8 @@
 #include "xdispatch/thread_utils.h"
 #include "naive/naive_trace.h"
 
+#include <stdio.h>
+
 #if (defined XDISPATCH2_HAVE_PRCTL)
     #include <sys/prctl.h>
 #endif
