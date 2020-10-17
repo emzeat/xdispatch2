@@ -80,26 +80,26 @@ queue main_queue()
 
 static queue global_queue_USER_INTERACTIVE()
 {
-    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_low, queue_priority::USER_INTERACTIVE );
-    return queue( k_label_global_low, s_instance );
+    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_INTERACTIVE, queue_priority::USER_INTERACTIVE );
+    return queue( k_label_global_INTERACTIVE, s_instance );
 }
 
 static queue global_queue_USER_INITIATED()
 {
-    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_default, queue_priority::USER_INITIATED );
-    return queue( k_label_global_default, s_instance );
+    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_INITIATED, queue_priority::USER_INITIATED );
+    return queue( k_label_global_INITIATED, s_instance );
 }
 
 static queue global_queue_UTILITY()
 {
-    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_default, queue_priority::UTILITY );
-    return queue( k_label_global_default, s_instance );
+    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_UTILITY, queue_priority::UTILITY );
+    return queue( k_label_global_UTILITY, s_instance );
 }
 
 static queue global_queue_BACKGROUND()
 {
-    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_high, queue_priority::BACKGROUND );
-    return queue( k_label_global_high, s_instance );
+    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_BACKGROUND, queue_priority::BACKGROUND );
+    return queue( k_label_global_BACKGROUND, s_instance );
 }
 
 queue global_queue(

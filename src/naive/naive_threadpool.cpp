@@ -28,6 +28,14 @@ __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
 {
 
+char const* const s_bucket_labels[ threadpool::bucket_count ] =
+{
+    k_label_global_INTERACTIVE,
+    k_label_global_INITIATED,
+    k_label_global_UTILITY,
+    k_label_global_BACKGROUND
+};
+
 threadpool::threadpool()
     : ithreadpool()
     , m_CS()
@@ -125,13 +133,16 @@ void threadpool::run_thread()
 {
     std::unique_lock<std::mutex> lock( m_CS );
 
+    int last_label = -1;
     while( !m_cancelled )
     {
         operation_ptr op;
+        int label = -1;
         {
             // search for the next operation starting with the highest priority
-            for( auto& ops_prio : m_operations )
+            for( label = 0; label < bucket_count; ++label )
             {
+                auto& ops_prio = m_operations[ label ];
                 if( !ops_prio.empty() )
                 {
                     op = ops_prio.front();
@@ -150,6 +161,12 @@ void threadpool::run_thread()
         inverse_lock_guard< std::mutex > unlock( m_CS );
         if( op )
         {
+            if( trace_utils::is_debug_enabled() && last_label != label )
+            {
+                thread_utils::set_current_thread_name( s_bucket_labels[label] );
+                last_label = label;
+            }
+
             execute_operation_on_this_thread( *op );
             op.reset();
         }

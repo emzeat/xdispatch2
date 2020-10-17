@@ -21,6 +21,7 @@
 
 #include "libdispatch_execution.h"
 #include "../xdispatch_internal.h"
+#include "../trace_utils.h"
 #include "xdispatch/thread_utils.h"
 
 #include "dispatch/dispatch.h"
@@ -29,14 +30,13 @@ __XDISPATCH_BEGIN_NAMESPACE
 namespace libdispatch
 {
 
-#if (defined DEBUG)
 inline void set_debugger_threadname_from_queue()
 {
-    thread_utils::set_current_thread_name( dispatch_queue_get_label( DISPATCH_CURRENT_QUEUE_LABEL ) );
+    if( trace_utils::is_debug_enabled() )
+    {
+        thread_utils::set_current_thread_name( dispatch_queue_get_label( DISPATCH_CURRENT_QUEUE_LABEL ) );
+    }
 }
-#else
-#  define set_debugger_threadname_from_queue()
-#endif
 
 void run_wrapper(
     operation_wrap* wrapper
