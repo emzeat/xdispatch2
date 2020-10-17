@@ -18,12 +18,10 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
-#include <thread>
-
 #include "xdispatch/itimer_impl.h"
+#include "xdispatch/iqueue_impl.h"
 
-#include "naive_backend_internal.h"
-#include "naive_operations.h"
+#include "naive_threadpool.h"
 #include "naive_inverse_lockguard.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
@@ -48,9 +46,6 @@ public:
     ~timer_impl() final
     {
         stop();
-
-        std::lock_guard< std::mutex > lock( m_CS );
-        m_thread.detach();
     }
 
     void interval(
@@ -91,8 +86,14 @@ public:
         m_running = true;
 
         const auto this_ptr = shared_from_this();
-        std::thread thread( [this_ptr, delay]
+
+        // the timer will execute via a helper borrowed from the
+        // global default threadpool. It is ensured that enough
+        // threads are available for the pool even though the
+        // timer is blocking while it is active
+        auto timer_op = make_operation( [this_ptr, delay]
         {
+            threadpool::instance()->notify_thread_blocked();
             std::this_thread::sleep_for( delay );
 
             std::unique_lock< std::mutex > lock( this_ptr->m_CS );
@@ -100,14 +101,18 @@ public:
             {
                 const auto handler = this_ptr->m_handler;
                 const auto interval = this_ptr->m_interval;
+                const auto queue = this_ptr->m_queue;
 
                 inverse_lock_guard< std::mutex >unlock( this_ptr->m_CS );
-                execute_operation_on_this_thread( *handler );
+                queue->async( handler );
+
                 std::this_thread::sleep_for( interval );
             }
+            threadpool::instance()->notify_thread_unblocked();
         } );
 
-        std::swap( m_thread, thread );
+        // FIXME(zwicker): Add accessors to execute with the queue's priority
+        threadpool::instance()->execute( std::move( timer_op ), queue_priority::DEFAULT );
     }
 
     void stop()
@@ -128,7 +133,6 @@ private:
     iqueue_impl_ptr m_queue;
     operation_ptr m_handler;
     bool m_running;
-    std::thread m_thread;
 };
 
 itimer_impl_ptr backend::create_timer(

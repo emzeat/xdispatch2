@@ -19,6 +19,7 @@
 */
 
 #include "naive_consumable.h"
+#include "naive_threadpool.h"
 #include "naive_backend_internal.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
@@ -75,7 +76,10 @@ bool consumable::wait_for_consumed(
     {
         return true;
     }
-    return m_barrier.wait( timeout );
+    threadpool::instance()->notify_thread_blocked();
+    const auto ret = m_barrier.wait( timeout );
+    threadpool::instance()->notify_thread_unblocked();
+    return ret;
 }
 
 }

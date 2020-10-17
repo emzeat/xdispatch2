@@ -24,6 +24,7 @@
 #include "naive_backend_internal.h"
 #include "naive_consumable.h"
 #include "naive_operations.h"
+#include "naive_threadpool.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
@@ -86,15 +87,20 @@ public:
         const iqueue_impl_ptr& q
     ) final
     {
-        // FIXME(zwicker): This will be creating a temporary queue for no good reason
-        //                 and can probably be optimized to share an existing thread
+        XDISPATCH_ASSERT( q );
+
         const auto this_ptr = shared_from_this();
-        const auto notify_q = create_serial_queue( k_label_global_low + std::string( "_notify" ), queue_priority::UTILITY );
-        notify_q.async( [op, q, this_ptr]
+        auto notify_op = make_operation( [op, q, this_ptr]
         {
+            // note: wait(..) will already notify the threadpool that
+            //       we are blocking one of its threads through our internal
+            //       use of a consumable
             this_ptr->wait( std::chrono::milliseconds::max() );
             q->async( op );
         } );
+
+        // FIXME(zwicker): Add accessors to execute with the queue's priority
+        threadpool::instance()->execute( std::move( notify_op ), queue_priority::DEFAULT );
     }
 
     backend_type backend() final

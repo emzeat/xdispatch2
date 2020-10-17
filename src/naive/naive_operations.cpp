@@ -19,6 +19,7 @@
 */
 
 #include "naive_operations.h"
+#include "naive_threadpool.h"
 #include "../xdispatch_internal.h"
 
 #include <thread>
@@ -62,8 +63,9 @@ delayed_operation::delayed_operation(
 
 void delayed_operation::operator()()
 {
-    // FIXME(zwicker): This is very rough and may be blocking a thread - refine!
+    threadpool::instance()->notify_thread_blocked();
     std::this_thread::sleep_for( m_delay );
+    threadpool::instance()->notify_thread_unblocked();
 
     execute_operation_on_this_thread( *m_op );
 

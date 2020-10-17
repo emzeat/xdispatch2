@@ -87,10 +87,11 @@ void threadpool::execute(
     schedule();
 }
 
-ithreadpool_ptr threadpool::instance()
+std::shared_ptr< threadpool > threadpool::instance()
 {
-    static ithreadpool_ptr s_instance = std::make_shared< threadpool >();
-    return s_instance;
+    // this is an intentional leak so that the destructor is ok to run from within a pool thread
+    static auto* s_instance = new std::shared_ptr< threadpool >( std::make_shared< threadpool >() );
+    return *s_instance;
 }
 
 void threadpool::schedule()
@@ -155,6 +156,24 @@ void threadpool::run_thread()
     }
 
     XDISPATCH_TRACE() << "joining thread" << std::endl;
+}
+
+void threadpool::notify_thread_blocked()
+{
+    std::lock_guard<std::mutex> lock( m_CS );
+    ++m_max_threads;
+    XDISPATCH_TRACE() << "increased threadcount to " << m_max_threads << std::endl;
+    // FIXME(zwicker) This may increase the number of threads permanently
+    //                as threads will never be joined again right now no matter
+    //                how long they have been idle
+    schedule();
+}
+
+void threadpool::notify_thread_unblocked()
+{
+    std::lock_guard<std::mutex> lock( m_CS );
+    --m_max_threads;
+    XDISPATCH_TRACE() << "lowered threadcount to " << m_max_threads << std::endl;
 }
 
 }
