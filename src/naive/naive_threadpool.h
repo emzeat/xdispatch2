@@ -41,6 +41,16 @@ using thread_ptr = std::shared_ptr< std::thread >;
 class threadpool : public ithreadpool
 {
 public:
+    enum
+    {
+        bucket_USER_INTERACTIVE = 0,
+        bucket_USER_INITIATED = 1,
+        bucket_UTILITY = 2,
+        bucket_BACKGROUND = 3,
+
+        bucket_count
+    };
+
     /**
         @brief Constructor
      */
@@ -73,7 +83,7 @@ private:
     std::size_t m_max_threads;
     std::vector< thread_ptr > m_threads;
     std::size_t m_idle_threads;
-    std::list< operation_ptr > m_operations[4];
+    std::list< operation_ptr > m_operations[bucket_count];
     bool m_cancelled;
 };
 

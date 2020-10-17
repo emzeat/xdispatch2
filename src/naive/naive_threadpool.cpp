@@ -68,18 +68,17 @@ void threadpool::execute(
     switch( priority )
     {
     case queue_priority::USER_INTERACTIVE:
-        index = 0;
+        index = bucket_USER_INTERACTIVE;
         break;
     case queue_priority::USER_INITIATED:
-        index = 1;
+        index = bucket_USER_INITIATED;
         break;
     case queue_priority::UTILITY:
     case queue_priority::DEFAULT:
-    default:
-        index = 2;
+        index = bucket_UTILITY;
         break;
     case queue_priority::BACKGROUND:
-        index = 3;
+        index = bucket_BACKGROUND;
         break;
     }
 
