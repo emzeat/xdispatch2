@@ -89,19 +89,5 @@ void ThreadPoolProxy::execute(
     m_pool->start( new OperationRunnable( work ), p );
 }
 
-naive::ithreadpool_ptr ThreadPoolProxy::instance()
-{
-    static naive::ithreadpool_ptr s_instance = []
-    {
-        // this is an intentional leak so that the destructor cannot block on tasks
-        QThreadPool* pool = new QThreadPool;
-        // we are overcommitting by default so that it becomes less likely
-        // that operations get starved due to threads blocking on resources
-        pool->setMaxThreadCount( 2 * thread_utils::system_thread_count() );
-        return std::make_shared< ThreadPoolProxy >( pool );
-    }();
-    return s_instance;
-}
-
 }
 __XDISPATCH_END_NAMESPACE

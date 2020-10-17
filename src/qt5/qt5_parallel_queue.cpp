@@ -20,6 +20,7 @@
 
 #include "qt5_backend_internal.h"
 #include "qt5_threadpool.h"
+#include "../naive/naive_threadpool.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace qt5
@@ -40,7 +41,7 @@ iqueue_impl_ptr backend::create_parallel_queue(
     queue_priority priority
 )
 {
-    return naive::create_parallel_queue( label, ThreadPoolProxy::instance(), priority, backend_type::qt5 ).implementation();
+    return naive::create_parallel_queue( label, naive::threadpool::instance(), priority, backend_type::qt5 ).implementation();
 }
 
 

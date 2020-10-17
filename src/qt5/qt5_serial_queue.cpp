@@ -24,6 +24,7 @@
 
 #include "qt5_backend_internal.h"
 #include "qt5_threadpool.h"
+#include "../naive/naive_threadpool.h"
 #include "xdispatch/thread_utils.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
@@ -121,7 +122,7 @@ iqueue_impl_ptr backend::create_serial_queue(
     queue_priority priority
 )
 {
-    return naive::create_serial_queue( label, ThreadPoolProxy::instance(), priority, backend_type::qt5 ).implementation();
+    return naive::create_serial_queue( label, naive::threadpool::instance(), priority, backend_type::qt5 ).implementation();
 }
 
 iqueue_impl_ptr backend::create_main_queue(

@@ -44,11 +44,6 @@ public:
         const queue_priority priority
     ) final;
 
-    /**
-        @return the shared pool instance
-     */
-    static naive::ithreadpool_ptr instance();
-
 private:
     QPointer<QThreadPool> m_pool;
 };
