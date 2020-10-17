@@ -95,6 +95,7 @@ private:
     operation_queue_ptr m_queue;
 };
 
+
 queue create_serial_queue(
     const std::string& label,
     const ithread_ptr& thread,
@@ -103,7 +104,18 @@ queue create_serial_queue(
 {
     XDISPATCH_ASSERT( thread );
     const auto pool = std::make_shared< external_thread >( thread );
-    return queue( label, std::make_shared< serial_queue_impl >( pool, label, queue_priority::DEFAULT, backend ) );
+    return create_serial_queue( label, pool, queue_priority::DEFAULT, backend );
+}
+
+queue create_serial_queue(
+    const std::string& label,
+    const ithreadpool_ptr& threadpool,
+    queue_priority priority,
+    backend_type backend
+)
+{
+    XDISPATCH_ASSERT( threadpool );
+    return queue( label, std::make_shared< serial_queue_impl >( threadpool, label, priority, backend ) );
 }
 
 queue create_serial_queue(

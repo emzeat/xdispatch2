@@ -23,6 +23,7 @@
 #include <QtCore/QEvent>
 
 #include "qt5_backend_internal.h"
+#include "qt5_threadpool.h"
 #include "xdispatch/thread_utils.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
@@ -55,19 +56,17 @@ private:
     const operation_ptr m_work;
 };
 
-class ThreadProxy : public naive::ithread, public QObject
+class ThreadProxy : public naive::ithreadpool, public QObject
 {
 public:
     ThreadProxy(
         QThread* thread,
-        bool deleteThread,
         const std::string& label,
         queue_priority priority
     )
         : m_thread( thread )
         , m_label( label )
         , m_priority( priority )
-        , m_deleteThread( deleteThread )
     {
         XDISPATCH_ASSERT( m_thread );
         moveToThread( m_thread );
@@ -75,17 +74,11 @@ public:
 
     ~ThreadProxy()
     {
-        if( m_deleteThread )
-        {
-            m_thread->quit();
-            m_thread->wait();
-            delete m_thread;
-            m_thread = nullptr;
-        }
     }
 
     void execute(
-        const operation_ptr& work
+        const operation_ptr& work,
+        queue_priority /* priority */
     ) final
     {
         QCoreApplication::postEvent( this, new ExecuteOperationEvent( work ) );
@@ -110,7 +103,6 @@ private:
     QThread* m_thread;
     const std::string m_label;
     const queue_priority m_priority;
-    const bool m_deleteThread;
 };
 
 queue create_serial_queue(
@@ -121,7 +113,7 @@ queue create_serial_queue(
 {
     XDISPATCH_ASSERT( thread );
     thread->setObjectName( QString::fromStdString( label ) );
-    return naive::create_serial_queue( label, std::make_shared< ThreadProxy >( thread, /* delete */ false, label, priority ), backend_type::qt5 );
+    return naive::create_serial_queue( label, std::make_shared< ThreadProxy >( thread, label, priority ), priority, backend_type::qt5 );
 }
 
 iqueue_impl_ptr backend::create_serial_queue(
@@ -129,10 +121,7 @@ iqueue_impl_ptr backend::create_serial_queue(
     queue_priority priority
 )
 {
-    std::unique_ptr<QThread> thread( new QThread );
-    thread->setObjectName( QString::fromStdString( label ) );
-    thread->start();
-    return naive::create_serial_queue( label, std::make_shared< ThreadProxy >( thread.release(),  /* delete */ true, label, priority ), backend_type::qt5 ).implementation();
+    return naive::create_serial_queue( label, ThreadPoolProxy::instance(), priority, backend_type::qt5 ).implementation();
 }
 
 iqueue_impl_ptr backend::create_main_queue(

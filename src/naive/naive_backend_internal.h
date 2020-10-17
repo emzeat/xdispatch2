@@ -121,6 +121,14 @@ create_serial_queue(
 );
 
 queue
+create_serial_queue(
+    const std::string& label,
+    const ithreadpool_ptr& threadpool,
+    queue_priority priority,
+    backend_type backend
+);
+
+queue
 create_parallel_queue(
     const std::string& label,
     const ithreadpool_ptr& pool,

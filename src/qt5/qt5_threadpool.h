@@ -18,31 +18,43 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
+#ifndef XDISPATCH_QT5_THREADPOOL_H_
+#define XDISPATCH_QT5_THREADPOOL_H_
+
+#include <QtCore/QThreadPool>
+#include <QtCore/QPointer>
+
 #include "qt5_backend_internal.h"
-#include "qt5_threadpool.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace qt5
 {
 
-queue create_parallel_queue(
-    const std::string& label,
-    QThreadPool* pool,
-    queue_priority priority
-)
+class ThreadPoolProxy : public naive::ithreadpool
 {
-    XDISPATCH_ASSERT( pool );
-    return naive::create_parallel_queue( label, std::make_shared< ThreadPoolProxy >( pool ), priority, backend_type::qt5 );
-}
+public:
+    ThreadPoolProxy(
+        QThreadPool* pool
+    );
 
-iqueue_impl_ptr backend::create_parallel_queue(
-    const std::string& label,
-    queue_priority priority
-)
-{
-    return naive::create_parallel_queue( label, ThreadPoolProxy::instance(), priority, backend_type::qt5 ).implementation();
-}
+    ~ThreadPoolProxy();
+
+    void execute(
+        const operation_ptr& work,
+        const queue_priority priority
+    ) final;
+
+    /**
+        @return the shared pool instance
+     */
+    static naive::ithreadpool_ptr instance();
+
+private:
+    QPointer<QThreadPool> m_pool;
+};
 
 
 }
 __XDISPATCH_END_NAMESPACE
+
+#endif /* XDISPATCH_QT5_THREADPOOL_H_ */
