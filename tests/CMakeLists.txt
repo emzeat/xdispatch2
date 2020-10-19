@@ -32,6 +32,13 @@ file( GLOB TEST_CXX
   signal_*.h
 )
 
+if( BUILD_XDISPATCH2_BACKEND_QT5 )
+    file( GLOB TEST_QT
+      qt_*.cpp
+      qt_*.h
+    )
+endif()
+
 # includes
 include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}
@@ -46,12 +53,14 @@ if( MZ_IOS )
     add_library( xdispatch2_tests STATIC
         main_ios.cpp
         ${TEST_CXX}
+        ${TEST_QT}
         ${RES_FILES}
     )
 else()
     add_executable( xdispatch2_tests
         main.cpp
         ${TEST_CXX}
+        ${TEST_QT}
         ${TEST_LIBDISPATCH}
         ${RES_FILES}
     )

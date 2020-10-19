@@ -33,6 +33,7 @@
 #if (defined BUILD_XDISPATCH2_BACKEND_QT5)
     #include <QtCore/QCoreApplication>
     #include "../src/qt5/qt5_backend_internal.h"
+    #include "qt_tests.h"
 #endif
 
 void print_log(
@@ -71,6 +72,7 @@ int main( int argc, char* argv[] )
     QCoreApplication app( argc, argv );
     static xdispatch::qt5::backend s_qt5;
     register_cxx_tests( "qt5", &s_qt5 );
+    register_qt_tests();
 #endif
 
     register_platform_tests();

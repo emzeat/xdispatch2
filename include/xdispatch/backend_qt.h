@@ -32,6 +32,7 @@
 #include <QtCore/QThreadPool>
 
 #include "xdispatch/dispatch.h"
+#include "xdispatch/signals.h"
 #if (!BUILD_XDISPATCH2_BACKEND_QT5)
     #error "The qt5 backend is not available on this platform"
 #endif
@@ -64,6 +65,68 @@ create_parallel_queue(
     QThreadPool* pool,
     queue_priority priority = queue_priority::DEFAULT
 );
+
+/**
+    @brief Registers the given connection with object
+
+    The connection will be automatically closed when
+    the object gets deleted
+
+    @param object The object to tie the lifetime of the connection to
+    @param connection The connection to be managed
+ */
+XDISPATCH_EXPORT void register_connection(
+    QObject* object,
+    const connection& connection
+);
+
+/**
+    @brief helper to connect a QObject slot to an xdispatch::signal
+
+    Will automatically take care of closing the connection when the
+    object gets destroyed
+
+    @param sender The signal to connect to
+    @param receiver The object on which the slot is to be called
+    @param slot The slot on object to be called
+    @param q The queue to invoke the slot on
+    @param m Selects the notification mode, useful for high frequency updates
+ */
+template<class Object, typename...Args, typename... SlotArgs>
+void connect(
+    signal<void( Args... )>& sender,
+    Object* receiver,
+    void( Object::*slot )( SlotArgs... ),
+    queue q = main_queue(),
+    notification_mode m = notification_mode::single_updates
+)
+{
+    register_connection( receiver, sender.template connect<Object, SlotArgs...>( receiver, slot, q, m ) );
+}
+
+/**
+    @brief helper to connect a lambda to an xdispatch::signal
+
+    Will automatically take care of closing the connection when the
+    accompanying object gets destroyed
+
+    @param sender The signal to connect to
+    @param receiver The object controlling the lifetime of the connection
+    @param lambda The lambda to be called
+    @param q The queue to invoke the slot on
+    @param m Selects the notification mode, useful for high frequency updates
+ */
+template<typename... Args>
+void connect(
+    signal<void( Args... )>& sender,
+    QObject* receiver,
+    const typename signal<void( Args... )>::functor& lambda,
+    queue q = main_queue(),
+    notification_mode m = notification_mode::single_updates
+)
+{
+    register_connection( receiver, sender.connect( lambda, q, m ) );
+}
 
 }
 __XDISPATCH_END_NAMESPACE
