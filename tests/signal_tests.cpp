@@ -117,6 +117,22 @@ void signal_test_disconnect(
     MU_PASS( "Works" );
 }
 
+void signal_test_disconnect_dangling(
+    void*
+)
+{
+    MU_BEGIN_TEST( signal_test_disconnect_dangling );
+
+    auto void_signal = new xdispatch::signal<void( void )>;
+    auto c = void_signal->connect( []
+    {
+        MU_FAIL( "Should never reach this" );
+    } );
+
+    delete void_signal;
+    c.disconnect();
+    MU_PASS( "Works" );
+}
 
 void signal_test_recursive_disconnect(
     void*
@@ -211,6 +227,7 @@ void register_signal_tests()
     MU_REGISTER_TEST( signal_test_void_connection );
     MU_REGISTER_TEST( signal_test_int_connection );
     MU_REGISTER_TEST( signal_test_disconnect );
+    MU_REGISTER_TEST( signal_test_disconnect_dangling );
     MU_REGISTER_TEST( signal_test_recursive_disconnect );
     MU_REGISTER_TEST( signal_test_barrier );
     MU_REGISTER_TEST( signal_test_barrier_value );

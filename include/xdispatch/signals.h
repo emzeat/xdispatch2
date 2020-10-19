@@ -27,7 +27,6 @@
  * @{
  */
 
-#include <map>
 #include <atomic>
 #include <vector>
 #include <mutex>
@@ -38,18 +37,7 @@
 __XDISPATCH_BEGIN_NAMESPACE
 
 class connection;
-
-class iconnectable
-{
-public:
-    iconnectable() = default;
-
-    virtual ~iconnectable() = default;
-
-    virtual bool disconnect(
-        connection& c
-    ) = 0;
-};
+class signal_p;
 
 class XDISPATCH_EXPORT connection
 {
@@ -70,17 +58,16 @@ public:
 
 protected:
     connection(
-        const void* id,
-        iconnectable* parent
+        const std::shared_ptr<void>& id,
+        signal_p* parent
     );
 
 private:
-    friend class iconnectable;
     friend class signal_p;
     friend class scoped_connection;
 
-    const void* m_id;
-    iconnectable* m_parent;
+    std::weak_ptr<void> m_id;
+    signal_p* m_parent;
 };
 
 class XDISPATCH_EXPORT scoped_connection : public connection
@@ -114,12 +101,11 @@ enum class notification_mode
     single_updates
 };
 
-class XDISPATCH_EXPORT signal_p : public iconnectable
+class XDISPATCH_EXPORT signal_p
 {
 protected:
     struct job;
     using job_ptr = std::shared_ptr< job > ;
-    using job_map = std::map< const void*, job_ptr >;
 
 public:
     signal_p(
@@ -134,7 +120,7 @@ public:
 
     bool disconnect(
         connection& c
-    ) final;
+    );
 
     void skip_all();
 
@@ -169,8 +155,7 @@ protected:
 
     std::mutex m_CS;
     group m_group;
-    job_map m_jobs;
-    uintptr_t m_ids;
+    std::vector< job_ptr > m_jobs;
 };
 
 template<typename Signature>
@@ -237,9 +222,8 @@ public:
         // FIXME(zwicker): Can this be pulled into the signal_p?
         std::lock_guard<std::mutex> lock( m_CS );
 
-        for( auto it : m_jobs )
+        for( const job_ptr& job : m_jobs )
         {
-            const job_ptr job = it.second;
             int pending = job->m_pending++;
             if( notification_mode::single_updates == job->m_mode || pending < 1 )
             {
