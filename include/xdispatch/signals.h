@@ -36,7 +36,6 @@
 
 __XDISPATCH_BEGIN_NAMESPACE
 
-class connection;
 class signal_p;
 
 class XDISPATCH_EXPORT connection
@@ -104,8 +103,8 @@ enum class notification_mode
 class XDISPATCH_EXPORT signal_p
 {
 protected:
-    struct job;
-    using job_ptr = std::shared_ptr< job > ;
+    class connection_handler;
+    using connection_handler_ptr = std::shared_ptr< connection_handler > ;
 
 public:
     signal_p(
@@ -114,10 +113,6 @@ public:
 
     ~signal_p();
 
-    XDISPATCH_WARN_UNUSED_RETURN( connection ) connect(
-        const job_ptr& job
-    );
-
     bool disconnect(
         connection& c
     );
@@ -125,8 +120,13 @@ public:
     void skip_all();
 
 protected:
-    struct job
+    connection connect(
+        const connection_handler_ptr& job
+    );
+
+    class connection_handler
     {
+    public:
         enum
         {
             active_disabled = 0,
@@ -134,7 +134,7 @@ protected:
             active_running
         };
 
-        job(
+        connection_handler(
             const queue& q,
             notification_mode m
         );
@@ -155,7 +155,7 @@ protected:
 
     std::mutex m_CS;
     group m_group;
-    std::vector< job_ptr > m_jobs;
+    std::vector< connection_handler_ptr > m_handlers;
 };
 
 template<typename Signature>
@@ -168,14 +168,15 @@ public:
     typedef std::function< void( Args... ) > functor;
 
 private:
-    struct job_t : public job
+    class connection_handler_t : public connection_handler
     {
-        job_t(
+    public:
+        connection_handler_t(
             const queue& q,
             const functor& f,
             notification_mode m
         )
-            : job( q, m )
+            : connection_handler( q, m )
             , m_func( f )
         {
         }
@@ -197,8 +198,8 @@ public:
         notification_mode m = notification_mode::single_updates
     )
     {
-        job_ptr new_job = std::make_shared<job_t >( q, f, m );
-        return signal_p::connect( new_job );
+        connection_handler_ptr new_connection = std::make_shared<connection_handler_t>( q, f, m );
+        return signal_p::connect( new_connection );
     }
 
     template<class T, typename... FunctionArgs>
@@ -222,25 +223,25 @@ public:
         // FIXME(zwicker): Can this be pulled into the signal_p?
         std::lock_guard<std::mutex> lock( m_CS );
 
-        for( const job_ptr& job : m_jobs )
+        for( const connection_handler_ptr& handler : m_handlers )
         {
-            int pending = job->m_pending++;
-            if( notification_mode::single_updates == job->m_mode || pending < 1 )
+            int pending = handler->m_pending++;
+            if( notification_mode::single_updates == handler->m_mode || pending < 1 )
             {
-                job->enable();
+                handler->enable();
                 m_group.async( [ = ]
                 {
-                    if( job->enter() )
+                    if( handler->enter() )
                     {
-                        job->m_pending--;
-                        std::static_pointer_cast<job_t>( job )->m_func( argList... );
-                        job->leave();
+                        handler->m_pending--;
+                        std::static_pointer_cast<connection_handler_t>( handler )->m_func( argList... );
+                        handler->leave();
                     }
-                }, job->m_queue );
+                }, handler->m_queue );
             }
             else
             {
-                job->m_pending--;
+                handler->m_pending--;
             }
         }
     }

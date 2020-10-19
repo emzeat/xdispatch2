@@ -158,7 +158,7 @@ bool connection::operator !=(
     return !( other == *this );
 }
 
-signal_p::job::job(
+signal_p::connection_handler::connection_handler(
     const queue& q,
     notification_mode m
 )
@@ -169,7 +169,7 @@ signal_p::job::job(
 
 }
 
-void signal_p::job::disable()
+void signal_p::connection_handler::disable()
 {
     if( m_queue.is_current_queue() )
     {
@@ -188,18 +188,18 @@ void signal_p::job::disable()
     }
 }
 
-void signal_p::job::enable()
+void signal_p::connection_handler::enable()
 {
     m_active.store( active_enabled );
 }
 
-bool signal_p::job::enter()
+bool signal_p::connection_handler::enter()
 {
     int expected = active_enabled;
     return m_active.compare_exchange_strong( expected, active_running );
 }
 
-void signal_p::job::leave()
+void signal_p::connection_handler::leave()
 {
     int expected = active_running;
     m_active.compare_exchange_strong( expected, active_enabled );
@@ -216,11 +216,11 @@ signal_p::~signal_p()
 {
     std::lock_guard<std::mutex> lock( m_CS );
 
-    for( const auto& job : m_jobs )
+    for( const auto& handler : m_handlers )
     {
-        job->disable();
+        handler->disable();
     }
-    m_jobs.clear();
+    m_handlers.clear();
 }
 
 bool signal_p::disconnect(
@@ -228,20 +228,20 @@ bool signal_p::disconnect(
 )
 {
     const auto c_void = c.m_id.lock();
-    const auto c_job = std::static_pointer_cast<job>( c_void );
-    if( c_job )
+    const auto c_handler = std::static_pointer_cast<connection_handler>( c_void );
+    if( c_handler )
     {
         std::lock_guard<std::mutex> lock( m_CS );
-        auto it = std::find( m_jobs.begin(), m_jobs.end(), c_job );
-        if( it != m_jobs.end() )
+        auto it = std::find( m_handlers.begin(), m_handlers.end(), c_handler );
+        if( it != m_handlers.end() )
         {
-            m_jobs.erase( it );
+            m_handlers.erase( it );
         }
     }
     c.m_id.reset();
-    if( c_job )
+    if( c_handler )
     {
-        c_job->disable();
+        c_handler->disable();
         return true;
     }
     return false;
@@ -251,19 +251,19 @@ void signal_p::skip_all()
 {
     std::lock_guard<std::mutex> lock( m_CS );
 
-    for( const job_ptr& job : m_jobs )
+    for( const auto& handler : m_handlers )
     {
-        job->disable();
+        handler->disable();
     }
 }
 
 connection signal_p::connect(
-    const job_ptr& job
+    const connection_handler_ptr& job
 )
 {
     {
         std::lock_guard<std::mutex> lock( m_CS );
-        m_jobs.push_back( job );
+        m_handlers.push_back( job );
     }
     return connection( job, this );
 }
