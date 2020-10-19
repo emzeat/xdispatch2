@@ -96,6 +96,16 @@ scoped_connection& scoped_connection::operator =(
     return *this;
 }
 
+connection scoped_connection::take()
+{
+    connection other;
+    other.m_id = m_id;
+    other.m_parent = m_parent;
+    m_id = nullptr;
+    m_parent = nullptr;
+    return other;
+}
+
 connection::connection(
     const void* id,
     iconnectable* parent
@@ -104,6 +114,11 @@ connection::connection(
     , m_parent( parent )
 {
     // nothing, an empty connection is fine
+}
+
+connection::connection()
+    : connection( nullptr, nullptr )
+{
 }
 
 bool connection::disconnect()

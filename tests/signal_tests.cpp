@@ -38,12 +38,24 @@ void signal_test_void_connection(
         MU_PASS( "Works" );
     } );
 
+    class SomeClass
+    {
+    public:
+        void someFunc()
+        {
+
+        }
+    };
+    SomeClass someClass;
+    auto c2 = void_signal.connect( &someClass, &SomeClass::someFunc );
+
     void_signal();
 
     xdispatch::exec();
 
     MU_FAIL( "Should never reach this" );
     c.disconnect();
+    c2.disconnect();
     MU_END_TEST;
 }
 
@@ -63,11 +75,25 @@ void signal_test_int_connection(
         MU_PASS( "Works" );
     } );
 
+    class SomeClass
+    {
+    public:
+        void someFunc(
+            int arg
+        )
+        {
+
+        }
+    };
+    SomeClass someClass;
+    auto c2 = int_signal.connect( &someClass, &SomeClass::someFunc );
+
     int_signal( 4 );
     xdispatch::exec();
 
     MU_FAIL( "Should never reach this" );
     c.disconnect();
+    c2.disconnect();
     MU_END_TEST;
 }
 

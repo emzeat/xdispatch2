@@ -53,13 +53,9 @@ public:
 
 class XDISPATCH_EXPORT connection
 {
-protected:
-    connection(
-        const void* id,
-        iconnectable* parent
-    );
-
 public:
+    connection();
+
     bool disconnect();
 
     bool connected() const;
@@ -71,6 +67,12 @@ public:
     bool operator !=(
         const connection& other
     ) const;
+
+protected:
+    connection(
+        const void* id,
+        iconnectable* parent
+    );
 
 private:
     friend class iconnectable;
@@ -102,6 +104,8 @@ public:
     scoped_connection& operator =(
         const scoped_connection& cOther
     );
+
+    connection take();
 };
 
 enum class notification_mode
@@ -210,6 +214,20 @@ public:
     {
         job_ptr new_job = std::make_shared<job_t >( q, f, m );
         return signal_p::connect( new_job );
+    }
+
+    template<class T, typename... FunctionArgs>
+    XDISPATCH_WARN_UNUSED_RETURN( connection ) connect(
+        T* object,
+        void( T::*function )( FunctionArgs... ),
+        queue q = global_queue(),
+        notification_mode m = notification_mode::single_updates
+    )
+    {
+        return connect( [object, function]( Args... args )
+        {
+            ( object->*function )( args... );
+        }, q, m );
     }
 
     void operator()(
