@@ -27,6 +27,7 @@
 #include <xdispatch/signals_barrier.h>
 
 #include <QtCore/QObject>
+#include <QtCore/QThread>
 
 class TestObject : public QObject
 {
@@ -88,7 +89,53 @@ void qt_signal_connect( void* )
     MU_END_TEST;
 }
 
+void qt_custom_thread( void* )
+{
+    MU_BEGIN_TEST( qt_custom_thread );
+
+    auto* thread = new QThread;
+    thread->start();
+    do
+    {
+        MU_SLEEP( 0 );
+    }
+    while( !thread->isRunning() );
+    auto queue = xdispatch::qt5::create_serial_queue( "custom_thread", thread );
+
+    queue.async( []
+    {
+        MU_PASS( "Executed" );
+    } );
+
+    xdispatch::exec();
+
+    MU_FAIL( "Should not reach this" );
+    MU_END_TEST;
+}
+
+void qt_custom_thread_not_started( void* )
+{
+    MU_BEGIN_TEST( qt_custom_thread_not_started );
+
+    auto* thread = new QThread;
+    auto queue = xdispatch::qt5::create_serial_queue( "custom_thread", thread );
+
+    queue.async( []
+    {
+        MU_PASS( "Executed" );
+    } );
+
+    thread->start();
+    xdispatch::exec();
+
+    MU_FAIL( "Should not reach this" );
+    MU_END_TEST;
+}
+
+
 void register_qt_tests()
 {
     MU_REGISTER_TEST( qt_signal_connect );
+    MU_REGISTER_TEST( qt_custom_thread );
+    MU_REGISTER_TEST( qt_custom_thread_not_started );
 }
