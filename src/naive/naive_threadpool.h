@@ -27,6 +27,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <list>
+#include <array>
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive
@@ -101,7 +102,7 @@ private:
     std::size_t m_max_threads;
     std::vector< thread_ptr > m_threads;
     std::size_t m_idle_threads;
-    std::list< operation_ptr > m_operations[bucket_count];
+    std::array< std::list< operation_ptr >, bucket_count > m_operations;
     bool m_cancelled;
 };
 

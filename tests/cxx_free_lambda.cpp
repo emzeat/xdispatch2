@@ -24,17 +24,17 @@
 #include <xdispatch/dispatch>
 #include "cxx_tests.h"
 
-static bool was_freed = false;
+static std::atomic<bool> was_freed( false );
+static std::atomic<int> loop_counter( 0 );
 
 struct BeFreed2
 {
     BeFreed2()
-        : m_ref_ct( new std::atomic<int> )
+        : m_ref_ct( new std::atomic<int>( 1 ) )
     {
-        *m_ref_ct = 1;
     }
 
-    explicit BeFreed2(
+    BeFreed2(
         const BeFreed2& other
     ) : m_ref_ct( other.m_ref_ct )
     {
@@ -63,9 +63,8 @@ private:
 struct BeFreed
 {
     BeFreed()
-        : m_ref_ct( new std::atomic<int> )
+        : m_ref_ct( new std::atomic<int>( 1 ) )
     {
-        *m_ref_ct = 1;
     }
 
     BeFreed(
@@ -102,10 +101,12 @@ static void dispatch_outer()
     cxx_global_queue().apply( 10, [ = ]( size_t i )
     {
         inner.someFunction();
+        ++loop_counter;
     } );
 
     cxx_main_queue().async( [ = ]
     {
+        MU_ASSERT_EQUAL( loop_counter, 10 );
         outer.someFunction();
     } );
 }

@@ -42,8 +42,8 @@ threadpool::threadpool()
     , m_max_threads( 0 )
     , m_threads()
     , m_idle_threads( 0 )
-    , m_operations()
-    , m_cancelled( false )
+    , m_operations( {} )
+, m_cancelled( false )
 {
     // we are overcommitting by default so that it becomes less likely
     // that operations get starved due to threads blocking on resources

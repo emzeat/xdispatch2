@@ -21,6 +21,7 @@ steps:
   image: heimdall.mlba-team.de:5000/builder-1604-cache:latest
   environment:
     USER: test_runner
+    XDISPATCH2_TRACE: 1
   commands:
     - cd build/clang-ninja-release/bin
     - ./xdispatch2_tests
