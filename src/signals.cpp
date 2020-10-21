@@ -19,6 +19,8 @@
 * @LICENSE_HEADER_END@
 */
 
+#include <algorithm>
+
 #include "xdispatch_internal.h"
 #include "xdispatch/signals.h"
 
