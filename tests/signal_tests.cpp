@@ -222,6 +222,139 @@ void signal_test_barrier_value(
     MU_END_TEST;
 }
 
+void signal_test_scoped_connection(
+    void*
+)
+{
+    MU_BEGIN_TEST( signal_test_scoped_connection );
+    char handler_calls = 0;
+
+    xdispatch::signal<void( void )> void_signal;
+    {
+        xdispatch::scoped_connection scope( void_signal.connect( [&]
+        {
+            ++handler_calls;
+        } ) );
+
+        // emit the first time, this should invoke our handler
+        void_signal();
+        MU_SLEEP( 1 );
+        MU_ASSERT_EQUAL( 1, handler_calls );
+    }
+
+    // emit the second time, this should not invoke the handler
+    // as we are outside the connection scope
+    void_signal();
+    MU_SLEEP( 1 );
+    MU_ASSERT_EQUAL( 1, handler_calls );
+
+    MU_PASS( "Scope works" );
+    MU_END_TEST;
+}
+
+void signal_test_connection_manager(
+    void*
+)
+{
+    MU_BEGIN_TEST( signal_test_connection_manager );
+    char handler_0 = 0;
+    char handler_1 = 0;
+
+    xdispatch::connection_manager manager;
+    xdispatch::signal<void( void )> void_signal;
+    {
+        manager += void_signal.connect( [&]
+        {
+            ++handler_0;
+        } );
+
+        // emit the first time, this should invoke our handler
+        void_signal();
+        MU_SLEEP( 1 );
+        MU_ASSERT_EQUAL( 1, handler_0 );
+        MU_ASSERT_EQUAL( 0, handler_1 );
+    }
+
+    {
+        manager += void_signal.connect( [&]
+        {
+            ++handler_1;
+        } );
+
+        // emit the second time, this should invoke two handlers
+        void_signal();
+        MU_SLEEP( 1 );
+        MU_ASSERT_EQUAL( 2, handler_0 );
+        MU_ASSERT_EQUAL( 1, handler_1 );
+    }
+
+    // disconnect, this should not invoke any handler anymore
+    manager.reset_connections();
+    void_signal();
+    MU_SLEEP( 1 );
+    MU_ASSERT_EQUAL( 2, handler_0 );
+    MU_ASSERT_EQUAL( 1, handler_1 );
+
+    MU_PASS( "Scope works" );
+    MU_END_TEST;
+}
+
+void signal_test_batch_updates(
+    void*
+)
+{
+    MU_BEGIN_TEST( signal_test_batch_updates );
+    char handler_calls = 0;
+
+    xdispatch::signal<void( void )> void_signal;
+    xdispatch::queue test_queue( "tests" );
+
+    auto c = void_signal.connect( [&]
+    {
+        MU_SLEEP( 1 );
+        ++handler_calls;
+    }, test_queue, xdispatch::notification_mode::batch_updates );
+
+    // emit three times, which should invoke the handler only once
+    void_signal();
+    void_signal();
+    void_signal();
+    MU_SLEEP( 5 );
+    MU_ASSERT_EQUAL( 1, handler_calls );
+
+    MU_PASS( "Batch works" );
+    void_signal.disconnect( c );
+    MU_END_TEST;
+}
+
+void signal_test_single_updates(
+    void*
+)
+{
+    MU_BEGIN_TEST( signal_test_single_updates );
+    char handler_calls = 0;
+
+    xdispatch::signal<void( void )> void_signal;
+    xdispatch::queue test_queue( "tests" );
+
+    auto c = void_signal.connect( [&]
+    {
+        MU_SLEEP( 1 );
+        ++handler_calls;
+    }, test_queue, xdispatch::notification_mode::single_updates );
+
+    // emit three times, which should invoke the handler an equal number of times
+    void_signal();
+    void_signal();
+    void_signal();
+    MU_SLEEP( 5 );
+    MU_ASSERT_EQUAL( 3, handler_calls );
+
+    MU_PASS( "Single works" );
+    void_signal.disconnect( c );
+    MU_END_TEST;
+}
+
 void register_signal_tests()
 {
     MU_REGISTER_TEST( signal_test_void_connection );
@@ -231,4 +364,8 @@ void register_signal_tests()
     MU_REGISTER_TEST( signal_test_recursive_disconnect );
     MU_REGISTER_TEST( signal_test_barrier );
     MU_REGISTER_TEST( signal_test_barrier_value );
+    MU_REGISTER_TEST( signal_test_scoped_connection );
+    MU_REGISTER_TEST( signal_test_connection_manager );
+    MU_REGISTER_TEST( signal_test_batch_updates );
+    MU_REGISTER_TEST( signal_test_single_updates );
 }

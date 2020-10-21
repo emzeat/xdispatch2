@@ -61,11 +61,10 @@ scoped_connection::scoped_connection()
 }
 
 scoped_connection::scoped_connection(
-    const scoped_connection& cOther
-)
-    : connection( cOther )
+    scoped_connection&& other
+) noexcept
+    : connection( other )
 {
-    scoped_connection& other = const_cast< scoped_connection& >( cOther );
     other.m_id.reset();
     other.m_parent = nullptr;
 }
@@ -85,10 +84,9 @@ scoped_connection& scoped_connection::operator =(
 }
 
 scoped_connection& scoped_connection::operator =(
-    const scoped_connection& cOther
-)
+    scoped_connection&& other
+) noexcept
 {
-    scoped_connection& other = const_cast< scoped_connection& >( cOther );
     this->m_id = other.m_id;
     this->m_parent = other.m_parent;
     other.m_id.reset();
@@ -178,7 +176,7 @@ void signal_p::connection_handler::disable()
     }
     else
     {
-        int expected = active_enabled;
+        auto expected = active_enabled;
         do
         {
             expected = active_enabled;
@@ -195,13 +193,13 @@ void signal_p::connection_handler::enable()
 
 bool signal_p::connection_handler::enter()
 {
-    int expected = active_enabled;
+    auto expected = active_enabled;
     return m_active.compare_exchange_strong( expected, active_running );
 }
 
 void signal_p::connection_handler::leave()
 {
-    int expected = active_running;
+    auto expected = active_running;
     m_active.compare_exchange_strong( expected, active_enabled );
 }
 

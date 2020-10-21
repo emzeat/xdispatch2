@@ -71,7 +71,7 @@ _begin_test(
     const char* name
 );
 
-#define MU_END_TEST
+#define MU_END_TEST MU_FAIL( "!! INCOMPLETE TEST !!" );
 
 #define MU_MESSAGE( format, ... ) _print_message( "\t-> " format "\n",##__VA_ARGS__ )
 static void _print_message(
