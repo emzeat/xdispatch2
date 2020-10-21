@@ -63,6 +63,7 @@ void qt_signal_connect( void* )
     constexpr int k_signal_value = 11;
 
     auto obj = new TestObject;
+    obj->m_signal_calls = 0;
     obj->m_signal_value = k_signal_value;
     xdispatch::qt5::connect( int_signal, obj, &TestObject::myIntSignal, xdispatch::global_queue() );
     xdispatch::qt5::connect( int_signal, obj, &TestObject::myIntSignal2, xdispatch::global_queue() );
@@ -86,6 +87,41 @@ void qt_signal_connect( void* )
     int_signal( 0 );
 
     MU_PASS( "Disconnected" );
+    MU_END_TEST;
+}
+
+void qt_signal_disconnect( void* )
+{
+    MU_BEGIN_TEST( qt_signal_disconnect );
+
+    xdispatch::signal<void( int )> int_signal;
+    xdispatch::signal<void( int )> int_signal2;
+    constexpr int k_signal_value = 15;
+
+    auto obj = new TestObject;
+    obj->m_signal_calls = 0;
+    obj->m_signal_value = k_signal_value;
+    xdispatch::qt5::connect( int_signal, obj, &TestObject::myIntSignal, xdispatch::global_queue() );
+    xdispatch::qt5::connect( int_signal2, obj, &TestObject::myIntSignal2, xdispatch::global_queue() );
+
+    xdispatch::qt5::disconnect( int_signal, obj );
+
+    // ensure connections were actually removed
+    int_signal( k_signal_value );
+    MU_SLEEP( 1 );
+    MU_ASSERT_EQUAL( 0, obj->m_signal_calls );
+
+    // but connections to other signals remained
+    int_signal2( k_signal_value );
+    MU_SLEEP( 1 );
+    MU_ASSERT_EQUAL( 1, obj->m_signal_calls );
+
+    // deleting the object should still be fine
+    delete obj;
+    obj = nullptr;
+    int_signal( 0 );
+
+    MU_PASS( "Explict can be grouped with implicit disconnect" );
     MU_END_TEST;
 }
 
@@ -136,6 +172,7 @@ void qt_custom_thread_not_started( void* )
 void register_qt_tests()
 {
     MU_REGISTER_TEST( qt_signal_connect );
+    MU_REGISTER_TEST( qt_signal_disconnect );
     MU_REGISTER_TEST( qt_custom_thread );
     MU_REGISTER_TEST( qt_custom_thread_not_started );
 }

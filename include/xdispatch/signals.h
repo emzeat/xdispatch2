@@ -67,6 +67,13 @@ public:
     bool connected() const;
 
     /**
+        @returns true when the connection is to signal
+     */
+    bool is_connected_to(
+        const signal_p&
+    ) const;
+
+    /**
         @brief Compares this connection to another
 
         @returns true if both the connected signals and handlers are identical
@@ -228,6 +235,11 @@ protected:
     connection connect(
         const connection_handler_ptr& job
     );
+
+    /// Disallow copying of a signal to ensure consistent behavior
+    signal_p(
+        const signal_p&
+    ) = delete;
 
     /// Private container class for holding a handler
     class connection_handler
@@ -426,10 +438,28 @@ public:
      */
     connection_manager() = default;
 
+    /**
+        @brief Destructor
+     */
     ~connection_manager();
 
+    /**
+        @brief Destroys all connections currently managed
+     */
     void reset_connections();
 
+    /**
+        @brief Destroys all managed connections to signal
+     */
+    void reset_connections_with(
+        const signal_p& s
+    );
+
+    /**
+        @brief Adds the given connection to the manager
+
+        It will be automatically destroyed when the manager goes out of scope
+     */
     connection_manager& operator +=(
         const connection& cn
     );

@@ -35,6 +35,20 @@ void connection_manager::reset_connections()
     m_connections.clear();
 }
 
+void connection_manager::reset_connections_with(
+    const signal_p& s
+)
+{
+    std::lock_guard<std::mutex> lock( m_CS );
+    const auto last = std::remove_if( m_connections.begin(), m_connections.end(), [&s](
+                                          const scoped_connection & sc
+                                      )
+    {
+        return sc.is_connected_to( s );
+    } );
+    m_connections.erase( last, m_connections.end() );
+}
+
 connection_manager& connection_manager::operator +=(
     const connection& cn
 )
@@ -87,8 +101,8 @@ scoped_connection& scoped_connection::operator =(
     scoped_connection&& other
 ) noexcept
 {
-    this->m_id = other.m_id;
-    this->m_parent = other.m_parent;
+    connection::disconnect();
+    connection::operator =( other );
     other.m_id.reset();
     other.m_parent = nullptr;
     return *this;
@@ -138,6 +152,14 @@ bool connection::connected() const
         return false;
     }
     return true;
+}
+
+bool connection::is_connected_to(
+    const signal_p& signal
+) const
+{
+    const auto signal_ptr = &signal;
+    return signal_ptr == m_parent;
 }
 
 bool connection::operator ==(
@@ -230,11 +252,8 @@ bool signal_p::disconnect(
     if( c_handler )
     {
         std::lock_guard<std::mutex> lock( m_CS );
-        auto it = std::find( m_handlers.begin(), m_handlers.end(), c_handler );
-        if( it != m_handlers.end() )
-        {
-            m_handlers.erase( it );
-        }
+        const auto last = std::remove( m_handlers.begin(), m_handlers.end(), c_handler );
+        m_handlers.erase( last, m_handlers.end() );
     }
     c.m_id.reset();
     if( c_handler )

@@ -81,6 +81,17 @@ XDISPATCH_EXPORT void register_connection(
 );
 
 /**
+    @brief Destroys all connections with object
+
+    @param object The object to to remove connections from
+    @param signal The signal to which connections get removed
+ */
+XDISPATCH_EXPORT void destroy_connections(
+    QObject* object,
+    signal_p& signal
+);
+
+/**
     @brief helper to connect a QObject slot to an xdispatch::signal
 
     Will automatically take care of closing the connection when the
@@ -126,6 +137,24 @@ void connect(
 )
 {
     register_connection( receiver, sender.connect( lambda, q, m ) );
+}
+
+/**
+    @brief helper to disconnect an object from a signal
+
+    Use this to explicitly destroy all connections
+    made between an object and a signal
+
+    @param sender The signal to disconnect from
+    @param receiver The object for which to remove connections
+ */
+template<typename... Args>
+void disconnect(
+    signal<void( Args... )>& sender,
+    QObject* receiver
+)
+{
+    destroy_connections( receiver, sender );
 }
 
 }

@@ -24,25 +24,46 @@ __XDISPATCH_BEGIN_NAMESPACE
 namespace qt5
 {
 
+class object_connection : public QObject
+{
+public:
+    connection_manager m_connections;
+
+    static object_connection* get(
+        QObject* object,
+        bool createIfMissing = false
+    )
+    {
+        auto oc = object->findChild<object_connection*>( QString(), Qt::FindDirectChildrenOnly );
+        if( createIfMissing && nullptr == oc )
+        {
+            oc = new object_connection;
+            oc->setParent( object );
+        }
+        return oc;
+    }
+};
+
 void register_connection(
     QObject* object,
     const connection& connection
 )
 {
-    class object_connection : public QObject
-    {
-    public:
-        connection_manager m_connections;
-    };
-
-    auto receiver_connection = object->findChild<object_connection*>( QString(), Qt::FindDirectChildrenOnly );
-    if( nullptr == receiver_connection )
-    {
-        receiver_connection = new object_connection;
-        receiver_connection->setParent( object );
-    }
+    auto receiver_connection = object_connection::get( object, true );
     XDISPATCH_ASSERT( receiver_connection );
     receiver_connection->m_connections += connection;
+}
+
+void destroy_connections(
+    QObject* object,
+    signal_p& signal
+)
+{
+    auto receiver_connection = object_connection::get( object, false );
+    if( receiver_connection )
+    {
+        receiver_connection->m_connections.reset_connections_with( signal );
+    }
 }
 
 }
