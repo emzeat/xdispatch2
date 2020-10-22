@@ -25,7 +25,6 @@
 #include "qt5_backend_internal.h"
 #include "qt5_threadpool.h"
 #include "../naive/naive_threadpool.h"
-#include "xdispatch/thread_utils.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace qt5
@@ -60,14 +59,10 @@ private:
 class ThreadProxy : public naive::ithreadpool, public QObject
 {
 public:
-    ThreadProxy(
-        QThread* thread,
-        const std::string& label,
-        queue_priority priority
+    explicit ThreadProxy(
+        QThread* thread
     )
         : m_thread( thread )
-        , m_label( label )
-        , m_priority( priority )
     {
         XDISPATCH_ASSERT( m_thread );
         moveToThread( m_thread );
@@ -92,8 +87,6 @@ protected:
     {
         if( ExecuteOperationEvent::Type() == event->type() )
         {
-            thread_utils::set_current_thread_name( m_label );
-            thread_utils::set_current_thread_priority( m_priority );
             static_cast<ExecuteOperationEvent*>( event )->execute();
         }
 
@@ -102,8 +95,6 @@ protected:
 
 private:
     QThread* m_thread;
-    const std::string m_label;
-    const queue_priority m_priority;
 };
 
 queue create_serial_queue(
@@ -114,7 +105,8 @@ queue create_serial_queue(
 {
     XDISPATCH_ASSERT( thread );
     thread->setObjectName( QString::fromStdString( label ) );
-    return naive::create_serial_queue( label, std::make_shared< ThreadProxy >( thread, label, priority ), priority, backend_type::qt5 );
+    auto proxy = std::make_shared< ThreadProxy >( thread );
+    return naive::create_serial_queue( label, std::move( proxy ), priority, backend_type::qt5 );
 }
 
 iqueue_impl_ptr backend::create_serial_queue(

@@ -41,15 +41,27 @@ namespace naive
 
 /**
     @return A new serial queue powered by the given thread
+
+    @param label The name to use for the new queue
+    @param thread The thread on which all operations added to the queue
+                  will be executed
+    @param priority Choose a priority different from default to automatically
+                  have the priority of the thread reconfigured
     */
 XDISPATCH_EXPORT queue
 create_serial_queue(
     const std::string& label,
-    const ithread_ptr& thread
+    const ithread_ptr& thread,
+    queue_priority priority = queue_priority::DEFAULT
 );
 
 /**
     @return A new parallel queue powered by the given pool
+
+    @param label The name to use for the new queue
+    @param pool The threadpool on which queued operations will be executed
+    @param priority Controls the priority assigned to draining the queue
+                relative from other runnables added to the pool
     */
 XDISPATCH_EXPORT queue
 create_parallel_queue(

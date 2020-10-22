@@ -43,6 +43,12 @@ namespace qt5
 
 /**
     @return A new serial queue using the given thread
+
+    @param label The name to use for the new queue
+    @param thread The thread on which all operations added to the queue
+                  will be executed
+    @param priority Choose a priority different from default to automatically
+                  have the priority of the thread reconfigured
     */
 XDISPATCH_EXPORT queue
 create_serial_queue(
@@ -58,6 +64,11 @@ create_serial_queue(
              running on the same pool as QThreadPool blocks in the
              destructor until all active tasks have completed which
              will cause a deadlock
+
+    @param label The name to use for the new queue
+    @param pool The threadpool on which queued operations will be executed
+    @param priority Controls the priority assigned to draining the queue
+                relative from other runnables added to the pool
     */
 XDISPATCH_EXPORT queue
 create_parallel_queue(

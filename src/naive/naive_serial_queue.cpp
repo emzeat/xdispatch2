@@ -23,6 +23,7 @@
 #include "naive_backend_internal.h"
 #include "naive_operation_queue.h"
 #include "naive_external_thread.h"
+#include "xdispatch/thread_utils.h"
 #include "naive_threadpool.h"
 
 #include <thread>
@@ -99,12 +100,21 @@ private:
 queue create_serial_queue(
     const std::string& label,
     const ithread_ptr& thread,
+    queue_priority priority,
     backend_type backend
 )
 {
     XDISPATCH_ASSERT( thread );
-    const auto pool = std::make_shared< external_thread >( thread );
-    return create_serial_queue( label, pool, queue_priority::DEFAULT, backend );
+    auto pool = std::make_shared< external_thread >( thread );
+    auto queue = create_serial_queue( label, std::move( pool ), priority, backend );
+    if( priority != queue_priority::DEFAULT )
+    {
+        queue.async( [priority]
+        {
+            thread_utils::set_current_thread_priority( priority );
+        } );
+    }
+    return queue;
 }
 
 queue create_serial_queue(
@@ -129,10 +139,11 @@ queue create_serial_queue(
 
 queue create_serial_queue(
     const std::string& label,
-    const ithread_ptr& thread
+    const ithread_ptr& thread,
+    queue_priority priority
 )
 {
-    return create_serial_queue( label, thread, backend_type::naive );
+    return create_serial_queue( label, thread, priority, backend_type::naive );
 }
 
 iqueue_impl_ptr backend::create_serial_queue(
