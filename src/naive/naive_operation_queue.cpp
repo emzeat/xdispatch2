@@ -192,7 +192,33 @@ void operation_queue::process_job(
     operation& job
 )
 {
-    execute_operation_on_this_thread( job );
+#if !(defined DEBUG)
+    try
+#endif
+    {
+        execute_operation_on_this_thread( job );
+    }
+#if !(defined DEBUG)
+    catch( const std::exception& e )
+    {
+        std::cerr << "##################################################################" << std::endl;
+        std::cerr << "xdispatch: Throwing exceptions within an xdispatch::operation is" << std::endl;
+        std::cerr << "           not recommended, please make sure to catch them before:\n" << std::endl;
+        std::cerr << e.what() << std::endl;
+        std::cerr << "##################################################################" << std::endl;
+
+        throw;
+    }
+    catch( ... )
+    {
+        std::cerr << "##################################################################" << std::endl;
+        std::cerr << "xdispatch: Throwing exceptions within an xdispatch::operation is" << std::endl;
+        std::cerr << "           not recommended, please make sure to catch them before!" << std::endl;
+        std::cerr << "##################################################################" << std::endl;
+
+        std::terminate();
+    }
+#endif
 }
 
 }
