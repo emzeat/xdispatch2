@@ -129,6 +129,8 @@ if( BUILD_XDISPATCH2_BACKEND_QT5 )
         src/qt5/*.cpp
         src/qt5/*.h
     )
+    mz_qt_auto_moc(MOC_QT5 ${CXX_QT5})
+    list(APPEND CXX_QT5 ${MOC_QT5})
     set(LIBS ${LIBS}
         qt5-core
     )

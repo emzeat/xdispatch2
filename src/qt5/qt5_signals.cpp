@@ -18,38 +18,18 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
-#include "qt5_backend_internal.h"
+#include "qt5_signals.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace qt5
 {
-
-class object_connection : public QObject
-{
-public:
-    connection_manager m_connections;
-
-    static object_connection* get(
-        QObject* object,
-        bool createIfMissing = false
-    )
-    {
-        auto oc = object->findChild<object_connection*>( QString(), Qt::FindDirectChildrenOnly );
-        if( createIfMissing && nullptr == oc )
-        {
-            oc = new object_connection;
-            oc->setParent( object );
-        }
-        return oc;
-    }
-};
 
 void register_connection(
     QObject* object,
     const connection& connection
 )
 {
-    auto receiver_connection = object_connection::get( object, true );
+    auto receiver_connection = ObjectConnectionManager::get( object, true );
     XDISPATCH_ASSERT( receiver_connection );
     receiver_connection->m_connections += connection;
 }
@@ -59,7 +39,7 @@ void destroy_connections(
     signal_p& signal
 )
 {
-    auto receiver_connection = object_connection::get( object, false );
+    auto receiver_connection = ObjectConnectionManager::get( object, false );
     if( receiver_connection )
     {
         receiver_connection->m_connections.reset_connections_with( signal );
