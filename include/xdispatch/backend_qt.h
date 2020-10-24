@@ -119,7 +119,7 @@ void connect(
     signal<void( Args... )>& sender,
     Object* receiver,
     void( Object::*slot )( SlotArgs... ),
-    queue q = main_queue(),
+    const queue& q = main_queue(),
     notification_mode m = notification_mode::single_updates
 )
 {
@@ -143,7 +143,7 @@ void connect(
     signal<void( Args... )>& sender,
     QObject* receiver,
     const typename signal<void( Args... )>::functor& lambda,
-    queue q = main_queue(),
+    const queue& q = main_queue(),
     notification_mode m = notification_mode::single_updates
 )
 {

@@ -363,7 +363,7 @@ public:
      */
     XDISPATCH_WARN_UNUSED_RETURN( connection ) connect(
         const functor& f,
-        queue q = global_queue(),
+        const queue& q = global_queue(),
         notification_mode m = notification_mode::single_updates
     )
     {
@@ -383,7 +383,7 @@ public:
     XDISPATCH_WARN_UNUSED_RETURN( connection ) connect(
         T* object,
         void( T::*function )( FunctionArgs... ),
-        queue q = global_queue(),
+        const queue& q = global_queue(),
         notification_mode m = notification_mode::single_updates
     )
     {
