@@ -37,6 +37,9 @@ void cxx_free_lambda( void* );
 void cxx_is_current( void* );
 void cxx_dispatch_priority_custom( void* );
 void cxx_dispatch_priority_global( void* );
+void cxx_benchmark_serial_queue( void* );
+void cxx_benchmark_global_queue( void* );
+void cxx_benchmark_group( void* );
 
 void register_cxx_tests(
     const char* name,
@@ -55,6 +58,9 @@ void register_cxx_tests(
     MU_REGISTER_TEST_INSTANCE( name, cxx_is_current, backend );
     MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_priority_custom, backend );
     MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_priority_global, backend );
+    MU_REGISTER_TEST_INSTANCE( name, cxx_benchmark_serial_queue, backend );
+    MU_REGISTER_TEST_INSTANCE( name, cxx_benchmark_global_queue, backend );
+    MU_REGISTER_TEST_INSTANCE( name, cxx_benchmark_group, backend );
 }
 
 static std::mutex s_backend_CS;
