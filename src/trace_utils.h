@@ -24,6 +24,7 @@
 #include <iostream>
 
 #include "xdispatch_internal.h"
+#include "xdispatch/ibackend.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 
@@ -32,14 +33,20 @@ class trace_utils
 public:
     static bool is_trace_enabled();
     static bool is_debug_enabled();
+    static void assert_same_backend(
+        backend_type a,
+        backend_type b
+    );
 
 private:
     trace_utils() = delete;
 };
 
+#define XDISPATCH_TRACE_PREFIX "[xdispatch2] "
+
 #define XDISPATCH_TRACE() \
     for( bool enabled = trace_utils::is_trace_enabled(); enabled; enabled = false ) \
-        std::cout << "[xdispatch2] "
+        std::cout << XDISPATCH_TRACE_PREFIX
 
 __XDISPATCH_END_NAMESPACE
 

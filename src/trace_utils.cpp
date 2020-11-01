@@ -51,4 +51,19 @@ bool trace_utils::is_debug_enabled()
 #endif
 }
 
+void trace_utils::assert_same_backend(
+    backend_type a,
+    backend_type b
+)
+{
+    if( a != b )
+    {
+        const auto error = std::string( "Cannot mix backends " ) + std::to_string( static_cast<int>( a ) )
+                           + " and " + std::to_string( static_cast<int>( b ) );
+        std::cerr << XDISPATCH_TRACE_PREFIX << error << std::endl;
+        XDISPATCH_ASSERT( false && "Cannot mix two different backends" );
+        throw std::logic_error( error );
+    }
+}
+
 __XDISPATCH_END_NAMESPACE

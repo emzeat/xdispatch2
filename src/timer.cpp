@@ -22,6 +22,7 @@
 #include "xdispatch_internal.h"
 #include "xdispatch/itimer_impl.h"
 #include "xdispatch/iqueue_impl.h"
+#include "trace_utils.h"
 
 __XDISPATCH_USE_NAMESPACE
 
@@ -35,10 +36,7 @@ timer::timer(
     XDISPATCH_ASSERT( m_impl );
 
     const auto target_impl = target.implementation();
-    if( m_impl->backend() != target_impl->backend() )
-    {
-        throw std::logic_error( "Cannot mix two different backends" );
-    }
+    trace_utils::assert_same_backend( m_impl->backend(), target_impl->backend() );
 }
 
 

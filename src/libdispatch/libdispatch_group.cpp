@@ -50,8 +50,9 @@ public:
         const iqueue_impl_ptr& q
     ) final
     {
+        std::unique_ptr< operation_wrap > wrapper( new operation_wrap( op ) );
         dispatch_group_async_f( m_native, impl_2_native( q ),
-                                new operation_wrap( op ), _xdispatch2_run_wrap_delete );
+                                wrapper.release(), _xdispatch2_run_wrap_delete );
     }
 
     bool wait(
@@ -78,8 +79,9 @@ public:
         const iqueue_impl_ptr& q
     ) final
     {
+        std::unique_ptr< operation_wrap > wrapper( new operation_wrap( op ) );
         dispatch_group_notify_f( m_native, impl_2_native( q ),
-                                 new operation_wrap( op ), _xdispatch2_run_wrap_delete );
+                                 wrapper.release(), _xdispatch2_run_wrap_delete );
     }
 
     backend_type backend() final
