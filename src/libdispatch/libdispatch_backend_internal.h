@@ -25,12 +25,13 @@
 #include "xdispatch/ibackend.h"
 
 #include "../xdispatch_internal.h"
+#include "../naive/naive_backend_internal.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace libdispatch
 {
 
-class XDISPATCH_EXPORT backend : public ibackend
+class XDISPATCH_EXPORT backend : public naive::backend
 {
 public:
     iqueue_impl_ptr create_main_queue(
@@ -47,7 +48,8 @@ public:
         queue_priority priority
     ) final;
 
-    igroup_impl_ptr create_group() final;
+    // FIXME(zwicker): Implement efficient mixing of backends for groups
+    // igroup_impl_ptr create_group() final;
 
     itimer_impl_ptr create_timer(
         const iqueue_impl_ptr& queue

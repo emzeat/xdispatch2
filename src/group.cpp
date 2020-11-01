@@ -45,7 +45,10 @@ void group::async(
     XDISPATCH_ASSERT( op );
 
     const auto q_impl = q.implementation();
-    trace_utils::assert_same_backend( m_impl->backend(), q_impl->backend() );
+    if( backend_type::naive != m_impl->backend() )
+    {
+        trace_utils::assert_same_backend( m_impl->backend(), q_impl->backend() );
+    }
 
     queue_operation_with_d( *op, q_impl.get() );
     m_impl->async( op, q_impl );
@@ -68,7 +71,10 @@ void group::notify(
     XDISPATCH_ASSERT( op );
 
     const auto q_impl = q.implementation();
-    trace_utils::assert_same_backend( m_impl->backend(), q_impl->backend() );
+    if( backend_type::naive != m_impl->backend() )
+    {
+        trace_utils::assert_same_backend( m_impl->backend(), q_impl->backend() );
+    }
 
     queue_operation_with_d( *op, q_impl.get() );
     m_impl->notify( op, q_impl );

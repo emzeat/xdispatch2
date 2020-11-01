@@ -100,11 +100,12 @@ group create_group(
     return group( std::make_shared< group_impl >( native ) );
 }
 
-igroup_impl_ptr backend::create_group()
-{
-    object_scope_T< dispatch_group_t > native( dispatch_group_create() );
-    return std::make_shared< group_impl >( native.take() );
-}
+// FIXME(zwicker): Implement efficient mixing of backends for groups
+//igroup_impl_ptr backend::create_group()
+//{
+//    object_scope_T< dispatch_group_t > native( dispatch_group_create() );
+//    return std::make_shared< group_impl >( native.take() );
+//}
 
 }
 __XDISPATCH_END_NAMESPACE
