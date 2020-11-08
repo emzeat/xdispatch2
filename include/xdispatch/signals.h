@@ -207,6 +207,9 @@ public:
         const group& g
     );
 
+    /// Creates a new signal_p
+    signal_p();
+
     /// Destructor
     ~signal_p();
 
@@ -292,7 +295,7 @@ protected:
     // Protects parallel access
     std::mutex m_CS;
     // The group used to track all handler calls
-    group m_group;
+    std::unique_ptr< group > m_group;
     // List of connected handlers
     std::vector< connection_handler_ptr > m_handlers;
 };
@@ -347,9 +350,17 @@ public:
                  with active handler invocations
      */
     signal(
-        const group& g = group()
+        const group& g
     )
         : signal_p( g )
+    {
+    }
+
+    /**
+        @brief Constructs a new signal instance
+     */
+    signal()
+        : signal_p()
     {
     }
 
@@ -409,7 +420,7 @@ public:
             if( notification_mode::single_updates == handler->m_mode || pending < 1 )
             {
                 handler->enable();
-                m_group.async( [ = ]
+                auto invocation = [ = ]
                 {
                     if( handler->enter() )
                     {
@@ -417,7 +428,15 @@ public:
                         std::static_pointer_cast<connection_handler_t>( handler )->m_func( argList... );
                         handler->leave();
                     }
-                }, handler->m_queue );
+                };
+                if( m_group )
+                {
+                    m_group->async( std::move( invocation ), handler->m_queue );
+                }
+                else
+                {
+                    handler->m_queue.async( std::move( invocation ) );
+                }
             }
             else
             {

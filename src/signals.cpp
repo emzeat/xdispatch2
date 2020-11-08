@@ -230,7 +230,13 @@ void signal_p::connection_handler::leave()
 signal_p::signal_p(
     const group& g
 )
-    : m_group( g )
+    : m_group( new group( g ) )
+{
+}
+
+
+signal_p::signal_p()
+    : m_group()
 {
 }
 
