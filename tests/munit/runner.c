@@ -644,7 +644,9 @@ int MU_runTestName(
         return EXIT_FAILURE;
     }
 
+    current_test = test;
     test->function( test->user );
+    current_test = NULL;
 
     return EXIT_SUCCESS;
 } /* MU_runTestName */

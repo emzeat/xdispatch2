@@ -89,3 +89,10 @@ target_link_libraries( xdispatch2_tests
 )
 mz_target_props( xdispatch2_tests )
 mz_auto_format( xdispatch2_tests )
+
+# copy some benchmarking scripts
+file( COPY
+    xdispatch2_benchmarks.sh
+    DESTINATION ${EXECUTABLE_OUTPUT_PATH}
+    FILE_PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE
+)

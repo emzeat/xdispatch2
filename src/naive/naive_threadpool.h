@@ -22,11 +22,11 @@
 #define XDISPATCH_NAIVE_THREADPOOL_H_
 
 #include "naive_thread.h"
+#include "naive_semaphore.h"
+#include "naive_concurrentqueue.h"
 
 #include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <list>
+#include <atomic>
 #include <array>
 
 __XDISPATCH_BEGIN_NAMESPACE
@@ -97,13 +97,12 @@ private:
     void schedule();
     void run_thread();
 
-    std::mutex m_CS;
-    std::condition_variable m_cond;
-    std::size_t m_max_threads;
+    semaphore m_operations_counter;
+    std::atomic<int> m_max_threads;
     std::vector< thread_ptr > m_threads;
-    std::size_t m_idle_threads;
-    std::array< std::list< operation_ptr >, bucket_count > m_operations;
-    bool m_cancelled;
+    std::atomic<int> m_idle_threads;
+    std::array< concurrentqueue< operation_ptr >, bucket_count > m_operations;
+    std::atomic<bool> m_cancelled;
 };
 
 }

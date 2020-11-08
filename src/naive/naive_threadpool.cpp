@@ -38,12 +38,12 @@ char const* const s_bucket_labels[ threadpool::bucket_count ] =
 
 threadpool::threadpool()
     : ithreadpool()
-    , m_CS()
+    , m_operations_counter( 0 )
     , m_max_threads( 0 )
     , m_threads()
     , m_idle_threads( 0 )
-    , m_operations( {} )
-, m_cancelled( false )
+    , m_operations()
+    , m_cancelled( false )
 {
     // we are overcommitting by default so that it becomes less likely
     // that operations get starved due to threads blocking on resources
@@ -53,11 +53,8 @@ threadpool::threadpool()
 
 threadpool::~threadpool()
 {
-    {
-        std::lock_guard<std::mutex> lock( m_CS );
-        m_cancelled = true;
-        m_cond.notify_all();
-    }
+    m_cancelled = true;
+    m_operations_counter.release( m_threads.size() );
 
     for( const auto& thread : m_threads )
     {
@@ -71,7 +68,6 @@ void threadpool::execute(
     const queue_priority priority
 )
 {
-    std::lock_guard<std::mutex> lock( m_CS );
     int index = -1;
     switch( priority )
     {
@@ -91,7 +87,8 @@ void threadpool::execute(
     }
 
     XDISPATCH_ASSERT( index >= 0 );
-    m_operations[index].push_back( work );
+    const auto enqueued = m_operations[index].enqueue( work );
+    XDISPATCH_ASSERT( enqueued );
     schedule();
 }
 
@@ -104,61 +101,61 @@ std::shared_ptr< threadpool > threadpool::instance()
 
 void threadpool::schedule()
 {
+    // increment the semaphore
+    m_operations_counter.release();
+
     // lets check if there is an idle thread first
-    const auto active_threads = m_threads.size();
-    if( 0 != m_idle_threads )
+    const int active_threads = m_threads.size();
+    const int idle_threads = m_idle_threads;
+    if( 0 != idle_threads )
     {
         --m_idle_threads;
-        m_cond.notify_one();
+        XDISPATCH_TRACE() << "Waking one of " << idle_threads << " idle threads" << std::endl;
     }
     // check if we are good to create another thread
     else if( active_threads < m_max_threads )
     {
-        XDISPATCH_TRACE() << "spawning thread #" << ( active_threads + 1 )
-                          << " of " << m_max_threads << std::endl;
-
         auto thread = std::make_shared< std::thread >( &threadpool::run_thread, this );
+
+        XDISPATCH_TRACE() << "spawned thread " << thread->get_id()
+                          << " (" << ( active_threads + 1 ) << "/" << m_max_threads << ")" << std::endl;
         m_threads.push_back( std::move( thread ) );
     }
     // all threads busy and processor allocation reached, wait
     // and the operation will be picked up as soon as a thread is available
-    else
-    {
-        //        XDISPATCH_TRACE() << "fully loaded - threads=" << active_threads
-        //                          << ", idle=" << m_idle_threads << std::endl;
-    }
 }
 
 void threadpool::run_thread()
 {
-    std::unique_lock<std::mutex> lock( m_CS );
-
     int last_label = -1;
     while( !m_cancelled )
     {
         operation_ptr op;
         int label = -1;
         {
+            // if no op we are idling and need to block on our op counter
+            if( m_operations_counter.try_acquire() )
+            {
+            }
+            else
+            {
+                XDISPATCH_TRACE() << std::this_thread::get_id() << " idling" << std::endl;
+
+                ++m_idle_threads;
+                m_operations_counter.acquire();
+            }
+
             // search for the next operation starting with the highest priority
             for( label = 0; label < bucket_count; ++label )
             {
                 auto& ops_prio = m_operations[ label ];
-                if( !ops_prio.empty() )
+                if( ops_prio.try_dequeue( op ) )
                 {
-                    op = ops_prio.front();
-                    ops_prio.pop_front();
                     break;
                 }
             }
-            // suspend when no operations are queued
-            if( !op )
-            {
-                ++m_idle_threads;
-                m_cond.wait( lock );
-            }
         }
 
-        inverse_lock_guard< std::mutex > unlock( m_CS );
         if( op )
         {
             if( trace_utils::is_debug_enabled() && last_label != label )
@@ -177,9 +174,8 @@ void threadpool::run_thread()
 
 void threadpool::notify_thread_blocked()
 {
-    std::lock_guard<std::mutex> lock( m_CS );
-    ++m_max_threads;
-    XDISPATCH_TRACE() << "increased threadcount to " << m_max_threads << std::endl;
+    const auto max_threads = ++m_max_threads;
+    XDISPATCH_TRACE() << "increased threadcount to " << max_threads << std::endl;
     // FIXME(zwicker) This may increase the number of threads permanently
     //                as threads will never be joined again right now no matter
     //                how long they have been idle
@@ -188,9 +184,8 @@ void threadpool::notify_thread_blocked()
 
 void threadpool::notify_thread_unblocked()
 {
-    std::lock_guard<std::mutex> lock( m_CS );
-    --m_max_threads;
-    XDISPATCH_TRACE() << "lowered threadcount to " << m_max_threads << std::endl;
+    const auto max_threads = --m_max_threads;
+    XDISPATCH_TRACE() << "lowered threadcount to " << max_threads << std::endl;
 }
 
 }
