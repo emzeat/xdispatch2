@@ -54,16 +54,39 @@ bool semaphore::try_acquire()
     while( true );
 }
 
-void semaphore::acquire()
+bool semaphore::spin_acquire(
+    int spins
+)
+{
+    for( int i = 0; i < spins; ++i )
+    {
+        if( try_acquire() )
+        {
+            return true;
+        }
+
+        std::this_thread::yield();
+    }
+    return false;
+}
+
+bool semaphore::wait_acquire(
+    std::chrono::milliseconds timeout
+)
 {
     if( !try_acquire() )
     {
         std::unique_lock<std::mutex> lock( m_CS );
-        while( !try_acquire() )
+        // test again as we hold the lock this time
+        if( !try_acquire() )
         {
-            m_cond.wait( lock );
+            return m_cond.wait_for( lock, timeout, [this]
+            {
+                return try_acquire();
+            } );
         }
     }
+    return true;
 }
 
 void semaphore::release(

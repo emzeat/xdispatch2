@@ -94,12 +94,28 @@ public:
                 {
                     // all good go pick the operation
                 }
+                else if( m_data->m_operations_counter.spin_acquire( 1000 ) )
+                {
+                    // all good go pick the operation
+                }
                 else
                 {
                     XDISPATCH_TRACE() << std::this_thread::get_id() << " idling" << std::endl;
 
                     ++m_data->m_idle_threads;
-                    m_data->m_operations_counter.acquire();
+
+                    // wait up to a timeout for the counter to acquire, if the timeout
+                    // is reached we end this thread again to free resources in the system
+                    if( m_data->m_operations_counter.wait_acquire( std::chrono::seconds( 30 ) ) )
+                    {
+                        // all good go pick the operation
+                    }
+                    else
+                    {
+                        // end this thread it seems there is no work remaining
+                        --m_data->m_idle_threads;
+                        break;
+                    }
                 }
 
                 // search for the next operation starting with the highest priority
@@ -134,8 +150,8 @@ public:
             }
         }
 
-        XDISPATCH_TRACE() << "joining thread" << std::endl;
-        --m_data->m_active_threads;
+        const auto remaining = --m_data->m_active_threads;
+        XDISPATCH_TRACE() << "joining thread - " << remaining << " remaining" << std::endl;
         operation_queue_manager::instance().detach( this );
     }
 
@@ -150,7 +166,7 @@ threadpool::threadpool()
 {
     // we are overcommitting by default so that it becomes less likely
     // that operations get starved due to threads blocking on resources
-    m_data->m_max_threads = 4; //2 * thread_utils::system_thread_count();
+    m_data->m_max_threads = 2 * thread_utils::system_thread_count();
     XDISPATCH_TRACE() << "threadpool with " << m_data->m_max_threads << " system threads" << std::endl;
 }
 

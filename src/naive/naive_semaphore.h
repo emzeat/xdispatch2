@@ -32,19 +32,61 @@ namespace naive
 {
 
 /**
-    An efficient implementation of a counter acting like a semaphore
+    @brief An efficient implementation of a counting semaphore
  */
 class semaphore
 {
 public:
+    /**
+        @brief Constructs a new semaphore with the initial count
+     */
     explicit semaphore(
         int count = 0
     );
 
+    /**
+        @brief Tries to acquire the semaphore decrementing its
+               count by one if the count is greater than zero
+
+        @return true if the count was greater than zero before
+                decrementing it, false if it was zero
+     */
     bool try_acquire();
 
-    void acquire();
+    /**
+        @brief Tries to acquire the semaphore spinning in case
+               it cannot be acquired directly
 
+        @param spins The maximum number of attempts until giving up
+
+        @return true if acquiring the semaphore succeeded or false if the
+                maximum number of spins was reached first
+     */
+    bool spin_acquire(
+        int spins
+    );
+
+    /**
+        @brief Tries to acquire the semaphore blocking in case
+               it cannot be acquired directly
+
+        @param timeout The maximum time to wait attempting to acquire the semaphore
+
+        @return true if acquiring the semaphore succeeded or false if the
+                timeout was reached first
+     */
+    bool wait_acquire(
+        std::chrono::milliseconds timeout
+    );
+
+    /**
+        @brief Releases the semaphore incrementing its count
+
+        @param count The increment by which to alter the count
+
+        Any blocking calls to acquire() will be served in random order
+        until the count is used up again or no blocking call is remaining.
+     */
     void release(
         int count = 1
     );
