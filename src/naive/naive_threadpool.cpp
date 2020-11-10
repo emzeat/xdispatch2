@@ -100,9 +100,9 @@ public:
                 }
                 else
                 {
-                    XDISPATCH_TRACE() << std::this_thread::get_id() << " idling" << std::endl;
-
-                    ++m_data->m_idle_threads;
+                    const auto idle_threads = ++m_data->m_idle_threads;
+                    XDISPATCH_TRACE() << std::this_thread::get_id() << " idling ("
+                                      << idle_threads << " idle)";
 
                     // wait up to a timeout for the counter to acquire, if the timeout
                     // is reached we end this thread again to free resources in the system
@@ -151,7 +151,7 @@ public:
         }
 
         const auto remaining = --m_data->m_active_threads;
-        XDISPATCH_TRACE() << "joining thread - " << remaining << " remaining" << std::endl;
+        XDISPATCH_TRACE() << "joining thread - " << remaining << " remaining";
         operation_queue_manager::instance().detach( this );
     }
 
@@ -167,7 +167,7 @@ threadpool::threadpool()
     // we are overcommitting by default so that it becomes less likely
     // that operations get starved due to threads blocking on resources
     m_data->m_max_threads = 2 * thread_utils::system_thread_count();
-    XDISPATCH_TRACE() << "threadpool with " << m_data->m_max_threads << " system threads" << std::endl;
+    XDISPATCH_TRACE() << "threadpool with " << m_data->m_max_threads << " system threads";
 }
 
 threadpool::~threadpool()
@@ -223,7 +223,7 @@ void threadpool::schedule()
     if( 0 != idle_threads )
     {
         --m_data->m_idle_threads;
-        XDISPATCH_TRACE() << "Waking one of " << idle_threads << " idle threads" << std::endl;
+        XDISPATCH_TRACE() << "Waking one of " << idle_threads << " idle threads (" << active_threads << " active)";
     }
     // check if we are good to create another thread
     else if( active_threads < m_data->m_max_threads )
@@ -233,7 +233,7 @@ void threadpool::schedule()
         ++m_data->m_active_threads;
 
         XDISPATCH_TRACE() << "spawned thread " << thread->get_id()
-                          << " (" << ( active_threads + 1 ) << "/" << m_data->m_max_threads << ")" << std::endl;
+                          << " (" << ( active_threads + 1 ) << "/" << m_data->m_max_threads << ")";
     }
     // all threads busy and processor allocation reached, wait
     // and the operation will be picked up as soon as a thread is available
@@ -242,7 +242,7 @@ void threadpool::schedule()
 void threadpool::notify_thread_blocked()
 {
     const auto max_threads = ++m_data->m_max_threads;
-    XDISPATCH_TRACE() << "increased threadcount to " << max_threads << std::endl;
+    XDISPATCH_TRACE() << "increased threadcount to " << max_threads;
     // FIXME(zwicker) This may increase the number of threads permanently
     //                as threads will never be joined again right now no matter
     //                how long they have been idle
@@ -252,7 +252,7 @@ void threadpool::notify_thread_blocked()
 void threadpool::notify_thread_unblocked()
 {
     const auto max_threads = --m_data->m_max_threads;
-    XDISPATCH_TRACE() << "lowered threadcount to " << max_threads << std::endl;
+    XDISPATCH_TRACE() << "lowered threadcount to " << max_threads;
 }
 
 }

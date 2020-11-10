@@ -66,4 +66,6 @@ void trace_utils::assert_same_backend(
     }
 }
 
+std::mutex trace_stream::s_CS;
+
 __XDISPATCH_END_NAMESPACE

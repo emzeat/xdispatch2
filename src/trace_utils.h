@@ -22,6 +22,7 @@
 #define XDISPATCH_TRACE_UTILS_H_
 
 #include <iostream>
+#include <mutex>
 
 #include "xdispatch_internal.h"
 #include "xdispatch/ibackend.h"
@@ -42,11 +43,38 @@ private:
     trace_utils() = delete;
 };
 
+class trace_stream
+{
+public:
+    inline trace_stream()
+    {
+        s_CS.lock();
+    }
+
+    ~trace_stream()
+    {
+        std::cerr << std::endl;
+        s_CS.unlock();
+    }
+
+    template< typename T >
+    inline trace_stream& operator<<(
+        const T& type
+    )
+    {
+        std::cerr << type;
+        return *this;
+    }
+
+private:
+    static std::mutex s_CS;
+};
+
 #define XDISPATCH_TRACE_PREFIX "[xdispatch2] "
 
 #define XDISPATCH_TRACE() \
     for( bool enabled = trace_utils::is_trace_enabled(); enabled; enabled = false ) \
-        std::cout << XDISPATCH_TRACE_PREFIX
+        trace_stream() << XDISPATCH_TRACE_PREFIX
 
 __XDISPATCH_END_NAMESPACE
 

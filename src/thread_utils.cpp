@@ -142,7 +142,7 @@ size_t thread_utils::system_thread_count()
     const auto nprocessors = sysconf( _SC_NPROCESSORS_ONLN );
     if( nprocessors < 0 )
     {
-        XDISPATCH_TRACE() << "system_thread_count failed: " << strerror( errno ) << std::endl;
+        XDISPATCH_TRACE() << "system_thread_count failed: " << strerror( errno );
     }
     else
     {
@@ -157,7 +157,7 @@ size_t thread_utils::system_thread_count()
 
     if( -1 == sysctl( mib, 2, &value, &length, NULL, 0 ) )
     {
-        XDISPATCH_TRACE() << "system_thread_count failed: " << strerror( errno ) << std::endl;
+        XDISPATCH_TRACE() << "system_thread_count failed: " << strerror( errno );
     }
     else
     {
@@ -166,7 +166,7 @@ size_t thread_utils::system_thread_count()
 #endif
 
     // default
-    XDISPATCH_TRACE() << "system_thread_count using hardcoded default on this platform" << std::endl;
+    XDISPATCH_TRACE() << "system_thread_count using hardcoded default on this platform";
     return 2;
 }
 
