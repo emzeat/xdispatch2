@@ -94,15 +94,13 @@ public:
     static std::shared_ptr< threadpool > instance();
 
 private:
-    void schedule();
-    void run_thread();
+    class worker;
+    class data;
+    using data_ptr = std::shared_ptr< data > ;
 
-    semaphore m_operations_counter;
-    std::atomic<int> m_max_threads;
-    std::vector< thread_ptr > m_threads;
-    std::atomic<int> m_idle_threads;
-    std::array< concurrentqueue< operation_ptr >, bucket_count > m_operations;
-    std::atomic<bool> m_cancelled;
+    void schedule();
+
+    data_ptr m_data;
 };
 
 }

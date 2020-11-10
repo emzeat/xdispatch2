@@ -18,9 +18,10 @@
 * @MLBA_OPEN_LICENSE_HEADER_END@
 */
 
-#include "naive_threadpool.h"
 #include "../trace_utils.h"
-#include "naive_inverse_lockguard.h"
+
+#include "naive_threadpool.h"
+#include "naive_operation_queue_manager.h"
 
 #include "xdispatch/thread_utils.h"
 
@@ -36,31 +37,119 @@ char const* const s_bucket_labels[ threadpool::bucket_count ] =
     k_label_global_BACKGROUND
 };
 
+class threadpool::data
+{
+public:
+    data()
+        : m_operations_counter( 0 )
+        , m_max_threads( 0 )
+        , m_active_threads( 0 )
+        , m_idle_threads( 0 )
+        , m_operations()
+        , m_cancelled( false )
+    {
+    }
+
+    semaphore m_operations_counter;
+    std::atomic<int> m_max_threads;
+    std::atomic<int> m_active_threads;
+    std::atomic<int> m_idle_threads;
+    std::array< concurrentqueue< operation_ptr >, bucket_count > m_operations;
+    std::atomic<bool> m_cancelled;
+};
+
+
+class threadpool::worker
+{
+public:
+    explicit worker(
+        const threadpool::data_ptr& data
+    )
+        : m_data( data )
+        , m_thread( &worker::run, this )
+    {
+    }
+
+    ~worker()
+    {
+        XDISPATCH_ASSERT( m_thread.joinable() );
+        m_thread.join();
+    }
+
+    std::thread::id get_id() const
+    {
+        return m_thread.get_id();
+    }
+
+    void run()
+    {
+        int last_label = -1;
+        while( !m_data->m_cancelled )
+        {
+            operation_ptr op;
+            int label = -1;
+            {
+                // if no op we are idling and need to block on our op counter
+                if( m_data->m_operations_counter.try_acquire() )
+                {
+                    // all good go pick the operation
+                }
+                else
+                {
+                    XDISPATCH_TRACE() << std::this_thread::get_id() << " idling" << std::endl;
+
+                    ++m_data->m_idle_threads;
+                    m_data->m_operations_counter.acquire();
+                }
+
+                // search for the next operation starting with the highest priority
+                for( label = 0; label < bucket_count; ++label )
+                {
+                    auto& ops_prio = m_data->m_operations[ label ];
+                    if( ops_prio.try_dequeue( op ) )
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if( op )
+            {
+                if( trace_utils::is_debug_enabled() && last_label != label )
+                {
+                    thread_utils::set_current_thread_name( s_bucket_labels[label] );
+                    last_label = label;
+                }
+
+                execute_operation_on_this_thread( *op );
+                op.reset();
+            }
+        }
+
+        XDISPATCH_TRACE() << "joining thread" << std::endl;
+        --m_data->m_active_threads;
+        operation_queue_manager::instance().detach( this );
+    }
+
+private:
+    threadpool::data_ptr m_data;
+    std::thread m_thread;
+};
+
 threadpool::threadpool()
     : ithreadpool()
-    , m_operations_counter( 0 )
-    , m_max_threads( 0 )
-    , m_threads()
-    , m_idle_threads( 0 )
-    , m_operations()
-    , m_cancelled( false )
+    , m_data( std::make_shared<data>() )
 {
     // we are overcommitting by default so that it becomes less likely
     // that operations get starved due to threads blocking on resources
-    m_max_threads = 2 * thread_utils::system_thread_count();
-    XDISPATCH_TRACE() << "threadpool with " << m_max_threads << " system threads" << std::endl;
+    m_data->m_max_threads = 4; //2 * thread_utils::system_thread_count();
+    XDISPATCH_TRACE() << "threadpool with " << m_data->m_max_threads << " system threads" << std::endl;
 }
 
 threadpool::~threadpool()
 {
-    m_cancelled = true;
-    m_operations_counter.release( m_threads.size() );
-
-    for( const auto& thread : m_threads )
-    {
-        XDISPATCH_ASSERT( thread->joinable() && "Thread should not delete itself" );
-        thread->join();
-    }
+    m_data->m_cancelled = true;
+    m_data->m_operations_counter.release( m_data->m_active_threads );
 }
 
 void threadpool::execute(
@@ -87,7 +176,7 @@ void threadpool::execute(
     }
 
     XDISPATCH_ASSERT( index >= 0 );
-    const auto enqueued = m_operations[index].enqueue( work );
+    const auto enqueued = m_data->m_operations[index].enqueue( work );
     XDISPATCH_ASSERT( enqueued );
     schedule();
 }
@@ -102,79 +191,33 @@ std::shared_ptr< threadpool > threadpool::instance()
 void threadpool::schedule()
 {
     // increment the semaphore
-    m_operations_counter.release();
+    m_data->m_operations_counter.release();
 
     // lets check if there is an idle thread first
-    const int active_threads = m_threads.size();
-    const int idle_threads = m_idle_threads;
+    const int active_threads = m_data->m_active_threads;
+    const int idle_threads = m_data->m_idle_threads;
     if( 0 != idle_threads )
     {
-        --m_idle_threads;
+        --m_data->m_idle_threads;
         XDISPATCH_TRACE() << "Waking one of " << idle_threads << " idle threads" << std::endl;
     }
     // check if we are good to create another thread
-    else if( active_threads < m_max_threads )
+    else if( active_threads < m_data->m_max_threads )
     {
-        auto thread = std::make_shared< std::thread >( &threadpool::run_thread, this );
+        auto thread = std::make_shared< worker >( m_data );
+        operation_queue_manager::instance().attach( thread );
+        ++m_data->m_active_threads;
 
         XDISPATCH_TRACE() << "spawned thread " << thread->get_id()
-                          << " (" << ( active_threads + 1 ) << "/" << m_max_threads << ")" << std::endl;
-        m_threads.push_back( std::move( thread ) );
+                          << " (" << ( active_threads + 1 ) << "/" << m_data->m_max_threads << ")" << std::endl;
     }
     // all threads busy and processor allocation reached, wait
     // and the operation will be picked up as soon as a thread is available
 }
 
-void threadpool::run_thread()
-{
-    int last_label = -1;
-    while( !m_cancelled )
-    {
-        operation_ptr op;
-        int label = -1;
-        {
-            // if no op we are idling and need to block on our op counter
-            if( m_operations_counter.try_acquire() )
-            {
-            }
-            else
-            {
-                XDISPATCH_TRACE() << std::this_thread::get_id() << " idling" << std::endl;
-
-                ++m_idle_threads;
-                m_operations_counter.acquire();
-            }
-
-            // search for the next operation starting with the highest priority
-            for( label = 0; label < bucket_count; ++label )
-            {
-                auto& ops_prio = m_operations[ label ];
-                if( ops_prio.try_dequeue( op ) )
-                {
-                    break;
-                }
-            }
-        }
-
-        if( op )
-        {
-            if( trace_utils::is_debug_enabled() && last_label != label )
-            {
-                thread_utils::set_current_thread_name( s_bucket_labels[label] );
-                last_label = label;
-            }
-
-            execute_operation_on_this_thread( *op );
-            op.reset();
-        }
-    }
-
-    XDISPATCH_TRACE() << "joining thread" << std::endl;
-}
-
 void threadpool::notify_thread_blocked()
 {
-    const auto max_threads = ++m_max_threads;
+    const auto max_threads = ++m_data->m_max_threads;
     XDISPATCH_TRACE() << "increased threadcount to " << max_threads << std::endl;
     // FIXME(zwicker) This may increase the number of threads permanently
     //                as threads will never be joined again right now no matter
@@ -184,7 +227,7 @@ void threadpool::notify_thread_blocked()
 
 void threadpool::notify_thread_unblocked()
 {
-    const auto max_threads = --m_max_threads;
+    const auto max_threads = --m_data->m_max_threads;
     XDISPATCH_TRACE() << "lowered threadcount to " << max_threads << std::endl;
 }
 
