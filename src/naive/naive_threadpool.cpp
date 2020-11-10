@@ -103,10 +103,18 @@ public:
                 }
 
                 // search for the next operation starting with the highest priority
-                for( label = 0; label < bucket_count; ++label )
+                // Note: there has to be such operation as we acquired the semaphore above
+                //       so if popping fails spontaneously we are good to repeat
+                for( label = 0; !m_data->m_cancelled; ++label )
                 {
+                    if( bucket_count == label )
+                    {
+                        label = 0;
+                    }
+
                     auto& ops_prio = m_data->m_operations[ label ];
-                    if( ops_prio.try_dequeue( op ) )
+                    ops_prio.try_dequeue( op );
+                    if( op )
                     {
                         break;
                     }
