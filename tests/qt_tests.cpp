@@ -28,6 +28,9 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QThread>
+#include <QtCore/QCoreApplication>
+#include <QtGui/QGuiApplication>
+#include <QtWidgets/QApplication>
 
 class TestObject : public QObject
 {
@@ -168,6 +171,47 @@ void qt_custom_thread_not_started( void* )
     MU_END_TEST;
 }
 
+template< class Application>
+void qt_application_t()
+{
+    char argv0[] = {'t', 'e', 's', 't', '\0'};
+    char* argv[] = { &argv0[0] };
+    int argc = 1;
+    Application app( argc, argv );
+
+    xdispatch::main_queue().async( []
+    {
+        MU_PASS( "Executed on main" );
+    } );
+
+    app.exec();
+
+    MU_FAIL( "Should not reach this" );
+}
+
+
+void qt_core_application( void* )
+{
+    MU_BEGIN_TEST( qt_core_application );
+    qt_application_t<QCoreApplication>();
+    MU_END_TEST;
+}
+
+
+void qt_gui_application( void* )
+{
+    MU_BEGIN_TEST( qt_gui_application );
+    qt_application_t<QGuiApplication>();
+    MU_END_TEST;
+}
+
+void qt_widgets_application( void* )
+{
+    MU_BEGIN_TEST( qt_widgets_application );
+    qt_application_t<QApplication>();
+    MU_END_TEST;
+}
+
 
 void register_qt_tests()
 {
@@ -175,4 +219,7 @@ void register_qt_tests()
     MU_REGISTER_TEST( qt_signal_disconnect );
     MU_REGISTER_TEST( qt_custom_thread );
     MU_REGISTER_TEST( qt_custom_thread_not_started );
+    MU_REGISTER_TEST( qt_core_application );
+    MU_REGISTER_TEST( qt_gui_application );
+    MU_REGISTER_TEST( qt_widgets_application );
 }

@@ -26,29 +26,30 @@
     # error "Naive backend is required to build qt5 backend"
 #endif
 #include "../naive/naive_backend_internal.h"
+#if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
+    #include "../libdispatch/libdispatch_backend_internal.h"
+#endif
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace qt5
 {
 
-class XDISPATCH_EXPORT backend : public naive::backend
+#if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
+    // prefer the libdispatch backend whenever possible,
+    // it will be the most efficient backend to have
+    using backend_base = libdispatch::backend;
+#else
+    // the naive backend might not be the fastest but
+    // definitely the most compatible backend
+    using backend_base = naive::backend;
+#endif
+
+class XDISPATCH_EXPORT backend : public backend_base
 {
 public:
     iqueue_impl_ptr create_main_queue(
         const std::string& label
     ) final;
-
-    iqueue_impl_ptr create_serial_queue(
-        const std::string& label,
-        queue_priority priority
-    ) final;
-
-    iqueue_impl_ptr create_parallel_queue(
-        const std::string& label,
-        queue_priority priority
-    ) final;
-
-    igroup_impl_ptr create_group() final;
 
     itimer_impl_ptr create_timer(
         const iqueue_impl_ptr& queue
@@ -60,6 +61,9 @@ public:
     }
 
     void exec() final;
+
+    // ibackend interface
+public:
 };
 
 }

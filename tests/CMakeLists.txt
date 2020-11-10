@@ -87,6 +87,12 @@ target_link_libraries( xdispatch2_tests
     munit
     ${RES_OBJECT}
 )
+if( BUILD_XDISPATCH2_BACKEND_QT5 )
+    target_link_libraries( xdispatch2_tests
+        qt5-gui
+        qt5-widgets
+    )
+endif()
 mz_target_props( xdispatch2_tests )
 mz_auto_format( xdispatch2_tests )
 

@@ -36,31 +36,31 @@ class XDISPATCH_EXPORT backend : public naive::backend
 public:
     iqueue_impl_ptr create_main_queue(
         const std::string& label
-    ) final;
+    ) override;
 
     iqueue_impl_ptr create_serial_queue(
         const std::string& label,
         queue_priority priority
-    ) final;
+    ) override;
 
     iqueue_impl_ptr create_parallel_queue(
         const std::string& label,
         queue_priority priority
-    ) final;
+    ) override;
 
     // FIXME(zwicker): Implement efficient mixing of backends for groups
     // igroup_impl_ptr create_group() final;
 
     itimer_impl_ptr create_timer(
         const iqueue_impl_ptr& queue
-    ) final;
+    ) override;
 
-    backend_type type() const final
+    backend_type type() const override
     {
         return backend_type::libdispatch;
     }
 
-    void exec() final
+    void exec() override
     {
         dispatch_main();
     }

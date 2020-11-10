@@ -27,7 +27,9 @@
 
 void cxx_dispatch_group( void* );
 void cxx_dispatch_mainqueue( void* );
-void cxx_dispatch_timer( void* );
+void cxx_dispatch_timer_global( void* );
+void cxx_dispatch_timer_serial( void* );
+void cxx_dispatch_timer_main( void* );
 void cxx_dispatch_fibo( void* );
 void cxx_dispatch_cascade_lambda( void* );
 void cxx_dispatch_group_lambda( void* );
@@ -48,7 +50,9 @@ void register_cxx_tests(
 {
     MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_group, backend );
     MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_mainqueue, backend );
-    MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_timer, backend );
+    MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_timer_main, backend );
+    MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_timer_global, backend );
+    MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_timer_serial, backend );
     //    MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_fibo, backend );
     MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_cascade_lambda, backend );
     MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_group_lambda, backend );
@@ -150,9 +154,8 @@ xdispatch::timer cxx_create_timer(
 {
     std::lock_guard<std::mutex> lock( s_backend_CS );
     MU_ASSERT_NOT_NULL( s_backend_tested );
-    const auto impl = s_backend_tested->create_timer( queue.implementation() );
-    MU_ASSERT_NOT_NULL( impl.get() );
-    return xdispatch::timer( impl, queue );
+    // let the timer implementation choose the right backend based on the queue
+    return xdispatch::timer( std::chrono::seconds( 0 ), queue );
 }
 
 void cxx_begin_test(

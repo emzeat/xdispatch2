@@ -36,14 +36,5 @@ queue create_parallel_queue(
     return naive::create_parallel_queue( label, std::make_shared< ThreadPoolProxy >( pool ), priority, backend_type::qt5 );
 }
 
-iqueue_impl_ptr backend::create_parallel_queue(
-    const std::string& label,
-    queue_priority priority
-)
-{
-    return naive::create_parallel_queue( label, naive::threadpool::instance(), priority, backend_type::qt5 ).implementation();
-}
-
-
 }
 __XDISPATCH_END_NAMESPACE

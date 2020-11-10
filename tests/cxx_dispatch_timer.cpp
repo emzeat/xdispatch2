@@ -68,18 +68,49 @@ public:
 };
 
 void cxx_dispatch_timer(
-    void* data
+    xdispatch::timer& tested_timer
 )
 {
-    CXX_BEGIN_BACKEND_TEST( cxx_dispatch_timer );
-
     MU_MESSAGE( "Testing periodic timer" );
-    auto tested_timer = cxx_create_timer( cxx_main_queue() );
     tested_timer.interval( std::chrono::seconds( 2 ) );
     tested_timer.handler( std::make_shared<test_periodic>() );
     s_checked_time.start();
     tested_timer.start();
     cxx_exec();
+}
+
+void cxx_dispatch_timer_main(
+    void* data
+)
+{
+    CXX_BEGIN_BACKEND_TEST( cxx_dispatch_timer_main );
+
+    auto tested_timer = cxx_create_timer( cxx_main_queue() );
+    cxx_dispatch_timer( tested_timer );
+
+    MU_END_TEST
+}
+
+void cxx_dispatch_timer_global(
+    void* data
+)
+{
+    CXX_BEGIN_BACKEND_TEST( cxx_dispatch_timer_global );
+
+    auto tested_timer = cxx_create_timer( cxx_global_queue() );
+    cxx_dispatch_timer( tested_timer );
+
+    MU_END_TEST
+}
+
+void cxx_dispatch_timer_serial(
+    void* data
+)
+{
+    CXX_BEGIN_BACKEND_TEST( cxx_dispatch_timer_serial );
+
+    auto tested_timer = cxx_create_timer( cxx_create_queue( "cxx_dispatch_timer" ) );
+    cxx_dispatch_timer( tested_timer );
 
     MU_END_TEST
 }

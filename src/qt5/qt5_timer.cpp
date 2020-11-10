@@ -20,6 +20,8 @@
 
 #include "qt5_backend_internal.h"
 
+#include "xdispatch/iqueue_impl.h"
+
 __XDISPATCH_BEGIN_NAMESPACE
 namespace qt5
 {
@@ -28,7 +30,14 @@ itimer_impl_ptr backend::create_timer(
     const iqueue_impl_ptr& queue
 )
 {
-    return naive::backend::create_timer( queue, backend_type::qt5 );
+    if( backend_type::qt5 == queue->backend() )
+    {
+        return naive::backend::create_timer( queue, backend_type::qt5 );
+    }
+    else
+    {
+        return backend_base::create_timer( queue );
+    }
 }
 
 }

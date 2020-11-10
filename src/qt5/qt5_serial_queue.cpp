@@ -109,14 +109,6 @@ queue create_serial_queue(
     return naive::create_serial_queue( label, std::move( proxy ), priority, backend_type::qt5 );
 }
 
-iqueue_impl_ptr backend::create_serial_queue(
-    const std::string& label,
-    queue_priority priority
-)
-{
-    return naive::create_serial_queue( label, naive::threadpool::instance(), priority, backend_type::qt5 ).implementation();
-}
-
 iqueue_impl_ptr backend::create_main_queue(
     const std::string& label
 )

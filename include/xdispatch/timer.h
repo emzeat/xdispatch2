@@ -56,7 +56,7 @@ class XDISPATCH_EXPORT timer
 {
 public:
     /**
-        Constructs a new timer powered by the platform default backend
+        Constructs a new timer powered by the same backend as the target queue
 
         The timer will be stopped, call start() to execute it
 

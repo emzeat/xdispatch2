@@ -61,10 +61,17 @@ static ibackend& backend_for_type(
 
 static ibackend& platform_backend()
 {
-#if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
-    return backend_for_type( backend_type::libdispatch );
-#elif (defined BUILD_XDISPATCH2_BACKEND_QT5)
+    // select backends based on compatibility and performance
+    //
+    // backends integrating with a UI framework always need to
+    // go first as they might do magic to handle the main queue
+    //
+    // afterwards prefer the most efficient backend available
+    // before falling back to the naive implementation
+#if (defined BUILD_XDISPATCH2_BACKEND_QT5)
     return backend_for_type( backend_type::qt5 );
+#elif (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
+    return backend_for_type( backend_type::libdispatch );
 #elif (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
     return backend_for_type( backend_type::naive );
 #else
