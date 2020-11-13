@@ -24,30 +24,31 @@
 #include <xdispatch/dispatch>
 #include "cxx_tests.h"
 
-static std::atomic<bool> was_freed( false );
-static std::atomic<int> loop_counter( 0 );
+static std::atomic<int> s_loop_counter( 0 );
+static std::atomic<int> s_ref_outer( 0 );
+static std::atomic<int> s_ref_inner( 0 );
 
-struct BeFreed2
+class ToBeFreed
 {
-    BeFreed2()
-        : m_ref_ct( new std::atomic<int>( 1 ) )
+public:
+    explicit ToBeFreed(
+        std::atomic<int>& ref_ct
+    )
+        : m_ref_ct( ref_ct )
     {
+        ++m_ref_ct;
     }
 
-    BeFreed2(
-        const BeFreed2& other
+    ToBeFreed(
+        const ToBeFreed& other
     ) : m_ref_ct( other.m_ref_ct )
     {
-        ( *m_ref_ct )++;
+        ++m_ref_ct;
     }
 
-    ~BeFreed2()
+    ~ToBeFreed()
     {
-        if( --( *m_ref_ct ) == 0 )
-        {
-            delete m_ref_ct;
-            was_freed = true;
-        }
+        --m_ref_ct;
     }
 
     void someFunction() const
@@ -56,57 +57,24 @@ struct BeFreed2
     }
 
 private:
-    std::atomic<int>* m_ref_ct;
-};
-
-
-struct BeFreed
-{
-    BeFreed()
-        : m_ref_ct( new std::atomic<int>( 1 ) )
-    {
-    }
-
-    BeFreed(
-        const BeFreed& other
-    ) : m_ref_ct( other.m_ref_ct )
-    {
-        ( *m_ref_ct )++;
-    }
-
-    ~BeFreed()
-    {
-        if( --( *m_ref_ct ) == 0 )
-        {
-            delete m_ref_ct;
-            MU_ASSERT_TRUE( was_freed );
-            MU_PASS( "" );
-        }
-    }
-
-    void someFunction() const
-    {
-        /* Do nothing (tm) */
-    }
-
-private:
-    std::atomic<int>* m_ref_ct;
+    std::atomic<int>& m_ref_ct;
 };
 
 static void dispatch_outer()
 {
-    BeFreed outer;
-    BeFreed2 inner;
+    ToBeFreed outer( s_ref_outer );
+    ToBeFreed inner( s_ref_inner );
 
-    cxx_global_queue().apply( 10, [ = ]( size_t i )
+    cxx_global_queue().apply( 10, [ inner ]( size_t i )
     {
         inner.someFunction();
-        ++loop_counter;
+        ++s_loop_counter;
     } );
 
-    cxx_main_queue().async( [ = ]
+    cxx_main_queue().async( [ outer ]
     {
-        MU_ASSERT_EQUAL( loop_counter, 10 );
+        MU_ASSERT_EQUAL( s_loop_counter, 10 );
+        MU_ASSERT_EQUAL( s_ref_inner, 0 );
         outer.someFunction();
     } );
 }
@@ -118,6 +86,13 @@ void cxx_free_lambda(
     CXX_BEGIN_BACKEND_TEST( cxx_free_lambda );
 
     dispatch_outer();
+    cxx_main_queue().async( []
+    {
+        MU_ASSERT_EQUAL( s_loop_counter, 10 );
+        MU_ASSERT_EQUAL( s_ref_outer, 0 );
+        MU_ASSERT_EQUAL( s_ref_inner, 0 );
+        MU_PASS( "Objects freed" );
+    });
     cxx_exec();
 
     MU_END_TEST;
