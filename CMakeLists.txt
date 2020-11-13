@@ -27,6 +27,7 @@ project(xdispatch2)
 if(NOT HAS_MZ_GLOBAL)
     include(build/global.cmake)
     include(build/macros.cmake)
+    include(build/3rdparty.cmake)
 endif()
 
 # check for platform features
@@ -78,10 +79,6 @@ mz_message( "xdispatch version ${XDISPATCH_WC_TAG}" )
 # dependencies
 if( BUILD_XDISPATCH2_BACKEND_QT5 AND NOT TARGET qt5-core )
     mz_add_library(qt5 3rdparty/qt5)
-endif()
-
-if( NOT TARGET gtest )
-    mz_add_library(gtest 3rdparty/gtest)
 endif()
 
 # we hide all unneeded symbols

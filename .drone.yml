@@ -25,3 +25,57 @@ steps:
   commands:
     - cd build/clang-ninja-release/bin
     - ./xdispatch2_tests
+
+---
+kind: pipeline
+type: exec
+name: darwin-macos
+
+platform:
+  os: darwin
+  arch: amd64
+
+steps:
+- name: submodules
+  commands:
+    - git fetch --tags
+    - git submodule update --init --recursive
+
+- name: build
+  commands:
+    - ln -s /Users/$${USER}/Library $${HOME}/Library
+    - cd build
+    - bash ./generator.sh mode=release compiler=clang generator=ninja location=inside -DBUILD_XDISPATCH2_TESTS=ON
+    - cd clang-ninja-release
+    - ninja -j 12
+
+- name: test
+  environment:
+    XDISPATCH2_TRACE: 1
+  commands:
+    - cd build/clang-ninja-release/bin
+    - ./xdispatch2_tests
+
+
+---
+kind: pipeline
+type: exec
+name: darwin-ios
+
+platform:
+  os: darwin
+  arch: amd64
+
+steps:
+- name: submodules
+  commands:
+    - git fetch --tags
+    - git submodule update --init --recursive
+
+- name: build
+  commands:
+    - ln -s /Users/$${USER}/Library $${HOME}/Library
+    - cd build
+    - bash ./generator.sh mode=release compiler=ios generator=makefiles location=inside -DBUILD_XDISPATCH2_TESTS=ON
+    - cd ios-makefiles-release
+    - make -j 12

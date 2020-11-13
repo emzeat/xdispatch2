@@ -20,9 +20,21 @@
 */
 
 #include "munit/MUnit.h"
-#include "tests.h"
 #include "cxx_tests.h"
-#include "Qt_tests.h"
+#include "platform_tests.h"
+#include "signal_tests.h"
+
+#if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
+    #include "../src/libdispatch/libdispatch_backend_internal.h"
+#endif
+#if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
+    #include "../src/naive/naive_backend_internal.h"
+#endif
+#if (defined BUILD_XDISPATCH2_BACKEND_QT5)
+    #include <QtCore/QCoreApplication>
+    #include "../src/qt5/qt5_backend_internal.h"
+    #include "qt_tests.h"
+#endif
 
 void null_printer(const char* _unused_){
 
@@ -44,9 +56,25 @@ int run_dispatch_tests(int argc, char* argv[], MU_messageHandler handler) {
 
 	MU_initFramework( handler );
 
-    register_tests();
-    register_cxx_tests();
+#if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
+    static xdispatch::libdispatch::backend s_libdispatch;
+    register_cxx_tests( "libdispatch", &s_libdispatch );
+#endif
+
+#if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
+    static xdispatch::naive::backend s_naive;
+    register_cxx_tests( "naive", &s_naive );
+#endif
+
+#if (defined BUILD_XDISPATCH2_BACKEND_QT5)
+    QCoreApplication app( argc, argv );
+    static xdispatch::qt5::backend s_qt5;
+    register_cxx_tests( "qt5", &s_qt5 );
     register_qt_tests();
+#endif
+
+    register_platform_tests();
+    register_signal_tests();
 
 	ret = MU_main(argc,argv);
 
