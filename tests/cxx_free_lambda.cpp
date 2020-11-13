@@ -71,6 +71,11 @@ static void dispatch_outer()
         ++s_loop_counter;
     } );
 
+    // apply returns as soon as the operation has been processed,
+    // but it must not have been freed by then, this may still be
+    // in progress. Hence give the system a moment to settle.
+    MU_SLEEP( 1 );
+
     cxx_main_queue().async( [ outer ]
     {
         MU_ASSERT_EQUAL( s_loop_counter, 10 );
