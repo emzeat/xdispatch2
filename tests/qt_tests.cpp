@@ -220,6 +220,10 @@ void register_qt_tests()
     MU_REGISTER_TEST( qt_custom_thread );
     MU_REGISTER_TEST( qt_custom_thread_not_started );
     MU_REGISTER_TEST( qt_core_application );
+
+#if (defined __APPLE__)
+    // skip these tests on Linux by default as they cannot run headless
     MU_REGISTER_TEST( qt_gui_application );
     MU_REGISTER_TEST( qt_widgets_application );
+#endif
 }
