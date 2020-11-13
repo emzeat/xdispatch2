@@ -48,13 +48,13 @@ class trace_stream
 public:
     inline trace_stream()
     {
-        s_CS.lock();
+        CS().lock();
     }
 
     ~trace_stream()
     {
         std::cerr << std::endl;
-        s_CS.unlock();
+        CS().unlock();
     }
 
     template< typename T >
@@ -67,7 +67,7 @@ public:
     }
 
 private:
-    static std::mutex s_CS;
+    static std::mutex& CS();
 };
 
 #define XDISPATCH_TRACE_PREFIX "[xdispatch2] "
