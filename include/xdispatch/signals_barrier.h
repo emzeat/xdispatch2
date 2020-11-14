@@ -58,8 +58,8 @@ public:
         , m_connection( signal.connect( [this]( Args... values )
     {
         m_values = std::make_tuple( values... );
-        m_barrier();
         m_connection.disconnect();
+        m_barrier();
     } ) )
     {
     }
