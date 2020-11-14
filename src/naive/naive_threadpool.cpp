@@ -202,6 +202,10 @@ void threadpool::execute(
     XDISPATCH_ASSERT( index >= 0 );
     const auto enqueued = m_data->m_operations[index].enqueue( work );
     XDISPATCH_ASSERT( enqueued );
+    if( enqueued )
+    {
+        m_data->m_operations_counter.release();
+    }
     schedule();
 }
 
@@ -214,9 +218,6 @@ std::shared_ptr< threadpool > threadpool::instance()
 
 void threadpool::schedule()
 {
-    // increment the semaphore
-    m_data->m_operations_counter.release();
-
     // lets check if there is an idle thread first
     const int active_threads = m_data->m_active_threads;
     const int idle_threads = m_data->m_idle_threads;
