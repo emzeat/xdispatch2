@@ -79,3 +79,33 @@ steps:
     - bash ./generator.sh mode=release compiler=ios generator=makefiles location=inside -DBUILD_XDISPATCH2_TESTS=ON
     - cd ios-makefiles-release
     - make -j 12
+
+
+---
+kind: pipeline
+type: exec
+name: windows-msvc64
+
+platform:
+  os: windows
+  arch: amd64
+
+steps:
+- name: submodules
+  commands:
+    - git fetch --tags
+    - git submodule update --init --recursive
+
+- name: build
+  commands:
+    - cd build
+    - .\generator.bat release ninja_64 inside '"-DBUILD_XDISPATCH2_TESTS=ON"'
+    - cd win32-ninja_64-release
+    - ninja
+
+- name: test
+  environment:
+    XDISPATCH2_TRACE: 1
+  commands:
+    - cd build/win32-ninja_64-release/bin
+    - .\xdispatch2_tests.exe

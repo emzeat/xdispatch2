@@ -43,18 +43,24 @@ static ibackend& backend_for_type(
     {
 #if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
     case backend_type::libdispatch:
+    {
         static libdispatch::backend s_backend_libdispatch;
         return s_backend_libdispatch;
+    }
 #endif
 #if (defined BUILD_XDISPATCH2_BACKEND_QT5)
     case backend_type::qt5:
+    {
         static qt5::backend s_backend_qt5;
         return s_backend_qt5;
+    }
 #endif
     default:
 #if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
+    {
         static naive::backend s_backend_naive;
         return s_backend_naive;
+    }
 #endif
     }
 }

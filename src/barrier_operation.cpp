@@ -38,19 +38,26 @@ bool barrier_operation::wait(
 )
 {
     std::unique_lock< std::mutex > lock( m_mutex );
-    auto t = std::cv_status::no_timeout;
-    while( m_should_wait && t != std::cv_status::timeout )
+    if( m_should_wait )
     {
-        if( std::chrono::milliseconds::max() != timeout )
+        if( std::chrono::milliseconds( -1 ) != timeout )
         {
-            t = m_cond.wait_for( lock, timeout );
+            return m_cond.wait_for( lock, timeout, [this]{
+                return !m_should_wait;
+            } );
         }
         else
         {
-            m_cond.wait( lock );
+            m_cond.wait( lock, [this]{
+                return !m_should_wait;
+            } );
+            return true;
         }
     }
-    return ( std::cv_status::no_timeout == t );
+    else
+    {
+        return true;
+    }
 }
 
 bool barrier_operation::has_passed() const

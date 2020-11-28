@@ -23,6 +23,8 @@
 #ifndef STOPWATCH_H_
 #define STOPWATCH_H_
 
+#include <stdint.h>
+
 #if _WIN32
 
 /* Reduces build time by omitting extra system headers */
@@ -58,7 +60,7 @@ class Stopwatch {
         QueryPerformanceCounter(&_end);
 
       LARGE_INTEGER diff;
-	  diff.QuadPart = _start.QuadPart - _end.QuadPart;
+      diff.QuadPart = _end.QuadPart - _start.QuadPart;
 
       return (uint64_t)( (double)diff.QuadPart/(double)_frequency.QuadPart * 1000000ul );
     }

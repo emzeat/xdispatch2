@@ -50,6 +50,8 @@
 
 #cmakedefine XDISPATCH2_HAVE_SYSCTL_HW_NCPU
 
+#cmakedefine XDISPATCH2_HAVE_GET_SYSTEM_INFO
+
 /** @} */
 
 #endif /* XDISPATCH_CONFIG_H_ */

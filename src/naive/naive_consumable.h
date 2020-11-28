@@ -82,7 +82,7 @@ public:
                 timeout has elapsed
      */
     bool wait_for_consumed(
-        const std::chrono::milliseconds timeout = std::chrono::milliseconds::max()
+        std::chrono::milliseconds timeout = std::chrono::milliseconds( -1 )
     );
 
 private:

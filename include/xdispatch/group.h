@@ -182,7 +182,7 @@ public:
         @return false if the timeout occured or true if all operations were executed
     */
     bool wait(
-        std::chrono::milliseconds t = std::chrono::milliseconds::max()
+        std::chrono::milliseconds t = std::chrono::milliseconds( -1 )
     );
 
     /**

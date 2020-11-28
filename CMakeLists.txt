@@ -40,6 +40,7 @@ check_symbol_exists( sysconf "unistd.h" XDISPATCH2_HAVE_SYSCONF )
 check_symbol_exists( _SC_NPROCESSORS_ONLN "unistd.h" XDISPATCH2_HAVE_SYSCONF_SC_NPROCESSORS_ONLN )
 check_symbol_exists( sysctl "sys/sysctl.h" XDISPATCH2_HAVE_SYSCTL )
 check_symbol_exists( HW_NCPU "sys/sysctl.h" XDISPATCH2_HAVE_SYSCTL_HW_NCPU )
+check_symbol_exists( GetSystemInfo "windows.h" XDISPATCH2_HAVE_GET_SYSTEM_INFO )
 
 # build options
 set(BUILD_XDISPATCH2_BACKEND_NAIVE ON)

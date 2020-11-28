@@ -245,7 +245,7 @@ protected:
     ) = delete;
 
     /// Private container class for holding a handler
-    class connection_handler
+    class XDISPATCH_EXPORT connection_handler
     {
     public:
         enum active_state

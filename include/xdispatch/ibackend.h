@@ -48,7 +48,7 @@ enum class backend_type
 #endif
 };
 
-class ibackend
+class XDISPATCH_EXPORT ibackend
 {
 public:
     virtual ~ibackend() = default;

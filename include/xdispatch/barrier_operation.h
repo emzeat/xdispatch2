@@ -50,7 +50,7 @@ public:
                  expired before the operation completed its execution
      */
     bool wait(
-        std::chrono::milliseconds timeout = std::chrono::milliseconds::max()
+        std::chrono::milliseconds timeout = std::chrono::milliseconds( -1 )
     );
 
     /**

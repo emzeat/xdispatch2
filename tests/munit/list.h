@@ -19,8 +19,8 @@
 * @LICENSE_HEADER_END@
 */
 
-#ifndef LIST_H_
-#define LIST_H_
+#ifndef MUNIT_LIST_H_
+#define MUNIT_LIST_H_
 
 typedef struct s_item_t
 {
@@ -42,4 +42,4 @@ append(
     void* data
 );
 
-#endif /* LIST_H_ */
+#endif /* MUNIT_LIST_H_ */

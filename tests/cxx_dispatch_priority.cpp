@@ -61,13 +61,13 @@ static xdispatch::queue_priority priorities[PRIORITIES] =
     xdispatch::queue_priority::USER_INTERACTIVE
 };
 
-union
+struct
 {
     std::atomic<int> count;
     char padding[64];
 } counts[PRIORITIES];
 
-#define ITERATIONS size_t(PRIORITIES * BLOCKS * 0.5)
+#define ITERATIONS static_cast<int>(PRIORITIES * BLOCKS * 0.5)
 static std::atomic<int> iterations( ITERATIONS );
 
 static void histogram()

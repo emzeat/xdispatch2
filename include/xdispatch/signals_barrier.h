@@ -76,7 +76,7 @@ public:
                  expired before the signal
      */
     inline bool wait(
-        std::chrono::milliseconds timeout = std::chrono::milliseconds::max()
+        std::chrono::milliseconds timeout = std::chrono::milliseconds( -1 )
     )
     {
         return m_barrier.wait( timeout );

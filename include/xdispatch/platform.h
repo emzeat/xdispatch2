@@ -36,7 +36,7 @@
 #endif
 
 #if defined _MSC_VER
-    #define XDISPATCH_COMPILER_MSVC
+    #define XDISPATCH_COMPILER_MSVC 1
     #define XDISPATCH_COMPILER "Visual Studio"
 #endif
 
@@ -51,7 +51,7 @@
 #include <type_traits>
 
 #ifdef _WIN32
-    #define XDISPATCH_WARN_UNUSED_RETURN(Ret) _Check_Return_ Ret
+    #define XDISPATCH_WARN_UNUSED_RETURN(Ret) Ret
 #else
     #define XDISPATCH_WARN_UNUSED_RETURN(Ret) Ret __attribute__((warn_unused_result))
 #endif

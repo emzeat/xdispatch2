@@ -45,6 +45,12 @@
     #include <unistd.h>
 #endif
 
+#if (defined XDISPATCH2_HAVE_GET_SYSTEM_INFO)
+    /* Reduces build time by omitting extra system headers */
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+#endif
+
 __XDISPATCH_BEGIN_NAMESPACE
 
 void thread_utils::set_current_thread_name(
@@ -162,6 +168,15 @@ size_t thread_utils::system_thread_count()
     else
     {
         return value;
+    }
+#endif
+
+#if (defined XDISPATCH2_HAVE_GET_SYSTEM_INFO)
+    SYSTEM_INFO systeminfo;
+    GetSystemInfo( &systeminfo );
+    if( systeminfo.dwNumberOfProcessors > 0 )
+    {
+        return static_cast<size_t>( systeminfo.dwNumberOfProcessors );
     }
 #endif
 

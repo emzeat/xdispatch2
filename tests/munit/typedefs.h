@@ -19,8 +19,8 @@
 * @LICENSE_HEADER_END@
 */
 
-#ifndef TYPEDEFS_H_
-#define TYPEDEFS_H_
+#ifndef MUNIT_TYPEDEFS_H_
+#define MUNIT_TYPEDEFS_H_
 
 // #ifndef __cplusplus
 // #    ifndef bool
@@ -30,4 +30,4 @@
 // #    endif
 // #endif
 
-#endif /* TYPEDEFS_H_ */
+#endif /* MUNIT_TYPEDEFS_H_ */
