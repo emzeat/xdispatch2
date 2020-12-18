@@ -100,6 +100,12 @@ public:
                 }
                 else
                 {
+                    if( trace_utils::is_debug_enabled() )
+                    {
+                        thread_utils::set_current_thread_name( "" );
+                        last_label = -1;
+                    }
+
                     const auto idle_threads = ++m_data->m_idle_threads;
                     XDISPATCH_TRACE() << std::this_thread::get_id() << " idling ("
                                       << idle_threads << " idle)";
