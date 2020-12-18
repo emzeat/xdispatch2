@@ -76,6 +76,9 @@ private:
     for( bool enabled = trace_utils::is_trace_enabled(); enabled; enabled = false ) \
         trace_stream() << XDISPATCH_TRACE_PREFIX
 
+#define XDISPATCH_WARNING() \
+        trace_stream() << XDISPATCH_TRACE_PREFIX
+
 __XDISPATCH_END_NAMESPACE
 
 #endif /* XDISPATCH_TRACE_UTILS_H_ */

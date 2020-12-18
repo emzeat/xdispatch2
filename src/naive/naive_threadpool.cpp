@@ -227,7 +227,7 @@ void threadpool::schedule()
     // lets check if there is an idle thread first
     const int active_threads = m_data->m_active_threads;
     const int idle_threads = m_data->m_idle_threads;
-    if( 0 != idle_threads )
+    if( idle_threads > 0 )
     {
         --m_data->m_idle_threads;
         XDISPATCH_TRACE() << "Waking one of " << idle_threads << " idle threads (" << active_threads << " active)";

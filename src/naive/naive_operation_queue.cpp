@@ -94,6 +94,25 @@ private:
     bool& m_active_drain;
 };
 
+class deferred_pop
+{
+public:
+    explicit deferred_pop(
+        std::list< operation_ptr >& list
+    )
+        : m_list( list )
+    {
+    }
+
+    ~deferred_pop()
+    {
+        m_list.pop_front();
+    }
+
+private:
+    std::list< operation_ptr >& m_list;
+};
+
 void operation_queue::drain()
 {
     if( trace_utils::is_debug_enabled() )
@@ -113,6 +132,7 @@ void operation_queue::drain()
     while( !m_jobs.empty() )
     {
         operation_ptr job;
+        deferred_pop pop( m_jobs );
         std::swap( m_jobs.front(), job );
         {
             inverse_lock_guard<std::mutex> unlock( m_CS );
@@ -122,7 +142,6 @@ void operation_queue::drain()
                 job.reset();
             }
         }
-        m_jobs.pop_front();
     }
 }
 
@@ -141,7 +160,16 @@ void operation_queue::async(
     m_jobs.push_back( std::move( job2 ) );
     if( notify && m_notify_operation )
     {
+        XDISPATCH_TRACE() << "'" << m_label << "' wake threadpool";
         m_threadpool->execute( m_notify_operation, m_priority );
+    }
+    else if( m_notify_operation )
+    {
+        XDISPATCH_TRACE() << "'" << m_label << "' already awake (" << m_jobs.size() << ")";
+    }
+    else
+    {
+        XDISPATCH_WARNING() << "'" << m_label << "' detached, dropping operation";
     }
 }
 
