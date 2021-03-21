@@ -1,24 +1,23 @@
 /*
-* backend_libdispatch.h
-*
-* Copyright (c) 2011-2018 MLBA-Team
-* All rights reserved.
-*
-* @LICENSE_HEADER_START@
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-* @LICENSE_HEADER_END@
-*/
-
+ * backend_libdispatch.h
+ *
+ * Copyright (c) 2011-2018 MLBA-Team
+ * All rights reserved.
+ *
+ * @LICENSE_HEADER_START@
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * @LICENSE_HEADER_END@
+ */
 
 #ifndef XDISPATCH_BACKEND_QT5_H_
 #define XDISPATCH_BACKEND_QT5_H_
@@ -38,8 +37,7 @@
 #endif
 
 __XDISPATCH_BEGIN_NAMESPACE
-namespace qt5
-{
+namespace qt5 {
 
 /**
     @return A new serial queue using the given thread
@@ -51,11 +49,9 @@ namespace qt5
                   have the priority of the thread reconfigured
     */
 XDISPATCH_EXPORT queue
-create_serial_queue(
-    const std::string& label,
-    QThread* thread,
-    queue_priority priority = queue_priority::DEFAULT
-);
+create_serial_queue(const std::string& label,
+                    QThread* thread,
+                    queue_priority priority = queue_priority::DEFAULT);
 
 /**
     @return A new parallel queue powered by the given pool
@@ -71,11 +67,9 @@ create_serial_queue(
                 relative from other runnables added to the pool
     */
 XDISPATCH_EXPORT queue
-create_parallel_queue(
-    const std::string& label,
-    QThreadPool* pool,
-    queue_priority priority = queue_priority::DEFAULT
-);
+create_parallel_queue(const std::string& label,
+                      QThreadPool* pool,
+                      queue_priority priority = queue_priority::DEFAULT);
 
 /**
     @brief Registers the given connection with object
@@ -86,10 +80,8 @@ create_parallel_queue(
     @param object The object to tie the lifetime of the connection to
     @param connection The connection to be managed
  */
-XDISPATCH_EXPORT void register_connection(
-    QObject* object,
-    const connection& connection
-);
+XDISPATCH_EXPORT void
+register_connection(QObject* object, const connection& connection);
 
 /**
     @brief Destroys all connections with object
@@ -97,10 +89,8 @@ XDISPATCH_EXPORT void register_connection(
     @param object The object to to remove connections from
     @param signal The signal to which connections get removed
  */
-XDISPATCH_EXPORT void destroy_connections(
-    QObject* object,
-    signal_p& signal
-);
+XDISPATCH_EXPORT void
+destroy_connections(QObject* object, signal_p& signal);
 
 /**
     @brief helper to connect a QObject slot to an xdispatch::signal
@@ -114,16 +104,17 @@ XDISPATCH_EXPORT void destroy_connections(
     @param q The queue to invoke the slot on
     @param m Selects the notification mode, useful for high frequency updates
  */
-template<class Object, typename...Args, typename... SlotArgs>
-void connect(
-    signal<void( Args... )>& sender,
-    Object* receiver,
-    void( Object::*slot )( SlotArgs... ),
-    const queue& q = main_queue(),
-    notification_mode m = notification_mode::single_updates
-)
+template<class Object, typename... Args, typename... SlotArgs>
+void
+connect(signal<void(Args...)>& sender,
+        Object* receiver,
+        void (Object::*slot)(SlotArgs...),
+        const queue& q = main_queue(),
+        notification_mode m = notification_mode::single_updates)
 {
-    register_connection( receiver, sender.template connect<Object, SlotArgs...>( receiver, slot, q, m ) );
+    register_connection(
+      receiver,
+      sender.template connect<Object, SlotArgs...>(receiver, slot, q, m));
 }
 
 /**
@@ -139,15 +130,14 @@ void connect(
     @param m Selects the notification mode, useful for high frequency updates
  */
 template<typename... Args>
-void connect(
-    signal<void( Args... )>& sender,
-    QObject* receiver,
-    const typename signal<void( Args... )>::functor& lambda,
-    const queue& q = main_queue(),
-    notification_mode m = notification_mode::single_updates
-)
+void
+connect(signal<void(Args...)>& sender,
+        QObject* receiver,
+        const typename signal<void(Args...)>::functor& lambda,
+        const queue& q = main_queue(),
+        notification_mode m = notification_mode::single_updates)
 {
-    register_connection( receiver, sender.connect( lambda, q, m ) );
+    register_connection(receiver, sender.connect(lambda, q, m));
 }
 
 /**
@@ -160,15 +150,13 @@ void connect(
     @param receiver The object for which to remove connections
  */
 template<typename... Args>
-void disconnect(
-    signal<void( Args... )>& sender,
-    QObject* receiver
-)
+void
+disconnect(signal<void(Args...)>& sender, QObject* receiver)
 {
-    destroy_connections( receiver, sender );
+    destroy_connections(receiver, sender);
 }
 
-}
+} // namespace qt5
 __XDISPATCH_END_NAMESPACE
 
 /** @} */

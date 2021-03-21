@@ -1,23 +1,23 @@
 /*
-* operation_queue.h
-*
-* Copyright (c) 2012-2018 Marius Zwicker
-* All rights reserved.
-*
-* @LICENSE_HEADER_START@
-* Permission to use, copy, modify, and distribute this software for any
-* purpose with or without fee is hereby granted, provided that the above
-* copyright notice and this permission notice appear in all copies.
-*
-* THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-* WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-* MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-* ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-* WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-* ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-* OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-* @LICENSE_HEADER_END@
-*/
+ * operation_queue.h
+ *
+ * Copyright (c) 2012-2018 Marius Zwicker
+ * All rights reserved.
+ *
+ * @LICENSE_HEADER_START@
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * @LICENSE_HEADER_END@
+ */
 
 #ifndef XDISPATCH_NAIVE_CONTEXTQUEUE_H_
 #define XDISPATCH_NAIVE_CONTEXTQUEUE_H_
@@ -28,8 +28,7 @@
 #include "naive_backend_internal.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
-namespace naive
-{
+namespace naive {
 
 /**
     A threadsafe queue which will maintain operations for execution
@@ -51,20 +50,18 @@ namespace naive
 
     @see operation_queue_manager
  */
-class operation_queue : public std::enable_shared_from_this< operation_queue >
+class operation_queue : public std::enable_shared_from_this<operation_queue>
 {
 public:
     /**
-        @param threadpool The threadpool implementation that all queued operations
-                          will be eventually executed on
+        @param threadpool The threadpool implementation that all queued
+       operations will be eventually executed on
         @param label The label by which the queue is known
         @param priority The priority at which the queue operates
      */
-    operation_queue(
-        const ithreadpool_ptr& thread,
-        const std::string& label,
-        queue_priority priority
-    );
+    operation_queue(const ithreadpool_ptr& thread,
+                    const std::string& label,
+                    queue_priority priority);
 
     /**
         @brief Destructor
@@ -76,9 +73,7 @@ public:
 
         @remark A queue needs to have been attached for this to show an effect
      */
-    void async(
-        const operation_ptr& job
-    );
+    void async(const operation_ptr& job);
 
     /**
         @brief Marks the queue as active
@@ -108,7 +103,7 @@ public:
 private:
     const std::string m_label;
     const queue_priority m_priority;
-    std::list< operation_ptr > m_jobs;
+    std::list<operation_ptr> m_jobs;
     std::mutex m_CS;
     bool m_active_drain;
     operation_ptr m_notify_operation;
@@ -116,15 +111,12 @@ private:
 
     void drain();
 
-    void process_job(
-        operation& job
-    );
+    static void process_job(operation& job);
 };
 
+using operation_queue_ptr = std::shared_ptr<operation_queue>;
 
-using operation_queue_ptr = std::shared_ptr< operation_queue >;
-
-}
+} // namespace naive
 __XDISPATCH_END_NAMESPACE
 
 #endif // XDISPATCH_NAIVE_CONTEXTQUEUE_H_

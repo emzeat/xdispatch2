@@ -1,0 +1,32 @@
+Checks: >
+    bugprone-*,
+    clang-analyzer-*,
+    clang-diagnostic-*,
+    misc-*,
+    modernize-*,
+    performance-*,
+    readability-*,
+    security-*,
+    llvm-header-guard,
+    -clang-diagnostic-pragma-pack,
+    -modernize-avoid-c-arrays,
+    -modernize-concat-nested-namespaces,
+    -modernize-pass-by-value,
+    -modernize-raw-string-literal,
+    -modernize-return-braced-init-list,
+    -modernize-use-default-member-init,
+    -modernize-use-trailing-return-type,
+    -modernize-make-unique,
+    -readability-avoid-const-params-in-decls
+    -readability-identifier-naming,
+    -readability-implicit-bool-conversion,
+    -readability-redundant-member-init,
+    -readability-static-accessed-through-instance,
+    -readability-magic-numbers,
+    -readability-named-parameter
+
+# All warnings are errors
+WarningsAsErrors: "*"
+
+# Align with clang-format
+FormatStyle: file

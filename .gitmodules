@@ -5,3 +5,6 @@
 [submodule "3rdparty/qt5"]
 	path = 3rdparty/qt5
 	url = ../../external/qt5.git
+[submodule "3rdparty/clang-tools-extra"]
+	path = 3rdparty/clang-tools-extra
+	url = ../../external/clang-tools-extra.git

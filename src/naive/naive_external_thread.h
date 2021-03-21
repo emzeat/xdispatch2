@@ -1,22 +1,22 @@
 /*
-* Copyright (c) 2011-2013 MLBA-Team. All rights reserved.
-*
-* @MLBA_OPEN_LICENSE_HEADER_START@
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-* @MLBA_OPEN_LICENSE_HEADER_END@
-*/
+ * Copyright (c) 2011-2013 MLBA-Team. All rights reserved.
+ *
+ * @MLBA_OPEN_LICENSE_HEADER_START@
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @MLBA_OPEN_LICENSE_HEADER_END@
+ */
 
 #ifndef XDISPATCH_NAIVE_EXTERNAL_THREAD_H_
 #define XDISPATCH_NAIVE_EXTERNAL_THREAD_H_
@@ -25,8 +25,7 @@
 #include "xdispatch/backend_naive_ithreadpool.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
-namespace naive
-{
+namespace naive {
 
 /**
     An implementation of a threadpool executed on an externally provided thread
@@ -37,28 +36,23 @@ public:
     /**
         @param thread The thread on which the pool will be executed
      */
-    explicit external_thread(
-        const ithread_ptr& thread
-    );
+    explicit external_thread(const ithread_ptr& thread);
 
     /**
         @brief Destructor
      */
-    ~external_thread() final;
+    ~external_thread() override;
 
     /**
         @copydoc ithreadpool::execute
      */
-    void execute(
-        const operation_ptr& work,
-        queue_priority priority
-    ) final;
+    void execute(const operation_ptr& work, queue_priority priority) final;
 
 private:
     ithread_ptr m_thread;
 };
 
-}
+} // namespace naive
 __XDISPATCH_END_NAMESPACE
 
 #endif /* XDISPATCH_NAIVE_EXTERNAL_THREAD_H_ */

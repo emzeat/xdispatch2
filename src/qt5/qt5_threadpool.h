@@ -1,22 +1,22 @@
 /*
-* Copyright (c) 2011-2013 MLBA-Team. All rights reserved.
-*
-* @MLBA_OPEN_LICENSE_HEADER_START@
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-* @MLBA_OPEN_LICENSE_HEADER_END@
-*/
+ * Copyright (c) 2011-2013 MLBA-Team. All rights reserved.
+ *
+ * @MLBA_OPEN_LICENSE_HEADER_START@
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @MLBA_OPEN_LICENSE_HEADER_END@
+ */
 
 #ifndef XDISPATCH_QT5_THREADPOOL_H_
 #define XDISPATCH_QT5_THREADPOOL_H_
@@ -27,29 +27,22 @@
 #include "qt5_backend_internal.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
-namespace qt5
-{
+namespace qt5 {
 
 class ThreadPoolProxy : public naive::ithreadpool
 {
 public:
-    ThreadPoolProxy(
-        QThreadPool* pool
-    );
+    ThreadPoolProxy(QThreadPool* pool);
 
     ~ThreadPoolProxy();
 
-    void execute(
-        const operation_ptr& work,
-        const queue_priority priority
-    ) final;
+    void execute(const operation_ptr& work, queue_priority priority) final;
 
 private:
     QPointer<QThreadPool> m_pool;
 };
 
-
-}
+} // namespace qt5
 __XDISPATCH_END_NAMESPACE
 
 #endif /* XDISPATCH_QT5_THREADPOOL_H_ */

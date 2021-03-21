@@ -30,6 +30,12 @@ if(NOT HAS_MZ_GLOBAL)
     include(build/3rdparty.cmake)
 endif()
 
+# enable linting
+if(NOT COMMAND mz_auto_format)
+    mz_add_library(clang-tools-extra 3rdparty/clang-tools-extra)
+    include(build/linting.cmake)
+endif()
+
 # check for platform features
 check_symbol_exists( dispatch_queue_create "dispatch/dispatch.h" XDISPATCH2_HAVE_LIBDISPATCH_NATIVE )
 check_symbol_exists( pthread_setname_np "pthread.h" XDISPATCH2_HAVE_PTHREAD_SETNAME_NP )

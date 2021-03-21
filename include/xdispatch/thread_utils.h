@@ -1,23 +1,23 @@
 /*
-* thread_utils.h
-*
-* Copyright (c) 2011-2018 MLBA-Team
-* All rights reserved.
-*
-* @LICENSE_HEADER_START@
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-* @LICENSE_HEADER_END@
-*/
+ * thread_utils.h
+ *
+ * Copyright (c) 2011-2018 MLBA-Team
+ * All rights reserved.
+ *
+ * @LICENSE_HEADER_START@
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * @LICENSE_HEADER_END@
+ */
 
 #ifndef XDISPATCH_THREAD_UTILS_H_
 #define XDISPATCH_THREAD_UTILS_H_
@@ -44,26 +44,20 @@ public:
         as an aid to identify execution paths. By default this will be
         used to assign names according to the currently executing queue
      */
-    static void set_current_thread_name(
-        const std::string& name
-    );
+    static void set_current_thread_name(const std::string& name);
 
     /**
         @brief Sets the priority of the current thread
 
         The assigned priority will take effect immediately
      */
-    static void set_current_thread_priority(
-        queue_priority priority
-    );
+    static void set_current_thread_priority(queue_priority priority);
 
 #if (defined XDISPATCH2_HAVE_PTHREAD_SET_QOS_CLASS_SELF_NP)
     /**
         @returns the qos class mapped to the given queue_priority
     */
-    static qos_class_t map_priority_to_qos(
-        queue_priority priority
-    );
+    static qos_class_t map_priority_to_qos(queue_priority priority);
 #endif
 
     /**
@@ -81,6 +75,5 @@ private:
 };
 
 __XDISPATCH_END_NAMESPACE
-
 
 #endif // XDISPATCH_THREAD_UTILS_H_

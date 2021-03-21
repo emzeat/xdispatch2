@@ -1,23 +1,23 @@
 /*
-* base.cpp
-*
-* Copyright (c) 2011-2018 MLBA-Team
-* All rights reserved.
-*
-* @LICENSE_HEADER_START@
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-* @LICENSE_HEADER_END@
-*/
+ * base.cpp
+ *
+ * Copyright (c) 2011-2018 MLBA-Team
+ * All rights reserved.
+ *
+ * @LICENSE_HEADER_START@
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * @LICENSE_HEADER_END@
+ */
 
 #include "xdispatch_internal.h"
 #include "xdispatch/itimer_impl.h"
@@ -35,37 +35,35 @@
 
 __XDISPATCH_BEGIN_NAMESPACE
 
-static ibackend& backend_for_type(
-    backend_type type
-)
+static ibackend&
+backend_for_type(backend_type type)
 {
-    switch( type )
-    {
+    switch (type) {
 #if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
-    case backend_type::libdispatch:
-    {
-        static libdispatch::backend s_backend_libdispatch;
-        return s_backend_libdispatch;
-    }
+        case backend_type::libdispatch: {
+            static libdispatch::backend s_backend_libdispatch;
+            return s_backend_libdispatch;
+        }
 #endif
 #if (defined BUILD_XDISPATCH2_BACKEND_QT5)
-    case backend_type::qt5:
-    {
-        static qt5::backend s_backend_qt5;
-        return s_backend_qt5;
-    }
+        case backend_type::qt5: {
+            static qt5::backend s_backend_qt5;
+            return s_backend_qt5;
+        }
 #endif
-    default:
+        default
+          :
 #if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
-    {
-        static naive::backend s_backend_naive;
-        return s_backend_naive;
-    }
+        {
+            static naive::backend s_backend_naive;
+            return s_backend_naive;
+        }
 #endif
     }
 }
 
-static ibackend& platform_backend()
+static ibackend&
+platform_backend()
 {
     // select backends based on compatibility and performance
     //
@@ -75,96 +73,99 @@ static ibackend& platform_backend()
     // afterwards prefer the most efficient backend available
     // before falling back to the naive implementation
 #if (defined BUILD_XDISPATCH2_BACKEND_QT5)
-    return backend_for_type( backend_type::qt5 );
+    return backend_for_type(backend_type::qt5);
 #elif (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
-    return backend_for_type( backend_type::libdispatch );
+    return backend_for_type(backend_type::libdispatch);
 #elif (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
-    return backend_for_type( backend_type::naive );
+    return backend_for_type(backend_type::naive);
 #else
-# error "No backend on this platform"
+    #error "No backend on this platform"
 #endif
 }
 
-queue main_queue()
+queue
+main_queue()
 {
-    static iqueue_impl_ptr s_instance = platform_backend().create_main_queue( k_label_main );
-    return queue( k_label_main, s_instance );
+    static iqueue_impl_ptr s_instance =
+      platform_backend().create_main_queue(k_label_main);
+    return queue(k_label_main, s_instance);
 }
 
-static queue global_queue_USER_INTERACTIVE()
+static queue
+global_queue_USER_INTERACTIVE()
 {
-    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_INTERACTIVE, queue_priority::USER_INTERACTIVE );
-    return queue( k_label_global_INTERACTIVE, s_instance );
+    static iqueue_impl_ptr s_instance =
+      platform_backend().create_parallel_queue(
+        k_label_global_INTERACTIVE, queue_priority::USER_INTERACTIVE);
+    return queue(k_label_global_INTERACTIVE, s_instance);
 }
 
-static queue global_queue_USER_INITIATED()
+static queue
+global_queue_USER_INITIATED()
 {
-    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_INITIATED, queue_priority::USER_INITIATED );
-    return queue( k_label_global_INITIATED, s_instance );
+    static iqueue_impl_ptr s_instance =
+      platform_backend().create_parallel_queue(k_label_global_INITIATED,
+                                               queue_priority::USER_INITIATED);
+    return queue(k_label_global_INITIATED, s_instance);
 }
 
-static queue global_queue_UTILITY()
+static queue
+global_queue_UTILITY()
 {
-    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_UTILITY, queue_priority::UTILITY );
-    return queue( k_label_global_UTILITY, s_instance );
+    static iqueue_impl_ptr s_instance =
+      platform_backend().create_parallel_queue(k_label_global_UTILITY,
+                                               queue_priority::UTILITY);
+    return queue(k_label_global_UTILITY, s_instance);
 }
 
-static queue global_queue_BACKGROUND()
+static queue
+global_queue_BACKGROUND()
 {
-    static iqueue_impl_ptr s_instance = platform_backend().create_parallel_queue( k_label_global_BACKGROUND, queue_priority::BACKGROUND );
-    return queue( k_label_global_BACKGROUND, s_instance );
+    static iqueue_impl_ptr s_instance =
+      platform_backend().create_parallel_queue(k_label_global_BACKGROUND,
+                                               queue_priority::BACKGROUND);
+    return queue(k_label_global_BACKGROUND, s_instance);
 }
 
-queue global_queue(
-    queue_priority p
-)
+queue
+global_queue(queue_priority p)
 {
-    switch( p )
-    {
-    case queue_priority::USER_INTERACTIVE:
-        return global_queue_USER_INTERACTIVE();
-    case queue_priority::USER_INITIATED:
-        return global_queue_USER_INITIATED();
-    case queue_priority::DEFAULT:
-    case queue_priority::UTILITY:
-        return global_queue_UTILITY();
-    case queue_priority::BACKGROUND:
-        return global_queue_BACKGROUND();
+    switch (p) {
+        case queue_priority::USER_INTERACTIVE:
+            return global_queue_USER_INTERACTIVE();
+        case queue_priority::USER_INITIATED:
+            return global_queue_USER_INITIATED();
+        case queue_priority::DEFAULT:
+        case queue_priority::UTILITY:
+            return global_queue_UTILITY();
+        case queue_priority::BACKGROUND:
+            return global_queue_BACKGROUND();
     }
+    assert(false && "Should never reach this");
+    std::abort();
 }
 
-queue::queue(
-    const std::string& label,
-    queue_priority priority
-)
-    : queue( label, platform_backend().create_serial_queue( label, priority ) )
-{
-}
+queue::queue(const std::string& label, queue_priority priority)
+  : queue(label, platform_backend().create_serial_queue(label, priority))
+{}
 
-timer::timer(
-    std::chrono::milliseconds interval,
-    const queue& target
-)
-    : timer( [interval, &target]
-{
-    const auto q_impl = target.implementation();
-    const auto q_backend_type = q_impl->backend();
-    const auto impl = backend_for_type( q_backend_type ).create_timer( q_impl );
-    XDISPATCH_ASSERT( impl );
-    impl->interval( interval );
-    return timer( impl, target );
-}
-() )
-{
-
-}
+timer::timer(std::chrono::milliseconds interval, const queue& target)
+  : timer([interval, &target] {
+      const auto q_impl = target.implementation();
+      const auto q_backend_type = q_impl->backend();
+      const auto impl = backend_for_type(q_backend_type).create_timer(q_impl);
+      XDISPATCH_ASSERT(impl);
+      impl->interval(interval);
+      return timer(impl, target);
+  }())
+{}
 
 group::group()
-    : group( platform_backend().create_group() )
-{
-}
+  : group(platform_backend().create_group())
+{}
 
-void exec()
+void
+exec()
 {
     platform_backend().exec();
 }

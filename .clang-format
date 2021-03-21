@@ -1,0 +1,21 @@
+---
+# Use defaults from the mozilla style, but:
+#  - with 4 columns indentation
+#  - without reordering
+#  - keeping #if indendation
+# Mozilla is preferred over Google because it
+# extends the style to mandate braces for single
+# line statements as well.
+BasedOnStyle: Mozilla
+IndentWidth: 4
+AccessModifierOffset: -4
+SortIncludes: false
+IndentPPDirectives: BeforeHash
+StatementMacros:
+  - Q_UNUSED
+  - QT_REQUIRE_VERSION
+  - Q_ENUM
+  - Q_PROPERTY
+  - Q_OBJECT
+  - Q_LOGGING_CATEGORY
+  - Q_DECLARE_LOGGING_CATEGORY

@@ -28,6 +28,7 @@
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // Also dual-licensed under the Boost Software License (see LICENSE.md)
+// clazy:skip
 
 #pragma once
 
