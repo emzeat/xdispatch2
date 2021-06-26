@@ -43,7 +43,7 @@ __XDISPATCH_BEGIN_NAMESPACE
     systems heavily competing for CPU resources.
 
     However please note that this is still adding overhead compared to using a
-   queue directly and as such should only be used when truly needed.
+    queue directly and as such should only be used when truly needed.
 */
 class XDISPATCH_EXPORT waitable_queue : public queue
 {

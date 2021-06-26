@@ -29,26 +29,18 @@
 
 __XDISPATCH_USE_NAMESPACE
 
-class waitable_queue::impl : public iqueue_impl
+class waitable_queue_operation : public operation
 {
 public:
-    impl(const queue& inner_queue)
+    waitable_queue_operation()
       : m_CS()
       , m_cond()
-      , m_inner_queue(inner_queue)
       , m_operations()
       , m_completed(0)
       , m_active(false)
-      , m_worker(xdispatch::make_operation(this, &impl::drain_one))
     {}
-    ~impl() override
-    {
-        try {
-            wait_for_all();
-        } catch (...) {
-            // pass
-        }
-    }
+
+    void operator()() override { drain_one(); }
 
     void drain_one()
     {
@@ -60,7 +52,6 @@ public:
         // we are the active worker now
         m_active = true;
         // try to pop and execute one operation
-        xdispatch::operation_ptr op;
         if (!m_operations.empty()) {
             auto op = m_operations.front();
             m_operations.pop_front();
@@ -88,7 +79,7 @@ public:
             // we can just wait for it to complete and will not deadlock
             if (m_active) {
                 XDISPATCH_TRACE() << "Waiting for active operation";
-                m_cond.wait(lock, [this] { return 0 != m_completed; });
+                m_cond.wait(lock, [this] { return !m_active; });
             }
             // there is some chance nothing was queued to begin with
             else if (m_operations.empty()) {
@@ -101,7 +92,7 @@ public:
                 lock.unlock();
                 XDISPATCH_TRACE()
                   << "Operation queue is starving, execute directly";
-                xdispatch::execute_operation_on_this_thread(*m_worker);
+                drain_one();
                 lock.lock();
             }
         }
@@ -112,15 +103,41 @@ public:
     void wait_for_all()
     {
         std::unique_lock<std::mutex> lock(m_CS);
-        while (!m_operations.empty()) {
+        while (m_active || !m_operations.empty()) {
             wait_for_one(lock);
         }
     }
 
-    void async(const operation_ptr& op) override
+    void add_one(const operation_ptr& op)
     {
         std::unique_lock<std::mutex> lock(m_CS);
         m_operations.push_back(op);
+    }
+
+private:
+    std::mutex m_CS;
+    std::condition_variable m_cond;
+
+    std::list<operation_ptr> m_operations;
+    size_t m_completed;
+    bool m_active;
+};
+
+class waitable_queue::impl : public iqueue_impl
+{
+public:
+    impl(const queue& inner_queue)
+      : m_worker(std::make_shared<waitable_queue_operation>())
+      , m_inner_queue(inner_queue)
+    {}
+
+    void wait_for_one() { m_worker->wait_for_one(); }
+
+    void wait_for_all() { m_worker->wait_for_all(); }
+
+    void async(const operation_ptr& op) override
+    {
+        m_worker->add_one(op);
         m_inner_queue.async(m_worker);
     }
 
@@ -129,7 +146,7 @@ public:
         for (size_t i = 0; i < times; ++i) {
             async(std::make_shared<naive::apply_operation>(i, op));
         }
-        wait_for_all();
+        m_worker->wait_for_all();
     }
 
     void after(std::chrono::milliseconds delay,
@@ -144,14 +161,8 @@ public:
     }
 
 private:
-    std::mutex m_CS;
-    std::condition_variable m_cond;
-
-    xdispatch::queue m_inner_queue;
-    std::list<xdispatch::operation_ptr> m_operations;
-    size_t m_completed;
-    bool m_active;
-    xdispatch::operation_ptr m_worker;
+    std::shared_ptr<waitable_queue_operation> m_worker;
+    queue m_inner_queue;
 };
 
 waitable_queue::waitable_queue(const std::string& label,

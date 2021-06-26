@@ -93,6 +93,10 @@ cxx_waitable_queue(void* data)
     waitable.async([&] { executed = true; });
     waitable.wait_for_one();
     MU_ASSERT_TRUE(executed);
+    // even draining the inner queue should now be a no-op
+    executed = false;
+    inner.drain_one();
+    MU_ASSERT_TRUE(!executed);
 
     // queue an operation but have the inner queue drain it, this
     // should make the wait complete immediately.
@@ -100,6 +104,16 @@ cxx_waitable_queue(void* data)
     waitable.async([&] { executed = true; });
     inner.drain_one();
     waitable.wait_for_one();
+    MU_ASSERT_TRUE(executed);
+
+    // queue an operation but destroy the outer queue before draining it
+    // this should still be well defined
+    {
+        xdispatch::waitable_queue waitable2("cxx_waitable_queue.outer2", inner);
+        executed = false;
+        waitable2.async([&] { executed = true; });
+    }
+    inner.drain_one();
     MU_ASSERT_TRUE(executed);
 
     MU_PASS("Completed");
