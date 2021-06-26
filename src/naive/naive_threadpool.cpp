@@ -245,9 +245,6 @@ threadpool::notify_thread_blocked()
 {
     const auto max_threads = ++m_data->m_max_threads;
     XDISPATCH_TRACE() << "increased threadcount to " << max_threads;
-    // FIXME(zwicker) This may increase the number of threads permanently
-    //                as threads will never be joined again right now no matter
-    //                how long they have been idle
     schedule();
 }
 

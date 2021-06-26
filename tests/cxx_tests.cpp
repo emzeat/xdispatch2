@@ -59,6 +59,8 @@ void
 cxx_benchmark_global_queue(void*);
 void
 cxx_benchmark_group(void*);
+void
+cxx_waitable_queue(void*);
 
 void
 register_cxx_tests(const char* name, xdispatch::ibackend* backend)
@@ -80,6 +82,7 @@ register_cxx_tests(const char* name, xdispatch::ibackend* backend)
     MU_REGISTER_TEST_INSTANCE(name, cxx_benchmark_serial_queue, backend);
     MU_REGISTER_TEST_INSTANCE(name, cxx_benchmark_global_queue, backend);
     MU_REGISTER_TEST_INSTANCE(name, cxx_benchmark_group, backend);
+    MU_REGISTER_TEST_INSTANCE(name, cxx_waitable_queue, backend);
 }
 
 static std::mutex s_backend_CS;

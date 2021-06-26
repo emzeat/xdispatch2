@@ -63,10 +63,16 @@ private:
     // opaque data pointer for internal book keeping
     void* m_d;
     friend void queue_operation_with_d(operation&, void*);
-    friend void execute_operation_on_this_thread(operation&);
+    friend XDISPATCH_EXPORT void execute_operation_on_this_thread(operation&);
 };
 
 using operation_ptr = std::shared_ptr<operation>;
+
+/**
+  Will synchronously execute the given operation on the current thread
+  */
+XDISPATCH_EXPORT void
+execute_operation_on_this_thread(operation&);
 
 /**
   @see operation
@@ -96,10 +102,19 @@ private:
     // opaque data pointer for internal book keeping
     void* m_d;
     friend void queue_operation_with_d(iteration_operation&, void*);
-    friend void execute_operation_on_this_thread(iteration_operation&, size_t);
+    friend XDISPATCH_EXPORT void execute_operation_on_this_thread(
+      iteration_operation&,
+      size_t);
 };
 
 using iteration_operation_ptr = std::shared_ptr<iteration_operation>;
+
+/**
+  Will synchronously execute the given operation on the current thread
+  for the given iteration
+  */
+XDISPATCH_EXPORT void
+execute_operation_on_this_thread(iteration_operation&, size_t);
 
 /**
   A simple operation for wrapping the given

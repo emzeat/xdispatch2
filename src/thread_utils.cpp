@@ -110,7 +110,7 @@ thread_utils::set_current_thread_name(const std::string& name)
 
 #if (defined XDISPATCH2_HAVE_SET_THREAD_NAME)
 
-    if (IsDebuggerPresent()) {
+    if (trace_utils::is_debug_enabled() || IsDebuggerPresent()) {
         SetThreadName(GetCurrentThreadId(), name.c_str());
     };
 
@@ -190,6 +190,25 @@ thread_utils::map_priority_to_qos(queue_priority priority)
 size_t
 thread_utils::system_thread_count()
 {
+    static auto sOverrideCount = [] {
+        const char* override = std::getenv("XDISPATCH2_THREAD_COUNT");
+        if (override) {
+            try {
+                auto threads = std::atoi(override);
+                XDISPATCH_WARNING() << "Thread count forced to " << threads;
+                return threads;
+            } catch (std::exception& e) {
+                XDISPATCH_WARNING()
+                  << "Thread count could not be parsed: " << e.what();
+                // pass, use actual readout below
+            }
+        }
+        return 0;
+    }();
+    if (sOverrideCount > 0) {
+        return sOverrideCount;
+    }
+
 #if (defined XDISPATCH2_HAVE_SYSCONF) &&                                       \
   (defined XDISPATCH2_HAVE_SYSCONF_SC_NPROCESSORS_ONLN)
     const auto nprocessors = sysconf(_SC_NPROCESSORS_ONLN);
