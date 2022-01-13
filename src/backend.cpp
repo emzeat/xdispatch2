@@ -51,8 +51,7 @@ backend_for_type(backend_type type)
             return s_backend_qt5;
         }
 #endif
-        default
-          :
+        default:
 #if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
         {
             static naive::backend s_backend_naive;

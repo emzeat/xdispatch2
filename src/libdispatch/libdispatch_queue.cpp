@@ -60,8 +60,8 @@ public:
 
     void after(std::chrono::milliseconds delay, const operation_ptr& op) final
     {
-        const auto time =
-          dispatch_time(DISPATCH_TIME_NOW, delay.count() * NSEC_PER_MSEC);
+        const auto time = dispatch_time(
+          DISPATCH_TIME_NOW, std::int64_t(delay.count() * NSEC_PER_MSEC));
         std::unique_ptr<operation_wrap> wrapper(new operation_wrap(op));
         dispatch_after_f(
           time, m_native, wrapper.release(), _xdispatch2_run_wrap_delete);

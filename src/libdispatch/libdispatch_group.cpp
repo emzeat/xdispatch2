@@ -61,8 +61,8 @@ public:
             return 0 == dispatch_group_wait(m_native, DISPATCH_TIME_NOW);
         }
 
-        const auto time =
-          dispatch_time(DISPATCH_TIME_NOW, timeout.count() * NSEC_PER_MSEC);
+        const auto time = dispatch_time(
+          DISPATCH_TIME_NOW, std::int64_t(timeout.count() * NSEC_PER_MSEC));
         return 0 == dispatch_group_wait(m_native, time);
     }
 

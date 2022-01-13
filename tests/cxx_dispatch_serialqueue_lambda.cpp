@@ -48,7 +48,7 @@ cxx_dispatch_serialqueue_lambda(void* data)
 {
     CXX_BEGIN_BACKEND_TEST(cxx_dispatch_serialqueue_lambda);
 
-    auto* worker = new std::atomic<int>(0);
+    auto* worker = new std::atomic<unsigned int>(0);
     xdispatch::queue q = cxx_create_queue("cxx_dispatch_serialqueue");
 
     // dispatch some jobs

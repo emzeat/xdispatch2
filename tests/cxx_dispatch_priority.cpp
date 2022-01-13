@@ -88,7 +88,7 @@ histogram()
         fraction = (double)sc[y] / (double)maxcount;
         value = fraction * (double)80;
         for (x = 0; x < 80; ++x) {
-            printf("%s", (value > x) ? "*" : " ");
+            printf("%s", (static_cast<size_t>(value) > x) ? "*" : " ");
         }
         printf("\n");
     }

@@ -22,7 +22,8 @@ Checks: >
     -readability-implicit-bool-conversion,
     -readability-redundant-member-init,
     -readability-static-accessed-through-instance,
-    -readability-named-parameter
+    -readability-named-parameter,
+    -readability-function-cognitive-complexity
 
 # All warnings are errors
 WarningsAsErrors: "*"

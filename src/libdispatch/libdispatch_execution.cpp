@@ -53,8 +53,7 @@ run_wrapper(operation_wrap* wrapper)
         execute_operation_on_this_thread(*wrappedOp);
     }
 #if !(defined DEBUG)
-    catch (const std::exception& e)
-    {
+    catch (const std::exception& e) {
         std::cerr << "#########################################################"
                      "#########"
                   << std::endl;
@@ -70,9 +69,7 @@ run_wrapper(operation_wrap* wrapper)
                   << std::endl;
 
         throw;
-    }
-    catch (...)
-    {
+    } catch (...) {
         std::cerr << "#########################################################"
                      "#########"
                   << std::endl;
@@ -131,8 +128,7 @@ _xdispatch2_run_iter_wrap(void* dt, size_t index)
         execute_operation_on_this_thread(*wrapped_op, index);
     }
 #if !(defined DEBUG)
-    catch (const std::exception& e)
-    {
+    catch (const std::exception& e) {
         std::cerr << "#########################################################"
                      "#########"
                   << std::endl;
@@ -147,9 +143,7 @@ _xdispatch2_run_iter_wrap(void* dt, size_t index)
                      "#########"
                   << std::endl;
         throw;
-    }
-    catch (...)
-    {
+    } catch (...) {
         std::cerr << "#########################################################"
                      "#########"
                   << std::endl;

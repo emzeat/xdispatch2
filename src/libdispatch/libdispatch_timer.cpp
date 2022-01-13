@@ -53,7 +53,7 @@ public:
         // the timer is not firing prematurely in case it is already
         // running and has its interval changed
         m_interval = interval.count() * NSEC_PER_MSEC;
-        m_delay = dispatch_time(DISPATCH_TIME_NOW, m_interval);
+        m_delay = dispatch_time(DISPATCH_TIME_NOW, std::int64_t(m_interval));
         dispatch_source_set_timer(m_native, m_delay, m_interval, m_latency);
     }
 
@@ -92,8 +92,8 @@ public:
         if (0 == delay.count()) {
             m_delay = DISPATCH_TIME_NOW;
         } else {
-            m_delay =
-              dispatch_time(DISPATCH_TIME_NOW, delay.count() * NSEC_PER_MSEC);
+            m_delay = dispatch_time(
+              DISPATCH_TIME_NOW, std::int64_t(delay.count() * NSEC_PER_MSEC));
         }
 
         dispatch_source_set_timer(m_native, m_delay, m_interval, m_latency);

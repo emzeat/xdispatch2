@@ -203,8 +203,7 @@ operation_queue::process_job(operation& job)
         execute_operation_on_this_thread(job);
     }
 #if !(defined DEBUG)
-    catch (const std::exception& e)
-    {
+    catch (const std::exception& e) {
         std::cerr << "#########################################################"
                      "#########"
                   << std::endl;
@@ -220,9 +219,7 @@ operation_queue::process_job(operation& job)
                   << std::endl;
 
         throw;
-    }
-    catch (...)
-    {
+    } catch (...) {
         std::cerr << "#########################################################"
                      "#########"
                   << std::endl;

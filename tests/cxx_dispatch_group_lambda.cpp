@@ -31,6 +31,7 @@
  */
 
 static xdispatch::group
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 create_group(size_t count, int delay)
 {
     size_t i;
