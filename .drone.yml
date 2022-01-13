@@ -10,7 +10,7 @@ steps:
     - git submodule update --init --recursive
 
 - name: build
-  image: registry.heimdall.mlba-team.de/builder-1604-cache:latest
+  image: ${MZ_DOCKER_REGISTRY}/builder-1604-cache:latest
   commands:
     - cd build
     - bash ./generator.sh mode=release compiler=clang generator=ninja location=inside -DBUILD_XDISPATCH2_TESTS=ON
@@ -18,7 +18,7 @@ steps:
     - ninja -j 12
 
 - name: test
-  image: registry.heimdall.mlba-team.de/builder-1604-cache:latest
+  image: ${MZ_DOCKER_REGISTRY}/builder-1604-cache:latest
   environment:
     USER: test_runner
     # XDISPATCH2_TRACE: 1
