@@ -1,3 +1,16 @@
+---
+kind: pipeline
+type: docker
+name: pre-commit
+
+steps:
+- name: check hooks
+  image: ${MZ_DOCKER_REGISTRY}/pre-commit:latest
+  commands:
+    - pre-commit run --all-files --verbose --show-diff-on-failure
+
+
+---
 kind: pipeline
 type: docker
 name: ubuntu-1604-clang
