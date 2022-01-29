@@ -1,0 +1,16 @@
+{
+  "author": {
+    "from_git": true,
+    "aliases": {
+      "MLBA-Team": "Marius Zwicker",
+      "marius": "Marius Zwicker"
+    }
+  },
+  "license": "Apache-2.0",
+  "exclude": [
+    "^\\.[^/]+",
+    "/\\.[^/]+",
+    "xdispatch2.sublime-project",
+    ".*\\.rc"
+  ]
+}
