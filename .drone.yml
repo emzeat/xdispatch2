@@ -68,6 +68,10 @@ steps:
   commands:
     - cd build/clang-ninja-release/bin
     - ./xdispatch2_tests
+  when:
+    ref:
+      - refs/heads/master
+      - refs/pull/*/head
 
 
 ---
@@ -122,3 +126,7 @@ steps:
   commands:
     - cd build/win32-ninja_64-release/bin
     - .\xdispatch2_tests.exe
+  when:
+    ref:
+      - refs/heads/master
+      - refs/pull/*/head
