@@ -1,6 +1,6 @@
 [submodule "build"]
 	path = build
-	url = ../../opensource/mz-cmaketools.git
+	url = ../../emzeat/mz-cmaketools.git
 	branch = master
 [submodule "3rdparty/qt5"]
 	path = 3rdparty/qt5
