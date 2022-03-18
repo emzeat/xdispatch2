@@ -74,19 +74,74 @@ using operation_ptr = std::shared_ptr<operation>;
 XDISPATCH_EXPORT void
 execute_operation_on_this_thread(operation&);
 
+template<typename... Params>
+class parameterized_operation;
+
+/**
+  Will synchronously execute the given operation on the current thread
+  for the given parameters
+  */
+template<typename... Params>
+XDISPATCH_EXPORT void
+execute_operation_on_this_thread(parameterized_operation<Params...>&,
+                                 Params... params);
+
+/**
+  Private Internal Function
+*/
+template<typename... Params>
+void
+queue_operation_with_d(parameterized_operation<Params...>&, void*);
+
+template<typename Func, typename... Params>
+class function_parameterized_operation;
+
+template<class T, typename... Params>
+class member_parameterized_operation;
+
 /**
   @see operation
 
-  Same as operation except that an
-  index will be passed whenever this
+  Same as operation except that a parameter
+  will be passed whenever this
   functor is executed on a queue.
   */
-class XDISPATCH_EXPORT iteration_operation
+template<typename... Params>
+class parameterized_operation
 {
 public:
-    iteration_operation();
+    inline parameterized_operation()
+      : m_d(nullptr)
+    {}
 
-    virtual ~iteration_operation() = default;
+    virtual ~parameterized_operation() = default;
+
+    inline static std::shared_ptr<parameterized_operation<Params...>> make(
+      const std::shared_ptr<parameterized_operation<Params...>>& op)
+    {
+        return op;
+    }
+
+    template<typename Func>
+    inline static typename std::enable_if<
+      !std::is_convertible<
+        Func,
+        std::shared_ptr<parameterized_operation<Params...>>>::value,
+      std::shared_ptr<parameterized_operation<Params...>>>::type
+    make(const Func& f)
+    {
+        return std::make_shared<
+          function_parameterized_operation<Func, Params...>>(f);
+    }
+
+    template<class T>
+    inline static std::shared_ptr<parameterized_operation<Params...>> make(
+      T* object,
+      void (T::*function)(Params...))
+    {
+        return std::make_shared<member_parameterized_operation<T, Params...>>(
+          object, function);
+    }
 
 protected:
     /**
@@ -96,25 +151,27 @@ protected:
         @param index The iterator position for which
                      the operation is executed
      */
-    virtual void operator()(size_t index) = 0;
+    virtual void operator()(Params... params) = 0;
 
 private:
     // opaque data pointer for internal book keeping
     void* m_d;
-    friend void queue_operation_with_d(iteration_operation&, void*);
-    friend XDISPATCH_EXPORT void execute_operation_on_this_thread(
-      iteration_operation&,
-      size_t);
+    friend void queue_operation_with_d<Params...>(
+      parameterized_operation<Params...>&,
+      void*);
+    friend XDISPATCH_EXPORT void execute_operation_on_this_thread<Params...>(
+      parameterized_operation<Params...>&,
+      Params...);
 };
 
-using iteration_operation_ptr = std::shared_ptr<iteration_operation>;
-
 /**
-  Will synchronously execute the given operation on the current thread
-  for the given iteration
-  */
-XDISPATCH_EXPORT void
-execute_operation_on_this_thread(iteration_operation&, size_t);
+  Same as operation except that an
+  index will be passed whenever this
+  functor is executed on a queue.
+*/
+using iteration_operation = parameterized_operation<size_t>;
+
+using iteration_operation_ptr = std::shared_ptr<iteration_operation>;
 
 /**
   A simple operation for wrapping the given
@@ -182,54 +239,61 @@ make_operation(T* object, void (T::*function)())
 }
 
 /**
-  A simple iteration operation needed when
+  A simple parameterized operation needed when
   applying a function object several times
   */
-template<typename Func>
-class function_iteration_operation : public iteration_operation
+template<typename Func, typename... Params>
+class function_parameterized_operation
+  : public parameterized_operation<Params...>
 {
 public:
-    function_iteration_operation(const Func b)
-      : iteration_operation()
+    function_parameterized_operation(const Func b)
+      : parameterized_operation<Params...>()
       , m_function(b)
     {}
 
-    function_iteration_operation(const function_iteration_operation& other) =
-      default;
+    function_parameterized_operation(
+      const function_parameterized_operation& other) = default;
 
-    ~function_iteration_operation() override = default;
+    ~function_parameterized_operation() override = default;
 
-    void operator()(size_t index) final { m_function(index); }
+    void operator()(Params... params) final { m_function(params...); }
 
 private:
     const Func m_function;
 };
 
+template<typename Func>
+using function_iteration_operation = parameterized_operation<Func, size_t>;
+
 /**
   Provides a template functor to wrap
-  a function pointer to a memberfunction of an object as iteration_operation
+  a function pointer to a memberfunction of an object as parameterized_operation
   */
-template<class T>
-class member_iteration_operation : public iteration_operation
+template<class T, typename... Params>
+class member_parameterized_operation : public parameterized_operation<Params...>
 {
 public:
-    member_iteration_operation(T* object, void (T::*function)(size_t))
-      : iteration_operation()
+    member_parameterized_operation(T* object, void (T::*function)(Params...))
+      : parameterized_operation<Params...>()
       , m_obj(object)
       , m_func(function)
     {}
 
-    void operator()(size_t index) final { (*m_obj.*m_func)(index); }
+    void operator()(Params... params) final { (*m_obj.*m_func)(params...); }
 
 private:
     T* const m_obj;
-    void (T::*m_func)(size_t);
+    void (T::*m_func)(Params...);
 };
+
+template<class T>
+using member_iteration_operation = member_parameterized_operation<T, size_t>;
 
 inline iteration_operation_ptr
 make_iteration_operation(const iteration_operation_ptr& op)
 {
-    return op;
+    return iteration_operation::make(op);
 }
 
 template<typename Func>
@@ -238,14 +302,14 @@ inline typename std::enable_if<
   iteration_operation_ptr>::type
 make_iteration_operation(const Func& f)
 {
-    return std::make_shared<function_iteration_operation<Func>>(f);
+    return iteration_operation::make(f);
 }
 
 template<class T>
 inline iteration_operation_ptr
 make_iteration_operation(T* object, void (T::*function)(size_t))
 {
-    return std::make_shared<member_iteration_operation<T>>(object, function);
+    return iteration_operation::make(object, function);
 }
 
 __XDISPATCH_END_NAMESPACE

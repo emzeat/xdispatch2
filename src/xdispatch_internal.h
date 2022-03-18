@@ -81,11 +81,7 @@ __XDISPATCH_BEGIN_NAMESPACE
 void
 queue_operation_with_d(operation&, void*);
 void
-queue_operation_with_d(iteration_operation&, void*);
-void
 execute_operation_on_this_thread(operation&);
-void
-execute_operation_on_this_thread(iteration_operation&, size_t);
 bool
 operation_is_run_with_d(void const* const);
 

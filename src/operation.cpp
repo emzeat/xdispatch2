@@ -31,11 +31,19 @@ queue_operation_with_d(operation& op, void* d)
     op.m_d = d;
 }
 
+template<typename... Params>
 void
-queue_operation_with_d(iteration_operation& op, void* d)
+queue_operation_with_d(parameterized_operation<Params...>& op, void* d)
 {
     op.m_d = d;
 }
+
+template void
+queue_operation_with_d<size_t>(iteration_operation&, void*);
+
+template void
+queue_operation_with_d<socket_t, notifier_type>(socket_notifier_operation&,
+                                                void*);
 
 void
 execute_operation_on_this_thread(operation& op)
@@ -48,16 +56,27 @@ execute_operation_on_this_thread(operation& op)
     current_d = previous;
 }
 
+template<typename... Params>
 void
-execute_operation_on_this_thread(iteration_operation& op, size_t index)
+execute_operation_on_this_thread(parameterized_operation<Params...>& op,
+                                 Params... params)
 {
     void* previous = current_d;
     if (op.m_d) {
         current_d = op.m_d;
     }
-    op(index);
+    op(params...);
     current_d = previous;
 }
+
+template void
+execute_operation_on_this_thread<size_t>(iteration_operation&, size_t);
+
+template void
+execute_operation_on_this_thread<socket_t, notifier_type>(
+  socket_notifier_operation&,
+  socket_t,
+  notifier_type);
 
 bool
 operation_is_run_with_d(void const* const d)
@@ -66,10 +85,6 @@ operation_is_run_with_d(void const* const d)
 }
 
 operation::operation()
-  : m_d(nullptr)
-{}
-
-iteration_operation::iteration_operation()
   : m_d(nullptr)
 {}
 
