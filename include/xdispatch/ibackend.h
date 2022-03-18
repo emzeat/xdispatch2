@@ -68,6 +68,11 @@ public:
 
     virtual itimer_impl_ptr create_timer(const iqueue_impl_ptr& queue) = 0;
 
+    virtual isocket_notifier_impl_ptr create_socket_notifier(
+      const iqueue_impl_ptr& target,
+      socket_t socket,
+      notifier_type type) = 0;
+
     virtual void exec() = 0;
 
     virtual backend_type type() const = 0;

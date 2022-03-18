@@ -75,6 +75,7 @@ constexpr const char k_label_global_BACKGROUND[] =
 #include "../include/xdispatch/backend.h"
 #include "../include/xdispatch/group.h"
 #include "../include/xdispatch/timer.h"
+#include "../include/xdispatch/socket_notifier.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 

@@ -63,6 +63,14 @@ public:
         return create_timer(queue, backend_type::naive);
     }
 
+    isocket_notifier_impl_ptr create_socket_notifier(
+      const iqueue_impl_ptr& queue,
+      socket_t socket,
+      notifier_type type) override
+    {
+        return create_socket_notifier(queue, socket, type, backend_type::naive);
+    }
+
     backend_type type() const override { return backend_type::naive; }
 
     void exec() override;
@@ -83,6 +91,12 @@ protected:
 
     static itimer_impl_ptr create_timer(const iqueue_impl_ptr& queue,
                                         backend_type backend);
+
+    static isocket_notifier_impl_ptr create_socket_notifier(
+      const iqueue_impl_ptr& queue,
+      socket_t socket,
+      notifier_type type,
+      backend_type backend);
 };
 
 queue

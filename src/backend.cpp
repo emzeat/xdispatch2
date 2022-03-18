@@ -21,6 +21,7 @@
 
 #include "xdispatch_internal.h"
 #include "xdispatch/itimer_impl.h"
+#include "xdispatch/isocket_notifier_impl.h"
 #include "xdispatch/iqueue_impl.h"
 
 #if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
@@ -156,6 +157,19 @@ timer::timer(std::chrono::milliseconds interval, const queue& target)
       XDISPATCH_ASSERT(impl);
       impl->interval(interval);
       return timer(impl, target);
+  }())
+{}
+
+socket_notifier::socket_notifier(socket_t socket,
+                                 notifier_type type,
+                                 const queue& target)
+  : socket_notifier([socket, type, &target] {
+      const auto q_impl = target.implementation();
+      const auto q_backend_type = q_impl->backend();
+      const auto impl = backend_for_type(q_backend_type)
+                          .create_socket_notifier(q_impl, socket, type);
+      XDISPATCH_ASSERT(impl);
+      return socket_notifier(impl, target);
   }())
 {}
 

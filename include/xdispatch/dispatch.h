@@ -37,6 +37,7 @@
     #include "xdispatch/queue.h"
     #include "xdispatch/backend.h"
     #include "xdispatch/group.h"
+    #include "xdispatch/socket_notifier.h"
     #include "xdispatch/timer.h"
     #undef __XDISPATCH_INDIRECT__
 

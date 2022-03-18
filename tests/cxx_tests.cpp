@@ -36,6 +36,10 @@ cxx_dispatch_timer_serial(void*);
 void
 cxx_dispatch_timer_main(void*);
 void
+cxx_dispatch_notifier_read(void*);
+void
+cxx_dispatch_notifier_write(void*);
+void
 cxx_dispatch_fibo(void*);
 void
 cxx_dispatch_cascade_lambda(void*);
@@ -70,6 +74,8 @@ register_cxx_tests(const char* name, xdispatch::ibackend* backend)
     MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_timer_main, backend);
     MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_timer_global, backend);
     MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_timer_serial, backend);
+    MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_notifier_read, backend);
+    MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_notifier_write, backend);
     //    MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_fibo, backend );
     MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_cascade_lambda, backend);
     MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_group_lambda, backend);
@@ -176,6 +182,18 @@ cxx_create_timer(const xdispatch::queue& queue)
     MU_ASSERT_NOT_NULL(s_backend_tested);
     // let the timer implementation choose the right backend based on the queue
     return xdispatch::timer(std::chrono::seconds(0), queue);
+}
+
+xdispatch::socket_notifier
+cxx_create_notifier(xdispatch::socket_t socket,
+                    xdispatch::notifier_type type,
+                    const xdispatch::queue& queue)
+{
+    std::lock_guard<std::mutex> lock(s_backend_CS);
+    MU_ASSERT_NOT_NULL(s_backend_tested);
+    // let the notifier implementation choose the right backend based on the
+    // queue
+    return xdispatch::socket_notifier(socket, type, queue);
 }
 
 void

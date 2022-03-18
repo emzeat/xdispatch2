@@ -51,6 +51,11 @@ cxx_create_group();
 xdispatch::timer
 cxx_create_timer(const xdispatch::queue& queue = cxx_global_queue());
 
+xdispatch::socket_notifier
+cxx_create_notifier(xdispatch::socket_t socket,
+                    xdispatch::notifier_type type,
+                    const xdispatch::queue& queue = cxx_global_queue());
+
 void
 cxx_exec();
 
