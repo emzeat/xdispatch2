@@ -47,6 +47,11 @@ public:
 
     itimer_impl_ptr create_timer(const iqueue_impl_ptr& queue) override;
 
+    isocket_notifier_impl_ptr create_socket_notifier(
+      const iqueue_impl_ptr& queue,
+      socket_t socket,
+      notifier_type type) override;
+
     backend_type type() const override { return backend_type::libdispatch; }
 
     void exec() override { dispatch_main(); }
