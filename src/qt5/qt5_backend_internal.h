@@ -51,6 +51,11 @@ public:
 
     itimer_impl_ptr create_timer(const iqueue_impl_ptr& queue) final;
 
+    isocket_notifier_impl_ptr create_socket_notifier(
+      const iqueue_impl_ptr& queue,
+      socket_t socket,
+      notifier_type type) final;
+
     backend_type type() const final { return backend_type::qt5; }
 
     void exec() final;
