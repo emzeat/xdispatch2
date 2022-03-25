@@ -58,7 +58,7 @@ public:
     /**
         Constructs a new timer powered by the same backend as the target queue
 
-        The timer will be stopped, call start() to execute it
+        The timer will be stopped, call resume() to execute it
 
         @param interval The interval at which the timer will fire after the
        timeout occured.
@@ -111,21 +111,22 @@ public:
     /**
         Will start the timer.
         @remarks A new created timer will be stopped and needs to me started
-       first. Once started, ensure balanced calls between start() and stop().
+       first. Once started, ensure balanced calls between resume() and
+       suspend().
 
         Use the optional parameter to specify a time in nanoseconds after which
         the timer will fire for the first time. By default it will fire
        immediately and continue at the configured interval unless it was
        configured to be a singleshot timer.
     */
-    void start(std::chrono::milliseconds delay = std::chrono::milliseconds(0));
+    void resume(std::chrono::milliseconds delay = std::chrono::milliseconds(0));
 
     /**
       Will stop the timer.
       @remarks A new created timer will be stopped and needs to me started
-      first. Once started, ensure balanced calls between start() and stop().
+      first. Once started, ensure balanced calls between resume() and suspend().
     */
-    void stop();
+    void suspend();
 
     /**
         @brief assignment operator

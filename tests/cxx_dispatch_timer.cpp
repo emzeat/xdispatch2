@@ -70,7 +70,7 @@ cxx_dispatch_timer(xdispatch::timer& tested_timer)
     tested_timer.interval(std::chrono::seconds(2));
     tested_timer.handler(std::make_shared<test_periodic>());
     s_checked_time.start();
-    tested_timer.start();
+    tested_timer.resume();
     cxx_exec();
 }
 

@@ -49,9 +49,9 @@ timer::latency(timer_precision precision)
 }
 
 void
-timer::start(std::chrono::milliseconds d)
+timer::resume(std::chrono::milliseconds d)
 {
-    m_impl->start(d);
+    m_impl->resume(d);
 }
 
 void

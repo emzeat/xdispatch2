@@ -88,7 +88,7 @@ public:
         dispatch_set_target_queue(m_native, impl_2_native(q));
     }
 
-    void start(std::chrono::milliseconds delay) final
+    void resume(std::chrono::milliseconds delay) final
     {
         if (0 == delay.count()) {
             m_delay = DISPATCH_TIME_NOW;
@@ -101,7 +101,7 @@ public:
         dispatch_resume(m_native);
     }
 
-    void stop() override { dispatch_suspend(m_native); }
+    void suspend() override { dispatch_suspend(m_native); }
 
     backend_type backend() final { return backend_type::libdispatch; }
 

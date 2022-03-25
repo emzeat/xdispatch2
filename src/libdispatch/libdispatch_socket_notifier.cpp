@@ -87,9 +87,9 @@ public:
         dispatch_set_target_queue(m_native, impl_2_native(q));
     }
 
-    void start() final { dispatch_resume(m_native); }
+    void resume() final { dispatch_resume(m_native); }
 
-    void stop() override { dispatch_suspend(m_native); }
+    void suspend() override { dispatch_suspend(m_native); }
 
     socket_t socket() const final { return m_socket; }
 

@@ -54,10 +54,10 @@ public:
       , m_type(type)
       , m_queue(queue)
       , m_handler()
-      , m_running(false)
+      , m_running(0)
     {}
 
-    ~socket_notifier_impl() override { socket_notifier_impl::stop(); }
+    ~socket_notifier_impl() override { socket_notifier_impl::suspend(); }
 
     void handler(const socket_notifier_operation_ptr& op) final
     {
@@ -71,10 +71,13 @@ public:
         m_queue = q;
     }
 
-    void start() final
+    void resume() final
     {
         std::lock_guard<std::mutex> lock(m_CS);
-        m_running = true;
+        if (1 != ++m_running) {
+            // only proceed when we become runnable
+            return;
+        }
 
         const auto this_ptr = shared_from_this();
 
@@ -86,7 +89,7 @@ public:
             threadpool::instance()->notify_thread_blocked();
 
             std::unique_lock<std::mutex> lock(this_ptr->m_CS);
-            while (this_ptr->m_running) {
+            while (this_ptr->m_running > 0) {
                 const auto socket = this_ptr->m_socket;
                 const auto type = this_ptr->m_type;
 
@@ -111,7 +114,7 @@ public:
                     }
                 }
 
-                if (!this_ptr->m_running) {
+                if (this_ptr->m_running <= 0) {
                     break;
                 }
 
@@ -160,10 +163,10 @@ public:
                                         queue_priority::DEFAULT);
     }
 
-    void stop() override
+    void suspend() override
     {
         std::lock_guard<std::mutex> lock(m_CS);
-        m_running = false;
+        --m_running;
     }
 
     socket_t socket() const final { return m_socket; }
@@ -179,7 +182,7 @@ private:
     const notifier_type m_type;
     iqueue_impl_ptr m_queue;
     socket_notifier_operation_ptr m_handler;
-    bool m_running;
+    int m_running;
 };
 
 isocket_notifier_impl_ptr

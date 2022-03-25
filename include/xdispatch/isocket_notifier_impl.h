@@ -56,12 +56,12 @@ public:
     /**
         Start the notifier
       */
-    virtual void start() = 0;
+    virtual void resume() = 0;
 
     /**
         Will stop the timer.
     */
-    virtual void stop() = 0;
+    virtual void suspend() = 0;
 
     /**
         @returns the socket monitored by the notifier

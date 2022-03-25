@@ -69,12 +69,12 @@ public:
 
         @param delay The time after which the timer will fire for the first time
       */
-    virtual void start(std::chrono::milliseconds delay) = 0;
+    virtual void resume(std::chrono::milliseconds delay) = 0;
 
     /**
         Will stop the timer.
     */
-    virtual void stop() = 0;
+    virtual void suspend() = 0;
 
     /**
         @returns the backend type behind this implementation

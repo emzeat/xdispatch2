@@ -39,10 +39,10 @@ public:
       , m_interval(0)
       , m_queue(queue)
       , m_handler()
-      , m_running(false)
+      , m_running(0)
     {}
 
-    ~timer_impl() override { timer_impl::stop(); }
+    ~timer_impl() override { timer_impl::suspend(); }
 
     void interval(std::chrono::milliseconds interval) final
     {
@@ -66,10 +66,13 @@ public:
         m_queue = q;
     }
 
-    void start(std::chrono::milliseconds delay) final
+    void resume(std::chrono::milliseconds delay) final
     {
         std::lock_guard<std::mutex> lock(m_CS);
-        m_running = true;
+        if (1 != ++m_running) {
+            // only proceed when we become runnable
+            return;
+        }
 
         const auto this_ptr = shared_from_this();
 
@@ -82,7 +85,7 @@ public:
             std::this_thread::sleep_for(delay);
 
             std::unique_lock<std::mutex> lock(this_ptr->m_CS);
-            while (this_ptr->m_running) {
+            while (this_ptr->m_running > 0) {
                 const auto handler = this_ptr->m_handler;
                 const auto interval = this_ptr->m_interval;
                 const auto queue = this_ptr->m_queue;
@@ -99,10 +102,10 @@ public:
         threadpool::instance()->execute(timer_op, queue_priority::DEFAULT);
     }
 
-    void stop() override
+    void suspend() override
     {
         std::lock_guard<std::mutex> lock(m_CS);
-        m_running = false;
+        --m_running;
     }
 
     backend_type backend() final { return m_backend; }
@@ -113,7 +116,7 @@ private:
     std::chrono::milliseconds m_interval;
     iqueue_impl_ptr m_queue;
     operation_ptr m_handler;
-    bool m_running;
+    int m_running;
 };
 
 itimer_impl_ptr

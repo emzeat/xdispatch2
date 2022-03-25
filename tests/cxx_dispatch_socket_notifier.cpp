@@ -46,9 +46,9 @@ cxx_dispatch_notifier_read(void* data)
     notifier.handler([](xdispatch::socket_t, xdispatch::notifier_type) {
         MU_FAIL("Should not be ready yet");
     });
-    notifier.start();
+    notifier.resume();
     MU_SLEEP(2);
-    notifier.stop();
+    notifier.suspend();
 
     // use a new notifier to handle data actually posted to the socket
     notifier = cxx_create_notifier(fds[1], xdispatch::notifier_type::READ);
@@ -64,7 +64,7 @@ cxx_dispatch_notifier_read(void* data)
 
           MU_PASS("Seems to work");
       });
-    notifier.start();
+    notifier.resume();
 
     std::vector<char> buffer(kPacket);
     MU_ASSERT_EQUAL(kPacket, write(fds[0], &buffer[0], buffer.size()));
@@ -103,9 +103,9 @@ cxx_dispatch_notifier_write(void* data)
     notifier.handler([](xdispatch::socket_t, xdispatch::notifier_type) {
         MU_FAIL("Should not be able to write yet");
     });
-    notifier.start();
+    notifier.resume();
     MU_SLEEP(2);
-    notifier.stop();
+    notifier.suspend();
 
     // change the handler and read some to unblock
     notifier = cxx_create_notifier(fds[1], xdispatch::notifier_type::WRITE);
@@ -120,10 +120,9 @@ cxx_dispatch_notifier_write(void* data)
           MU_ASSERT_EQUAL(actual, kPacket);
           MU_PASS("Seems to work");
       });
-    notifier.start();
+    notifier.resume();
 
-    while( kPacket == read(fds[0], &buffer[0], buffer.size()) )
-    {
+    while (kPacket == read(fds[0], &buffer[0], buffer.size())) {
     }
     cxx_exec();
 

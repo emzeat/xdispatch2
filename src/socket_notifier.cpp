@@ -38,15 +38,15 @@ socket_notifier::socket_notifier(const isocket_notifier_impl_ptr& impl,
 }
 
 void
-socket_notifier::start()
+socket_notifier::resume()
 {
-    m_impl->start();
+    m_impl->resume();
 }
 
 void
-socket_notifier::stop()
+socket_notifier::suspend()
 {
-    m_impl->stop();
+    m_impl->suspend();
 }
 
 void

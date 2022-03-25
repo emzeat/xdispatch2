@@ -74,7 +74,7 @@ platform_test_timer(void*)
 
     xdispatch::timer t(std::chrono::seconds(1));
     t.handler([] { MU_PASS("Platform timer works"); });
-    t.start();
+    t.resume();
 
     xdispatch::exec();
     MU_END_TEST;

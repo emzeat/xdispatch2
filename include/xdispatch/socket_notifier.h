@@ -81,7 +81,7 @@ public:
         Constructs a new notifier powered by the same backend as the target
        queue
 
-        The notifier will be stopped, call start() to execute it
+        The notifier will be stopped, call resume() to execute it
 
         @param socket The socket to be monitored
         @param type The type of operation to monitor the socket for
@@ -121,16 +121,17 @@ public:
     /**
         Will start the notifier.
         @remarks A new created notifier will be stopped and needs to me started
-       first. Once started, ensure balanced calls between start() and stop().
+       first. Once started, ensure balanced calls between resume() and
+       suspend().
     */
-    void start();
+    void resume();
 
     /**
       Will stop the notifier.
       @remarks A new created notifier will be stopped and needs to me started
-      first. Once started, ensure balanced calls between start() and stop().
+      first. Once started, ensure balanced calls between resume() and suspend().
     */
-    void stop();
+    void suspend();
 
     /**
         @brief assignment operator
