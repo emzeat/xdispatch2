@@ -26,6 +26,7 @@
 #include "qt5_backend_internal.h"
 #include "qt5_threadpool.h"
 #include "../naive/naive_threadpool.h"
+#include "../trace_utils.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace qt5 {
@@ -100,8 +101,10 @@ backend::create_main_queue(const std::string& label)
 {
     auto* instance = QCoreApplication::instance();
     if (nullptr == instance) {
-        throw std::logic_error(
-          "Construct a QCoreApplication before using the main queue");
+        XDISPATCH_WARNING()
+          << "No QCoreApplication found, main_queue() will fall "
+             "back to native implementation";
+        return backend_base::create_main_queue(label);
     }
     return qt5::create_serial_queue(label, instance->thread()).implementation();
 }
@@ -111,8 +114,10 @@ backend::exec()
 {
     auto* instance = QCoreApplication::instance();
     if (nullptr == instance) {
-        throw std::logic_error(
-          "Construct a QCoreApplication before invoking exec()");
+        XDISPATCH_WARNING()
+          << "No QCoreApplication found, main_queue() will fall "
+             "back to native implementation";
+        return backend_base::exec();
     }
     instance->exec();
 }
