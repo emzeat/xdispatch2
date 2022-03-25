@@ -310,6 +310,39 @@ signal_test_single_updates(void*)
 }
 
 void
+signal_test_chaining(void*)
+{
+    MU_BEGIN_TEST(signal_test_single_updates);
+    int handler_calls = 0;
+
+    xdispatch::signal<void(void)> void_signal;
+    xdispatch::signal<void(void)> void_signal2;
+    xdispatch::queue test_queue("tests");
+
+    auto vs2 = void_signal.connect(void_signal2);
+    auto c = void_signal2.connect(
+      [&] {
+          MU_SLEEP(1);
+          ++handler_calls;
+      },
+      test_queue,
+      xdispatch::notification_mode::single_updates);
+
+    // emit three times, which should invoke the handler an equal number of
+    // times
+    void_signal();
+    void_signal();
+    void_signal();
+    MU_SLEEP(5);
+    MU_ASSERT_EQUAL(3, handler_calls);
+
+    MU_PASS("Chaining works");
+    void_signal.disconnect(vs2);
+    void_signal2.disconnect(c);
+    MU_END_TEST;
+}
+
+void
 register_signal_tests()
 {
     MU_REGISTER_TEST(signal_test_void_connection);
@@ -323,4 +356,5 @@ register_signal_tests()
     MU_REGISTER_TEST(signal_test_connection_manager);
     MU_REGISTER_TEST(signal_test_batch_updates);
     MU_REGISTER_TEST(signal_test_single_updates);
+    MU_REGISTER_TEST(signal_test_chaining);
 }

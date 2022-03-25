@@ -175,7 +175,10 @@ enum class notification_mode
     //!< Each emit of a signal will result in the handler to be invoked.
     //! Use this if indiviual signal values or each signal emit are important
     //! and must never be missed
-    single_updates
+    single_updates,
+    //!< Emit the signal synchronously.
+    //! Not recommended to use except for chaining between signals.
+    _synchronous_update
 };
 
 /**
@@ -298,7 +301,8 @@ template<typename... Args>
 class signal<void(Args...)> : public signal_p
 {
 public:
-    typedef std::function<void(Args...)> functor;
+    using functor = std::function<void(Args...)>;
+    using this_type = signal<void(Args...)>;
 
 private:
     class connection_handler_t : public connection_handler
@@ -332,6 +336,22 @@ public:
     signal()
       : signal_p()
     {}
+
+    /**
+        @brief Adds a new chained signal
+
+        Use this when multiple signal instances need to
+        be connected together, e.g. to carry data across an interface.
+
+        @param s The signal to be emitted synchronously
+     */
+    XDISPATCH_WARN_UNUSED_RETURN(connection)
+    connect(this_type& s)
+    {
+        return connect([&s](Args... args) { s(args...); },
+                       global_queue(),
+                       notification_mode::_synchronous_update);
+    }
 
     /**
         @brief Adds a new connection to the signal
@@ -382,8 +402,16 @@ public:
 
         for (const connection_handler_ptr& handler : m_handlers) {
             auto pending = handler->m_pending++;
-            if (notification_mode::single_updates == handler->m_mode ||
-                pending < 1) {
+            if (notification_mode::_synchronous_update == handler->m_mode) {
+                handler->enable();
+                if (handler->enter()) {
+                    handler->m_pending--;
+                    std::static_pointer_cast<connection_handler_t>(handler)
+                      ->m_func(argList...);
+                    handler->leave();
+                }
+            } else if (notification_mode::single_updates == handler->m_mode ||
+                       pending < 1) {
                 handler->enable();
                 auto invocation = [=] {
                     if (handler->enter()) {
