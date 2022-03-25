@@ -21,25 +21,24 @@
  */
 
 #include <xdispatch/dispatch.h>
+#include "xdispatch/config.h"
+
 #include <vector>
 #include <cstdlib>
 #include <cstdio>
 
-#include <fcntl.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-
 #include "cxx_tests.h"
+#include "platform_socketpair.h"
 
 void
 cxx_dispatch_notifier_read(void* data)
 {
     CXX_BEGIN_BACKEND_TEST(cxx_dispatch_notifier_read);
 
-    constexpr auto kPacket = 16;
+    static constexpr auto kPacket = 16;
 
-    int fds[2];
-    auto ret = socketpair(AF_LOCAL, SOCK_STREAM, 0, fds);
+    int fds[2] = { -1 };
+    auto ret = platform_socketpair(fds);
     MU_ASSERT_NOT_EQUAL(ret, -1);
 
     // first make sure that a new socket cannot be read
@@ -80,19 +79,11 @@ cxx_dispatch_notifier_write(void* data)
 {
     CXX_BEGIN_BACKEND_TEST(cxx_dispatch_notifier_write);
 
-    constexpr auto kPacket = 2048;
+    static constexpr auto kPacket = 2048;
 
-    int fds[2];
-    auto ret = socketpair(AF_LOCAL, SOCK_STREAM, 0, fds);
+    int fds[2] = { -1 };
+    auto ret = platform_socketpair(fds);
     MU_ASSERT_NOT_EQUAL(ret, -1);
-
-#ifdef _WIN32
-    unsigned long param = 1;
-    ioctlsocket(sock, FIONBIO, &param);
-#else
-    const auto flags = fcntl(fds[1], F_GETFL, 0);
-    fcntl(fds[1], F_SETFL, flags | O_NONBLOCK);
-#endif
 
     // write until the socket is saturated
     std::vector<char> buffer(kPacket);
@@ -131,8 +122,9 @@ cxx_dispatch_notifier_write(void* data)
       });
     notifier.start();
 
-    MU_ASSERT_EQUAL(kPacket, read(fds[0], &buffer[0], buffer.size()));
-    MU_ASSERT_EQUAL(kPacket, read(fds[0], &buffer[0], buffer.size()));
+    for (int i = 0; i < 3; ++i) {
+        MU_ASSERT_EQUAL(kPacket, read(fds[0], &buffer[0], buffer.size()));
+    }
     cxx_exec();
 
     MU_END_TEST;

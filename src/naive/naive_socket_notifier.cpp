@@ -19,19 +19,21 @@
  * limitations under the License.
  */
 
-#ifdef _WIN32
-    #include <winsock2.h>
-#else
-    #include <sys/select.h>
-    #include <cerrno>
-#endif
-
 #include "xdispatch/isocket_notifier_impl.h"
 #include "xdispatch/iqueue_impl.h"
 
 #include "naive_threadpool.h"
 #include "naive_inverse_lockguard.h"
 #include "../trace_utils.h"
+
+#if (defined XDISPATCH2_HAVE_WINSOCK2)
+    #include <winsock2.h>
+#elif (defined XDISPATCH2_HAVE_SOCKETPAIR)
+    #include <sys/select.h>
+#else
+    #error "naive_socket_notifier is not supported on this platform"
+#endif
+#include <cerrno>
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive {
@@ -112,14 +114,14 @@ public:
                     break;
                 }
 
-#ifdef _WIN32
+#if (defined XDISPATCH2_HAVE_WINSOCK2)
                 if (SOCKET_ERROR == res && WSAENOTSOCK == WSAGetLastError()) {
                     // not a socket anymore
                     XDISPATCH_WARNING() << "socket_notifier: Socket " << socket
                                         << " is not a socket";
                     break;
                 }
-#else
+#elif (defined XDISPATCH2_HAVE_SOCKETPAIR)
                 if (EBADF == res) {
                     // socket was closed somewhere else
                     XDISPATCH_WARNING()

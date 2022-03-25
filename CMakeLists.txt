@@ -47,6 +47,8 @@ check_symbol_exists( _SC_NPROCESSORS_ONLN "unistd.h" XDISPATCH2_HAVE_SYSCONF_SC_
 check_symbol_exists( sysctl "sys/sysctl.h" XDISPATCH2_HAVE_SYSCTL )
 check_symbol_exists( HW_NCPU "sys/sysctl.h" XDISPATCH2_HAVE_SYSCTL_HW_NCPU )
 check_symbol_exists( GetSystemInfo "windows.h" XDISPATCH2_HAVE_GET_SYSTEM_INFO )
+check_symbol_exists( socketpair "sys/socket.h" XDISPATCH2_HAVE_SOCKETPAIR )
+check_symbol_exists( WSASocket "winsock2.h" XDISPATCH2_HAVE_WINSOCK2 )
 
 # build options
 set(BUILD_XDISPATCH2_BACKEND_NAIVE ON)
@@ -117,6 +119,11 @@ if( BUILD_XDISPATCH2_BACKEND_NAIVE )
         src/naive/*.cpp
         src/naive/*.h
     )
+    if( XDISPATCH2_HAVE_WINSOCK2 )
+        set(LIBS ${LIBS}
+            Ws2_32
+        )
+    endif()
 endif()
 
 # libdispatch backend

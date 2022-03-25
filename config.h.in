@@ -51,6 +51,10 @@
 
 #cmakedefine XDISPATCH2_HAVE_GET_SYSTEM_INFO
 
+#cmakedefine XDISPATCH2_HAVE_SOCKETPAIR
+
+#cmakedefine XDISPATCH2_HAVE_WINSOCK2
+
 /** @} */
 
 #endif /* XDISPATCH_CONFIG_H_ */

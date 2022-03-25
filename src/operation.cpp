@@ -57,7 +57,7 @@ execute_operation_on_this_thread(operation& op)
 }
 
 template<typename... Params>
-void
+XDISPATCH_EXPORT void
 execute_operation_on_this_thread(parameterized_operation<Params...>& op,
                                  Params... params)
 {
@@ -69,10 +69,10 @@ execute_operation_on_this_thread(parameterized_operation<Params...>& op,
     current_d = previous;
 }
 
-template void
+template XDISPATCH_EXPORT void
 execute_operation_on_this_thread<size_t>(iteration_operation&, size_t);
 
-template void
+template XDISPATCH_EXPORT void
 execute_operation_on_this_thread<socket_t, notifier_type>(
   socket_notifier_operation&,
   socket_t,
