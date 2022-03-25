@@ -34,6 +34,7 @@
     #error "naive_socket_notifier is not supported on this platform"
 #endif
 #include <cerrno>
+#include <cstring>
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive {

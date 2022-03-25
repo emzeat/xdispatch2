@@ -122,8 +122,8 @@ cxx_dispatch_notifier_write(void* data)
       });
     notifier.start();
 
-    for (int i = 0; i < 3; ++i) {
-        MU_ASSERT_EQUAL(kPacket, read(fds[0], &buffer[0], buffer.size()));
+    while( kPacket == read(fds[0], &buffer[0], buffer.size()) )
+    {
     }
     cxx_exec();
 
