@@ -53,8 +53,8 @@ public:
     {
         if (m_native) {
             dispatch_resume(m_native);
-            dispatch_release(m_native);
             dispatch_source_cancel(m_native);
+            dispatch_release(m_native);
             m_native = nullptr;
         }
     }
