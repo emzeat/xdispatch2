@@ -11,6 +11,8 @@
     "^\\.[^/]+",
     "/\\.[^/]+",
     "xdispatch2.sublime-project",
+    "README.md",
+    "LICENSE",
     ".*\\.rc"
   ]
 }

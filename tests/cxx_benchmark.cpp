@@ -27,7 +27,7 @@
 #include "cxx_tests.h"
 #include "stopwatch.h"
 
-constexpr int kCOUNT = 10000;
+constexpr int kCOUNT = 100000;
 
 template<class receiver>
 void
@@ -95,11 +95,13 @@ cxx_benchmark_group(void* data)
     auto group = cxx_create_group();
     auto queue = cxx_global_queue();
 
-    Stopwatch watch;
+    Stopwatch watch_execution;
+    Stopwatch watch_dispatch;
     std::atomic<int> passes(0);
 
     // begin measurement
-    watch.start();
+    watch_execution.start();
+    watch_dispatch.start();
 
     // schedule kCOUNT empty lambda blocks to measure the overhead
     // spent on scheduling the given queue
@@ -107,15 +109,19 @@ cxx_benchmark_group(void* data)
     for (int i = 0; i < kCOUNT; ++i) {
         group.async(work, queue);
     }
+    watch_dispatch.stop();
+    MU_MESSAGE("Dispatched %i operations, %i nsec per operation",
+            kCOUNT,
+            watch_dispatch.elapsed() * 1000 / kCOUNT);
 
     // notify on completion
     group.notify(
-      [&watch, &passes] {
-          watch.stop();
+      [&watch_execution, &passes] {
+          watch_execution.stop();
           const int actual = passes;
-          MU_MESSAGE("Dispatch %i operations, %i nsec per operation",
+          MU_MESSAGE("Executed %i operations, %i nsec per operation",
                      actual,
-                     watch.elapsed() * 1000 / actual);
+                     watch_execution.elapsed() * 1000 / actual);
           MU_PASS("Test completed");
       },
       queue);
