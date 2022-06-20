@@ -145,25 +145,30 @@ signal_test_barrier(void*)
 }
 
 void
-signal_test_barrier_value(void*)
+signal_test_barrier_pod_value(void*)
 {
-    MU_BEGIN_TEST(signal_test_barrier_value);
+    MU_BEGIN_TEST(signal_test_barrier_pod_value);
 
     xdispatch::signal<void(int)> int_signal;
     xdispatch::signal_barrier<void(int)> barrier(int_signal);
 
     MU_ASSERT_NOT_TRUE(barrier.wait(std::chrono::milliseconds(0)));
     try {
-        MU_ASSERT_EQUAL(0, barrier.value());
+        const auto unused = barrier.value();
         MU_FAIL("Should raise std::runtime_error");
+        static_cast<void>(unused);
     } catch (std::runtime_error& e) {
     }
     try {
-        MU_ASSERT_EQUAL(0, barrier.value<0>());
+        const auto unused = barrier.value<0>();
+        MU_FAIL("Should raise std::runtime_error");
+        static_cast<void>(unused);
     } catch (std::runtime_error& e) {
     }
     try {
-        MU_ASSERT_EQUAL(0, std::get<0>(barrier.values()));
+        const auto unused = std::get<0>(barrier.values());
+        MU_FAIL("Should raise std::runtime_error");
+        static_cast<void>(unused);
     } catch (std::runtime_error& e) {
     }
 
@@ -178,6 +183,70 @@ signal_test_barrier_value(void*)
     MU_ASSERT_EQUAL(24, barrier.value());
     MU_ASSERT_EQUAL(24, barrier.value<0>());
     MU_ASSERT_EQUAL(24, std::get<0>(barrier.values()));
+
+    MU_PASS("Signal raised");
+    MU_END_TEST;
+}
+
+void
+signal_test_barrier_complex_value(void*)
+{
+    MU_BEGIN_TEST(signal_test_barrier_complex_value);
+
+    struct NonDefaultConstructible
+    {
+        NonDefaultConstructible(int count)
+          : m_count(count)
+        {}
+
+        inline int count() const { return m_count; }
+
+        inline bool operator==(const NonDefaultConstructible& other) const
+        {
+            return other.m_count == m_count;
+        }
+
+    private:
+        int m_count;
+    };
+
+    xdispatch::signal<void(NonDefaultConstructible)> class_signal;
+    xdispatch::signal_barrier<void(NonDefaultConstructible)> barrier(
+      class_signal);
+
+    MU_ASSERT_NOT_TRUE(barrier.wait(std::chrono::milliseconds(0)));
+    try {
+        const auto unused = barrier.value();
+        MU_FAIL("Should raise std::runtime_error");
+        static_cast<void>(unused);
+    } catch (std::runtime_error& e) {
+    }
+    try {
+        const auto unused = barrier.value<0>();
+        MU_FAIL("Should raise std::runtime_error");
+        static_cast<void>(unused);
+    } catch (std::runtime_error& e) {
+    }
+    try {
+        const auto unused = std::get<0>(barrier.values());
+        MU_FAIL("Should raise std::runtime_error");
+        static_cast<void>(unused);
+    } catch (std::runtime_error& e) {
+    }
+
+    const NonDefaultConstructible obj1(123);
+    xdispatch::global_queue().async([&] { class_signal(obj1); });
+    MU_ASSERT_TRUE(barrier.wait());
+    MU_ASSERT_TRUE(barrier.wait(std::chrono::milliseconds(0)));
+    MU_ASSERT_TRUE(obj1 == barrier.value());
+    MU_ASSERT_TRUE(obj1 == barrier.value<0>());
+    MU_ASSERT_TRUE(obj1 == std::get<0>(barrier.values()));
+
+    const NonDefaultConstructible obj2(99);
+    class_signal(obj2);
+    MU_ASSERT_TRUE(obj1 == barrier.value());
+    MU_ASSERT_TRUE(obj1 == barrier.value<0>());
+    MU_ASSERT_TRUE(obj1 == std::get<0>(barrier.values()));
 
     MU_PASS("Signal raised");
     MU_END_TEST;
@@ -351,7 +420,8 @@ register_signal_tests()
     MU_REGISTER_TEST(signal_test_disconnect_dangling);
     MU_REGISTER_TEST(signal_test_recursive_disconnect);
     MU_REGISTER_TEST(signal_test_barrier);
-    MU_REGISTER_TEST(signal_test_barrier_value);
+    MU_REGISTER_TEST(signal_test_barrier_pod_value);
+    MU_REGISTER_TEST(signal_test_barrier_complex_value);
     MU_REGISTER_TEST(signal_test_scoped_connection);
     MU_REGISTER_TEST(signal_test_connection_manager);
     MU_REGISTER_TEST(signal_test_batch_updates);
