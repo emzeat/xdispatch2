@@ -33,6 +33,7 @@
 #include <functional>
 
 #include "xdispatch/dispatch"
+#include "xdispatch/cancelable.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 
@@ -201,9 +202,18 @@ public:
     ~signal_p();
 
     /**
-        @brief Desctroys the givne connection
+        @brief Destroys the given connection
 
         @param c The connection to destroy, i.e. disconncet
+        @param h An optional disconnection handler
+
+        When the call has returned no further signal calls for
+        the connection handler will be made and also not be actively
+        executing on the queue.
+
+        This is safe to be invoked recursively, i.e. from within
+        an active signal call in which case the current call will
+        complete but no further calls be made.
 
         @return true if the connection was valid and there was something to
        disconnect
@@ -230,16 +240,6 @@ protected:
     class XDISPATCH_EXPORT connection_handler
     {
     public:
-        enum active_state
-        {
-            /// Handler is not in a queue right now
-            active_disabled = 0,
-            /// Handler has been queued but not executed yet
-            active_enabled,
-            /// Handler is actively being executed
-            active_running
-        };
-
         /// Creates a handler for the given queue and notification mode
         connection_handler(const queue& q, notification_mode m);
 
@@ -251,20 +251,10 @@ protected:
         /// i.e. sets it to active_enabled
         void enable();
 
-        /// Notifies the handler that it is about to be called,
-        /// i.e. sets it to active_running if the handler had been enabled
-        /// @returns true if the handler had been active_enabled
-        bool enter();
-
-        /// Notifies the handler that the call is done,
-        /// i.e. sets it to active_enabled again if it had
-        /// been in the active_running state before
-        void leave();
-
         // the queue to execute the handler on
         const queue m_queue;
         // the current state of the handler
-        std::atomic<active_state> m_active;
+        cancelable m_active;
         // the number of items that have been queued
         std::atomic<int> m_pending;
         // the mode in which the handler will be called
@@ -398,27 +388,28 @@ public:
     void operator()(Args... argList)
     {
         // FIXME(zwicker): Can this be pulled into the signal_p?
+        // FIXME(zwicker): Would this allow us to make cancelable private?
         std::lock_guard<std::mutex> lock(m_CS);
 
         for (const connection_handler_ptr& handler : m_handlers) {
             auto pending = handler->m_pending++;
             if (notification_mode::_synchronous_update == handler->m_mode) {
                 handler->enable();
-                if (handler->enter()) {
+                cancelable_scope cancel_scope(handler->m_active);
+                if (cancel_scope) {
                     handler->m_pending--;
                     std::static_pointer_cast<connection_handler_t>(handler)
                       ->m_func(argList...);
-                    handler->leave();
                 }
             } else if (notification_mode::single_updates == handler->m_mode ||
                        pending < 1) {
                 handler->enable();
                 auto invocation = [=] {
-                    if (handler->enter()) {
+                    cancelable_scope cancel_scope(handler->m_active);
+                    if (cancel_scope) {
                         handler->m_pending--;
                         std::static_pointer_cast<connection_handler_t>(handler)
                           ->m_func(argList...);
-                        handler->leave();
                     }
                 };
                 if (m_group) {

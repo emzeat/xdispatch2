@@ -163,7 +163,7 @@ connection::operator!=(const connection& other) const
 signal_p::connection_handler::connection_handler(const queue& q,
                                                  notification_mode m)
   : m_queue(q)
-  , m_active(active_enabled)
+  , m_active()
   , m_pending(0)
   , m_mode(m)
 {}
@@ -171,36 +171,13 @@ signal_p::connection_handler::connection_handler(const queue& q,
 void
 signal_p::connection_handler::disable()
 {
-    if (m_queue.is_current_queue()) {
-        // recursion
-        m_active.store(active_disabled);
-    } else {
-        auto expected = active_enabled;
-        do {
-            expected = active_enabled;
-            m_active.compare_exchange_strong(expected, active_disabled);
-        } while (active_running == expected);
-    }
+    m_active.disable(m_queue);
 }
 
 void
 signal_p::connection_handler::enable()
 {
-    m_active.store(active_enabled);
-}
-
-bool
-signal_p::connection_handler::enter()
-{
-    auto expected = active_enabled;
-    return m_active.compare_exchange_strong(expected, active_running);
-}
-
-void
-signal_p::connection_handler::leave()
-{
-    auto expected = active_running;
-    m_active.compare_exchange_strong(expected, active_enabled);
+    m_active.enable();
 }
 
 signal_p::signal_p(const group& g)
