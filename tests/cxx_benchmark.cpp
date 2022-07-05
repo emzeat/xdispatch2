@@ -111,8 +111,8 @@ cxx_benchmark_group(void* data)
     }
     watch_dispatch.stop();
     MU_MESSAGE("Dispatched %i operations, %i nsec per operation",
-            kCOUNT,
-            watch_dispatch.elapsed() * 1000 / kCOUNT);
+               kCOUNT,
+               watch_dispatch.elapsed() * 1000 / kCOUNT);
 
     // notify on completion
     group.notify(

@@ -21,6 +21,7 @@
 
 #include "xdispatch/isocket_notifier_impl.h"
 #include "xdispatch/iqueue_impl.h"
+#include "xdispatch/cancelable.h"
 
 #include "naive_threadpool.h"
 #include "naive_inverse_lockguard.h"
@@ -74,10 +75,18 @@ public:
     void resume() final
     {
         std::lock_guard<std::mutex> lock(m_CS);
+        if (m_running < 0) {
+            // cancelled so do not proceed
+            return;
+        }
         if (1 != ++m_running) {
             // only proceed when we become runnable
             return;
         }
+
+        // FIXME(zwicker): This needs to check if the previous
+        //                 suspend has actually been processed or elsewise
+        //                 we might end up with two handlers running
 
         const auto this_ptr = shared_from_this();
 
@@ -141,12 +150,16 @@ public:
 
                     const auto handler = this_ptr->m_handler;
                     const auto queue = this_ptr->m_queue;
+                    auto& handler_cancelable = this_ptr->m_handler_cancelable;
 
                     barrier_operation barrier;
-                    queue->async(
-                      make_operation([handler, socket, type, &barrier] {
-                          execute_operation_on_this_thread(
-                            *handler, socket, type);
+                    queue->async(make_operation(
+                      [handler, socket, type, &barrier, &handler_cancelable] {
+                          cancelable_scope scope(handler_cancelable);
+                          if (scope) {
+                              execute_operation_on_this_thread(
+                                *handler, socket, type);
+                          }
                           barrier();
                       }));
                     barrier.wait();
@@ -163,10 +176,21 @@ public:
                                         queue_priority::DEFAULT);
     }
 
-    void suspend() override
+    void suspend() final
     {
         std::lock_guard<std::mutex> lock(m_CS);
-        --m_running;
+        if (m_running > 0) {
+            --m_running;
+        };
+    }
+
+    void cancel() final
+    {
+        {
+            std::lock_guard<std::mutex> lock(m_CS);
+            m_running = -1;
+        }
+        m_handler_cancelable.disable(m_queue);
     }
 
     socket_t socket() const final { return m_socket; }
@@ -183,6 +207,8 @@ private:
     iqueue_impl_ptr m_queue;
     socket_notifier_operation_ptr m_handler;
     int m_running;
+    cancelable m_active;
+    cancelable m_handler_cancelable;
 };
 
 isocket_notifier_impl_ptr

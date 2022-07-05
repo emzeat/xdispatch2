@@ -50,6 +50,12 @@ socket_notifier::suspend()
 }
 
 void
+socket_notifier::cancel()
+{
+    m_impl->cancel();
+}
+
+void
 socket_notifier::handler(const socket_notifier_operation_ptr& op)
 {
     queue_operation_with_d(*op, m_target_queue.implementation().get());

@@ -54,14 +54,19 @@ public:
     virtual void target_queue(const iqueue_impl_ptr&) = 0;
 
     /**
-        Start the notifier
+        Resume the notifier
       */
     virtual void resume() = 0;
 
     /**
-        Will stop the timer.
+        Suspend the notifier
     */
     virtual void suspend() = 0;
+
+    /**
+        Cancel the notifier
+     */
+    virtual void cancel() = 0;
 
     /**
         @returns the socket monitored by the notifier

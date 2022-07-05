@@ -20,6 +20,7 @@
  */
 
 #include "xdispatch/cancelable.h"
+#include "xdispatch_internal.h"
 
 #include <cstdlib>
 
@@ -32,7 +33,13 @@ cancelable::cancelable()
 void
 cancelable::disable(const queue& executor_queue)
 {
-    if (executor_queue.is_current_queue()) {
+    disable(executor_queue.implementation());
+}
+
+void
+cancelable::disable(const iqueue_impl_ptr& executor_queue)
+{
+    if (operation_is_run_with_d(executor_queue.get())) {
         // recursion
         m_active.store(active_disabled);
     } else {

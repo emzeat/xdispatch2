@@ -22,6 +22,8 @@
 #include <thread>
 
 #include "xdispatch/isocket_notifier_impl.h"
+#include "xdispatch/iqueue_impl.h"
+#include "xdispatch/cancelable.h"
 #include "../trace_utils.h"
 
 #include "libdispatch_backend_internal.h"
@@ -77,7 +79,10 @@ public:
                   return;
               }
           }
-          execute_operation_on_this_thread(*op_strong_ref, socket, type);
+          cancelable_scope scope(m_active);
+          if (scope) {
+              execute_operation_on_this_thread(*op_strong_ref, socket, type);
+          }
         });
     }
 
@@ -89,7 +94,13 @@ public:
 
     void resume() final { dispatch_resume(m_native); }
 
-    void suspend() override { dispatch_suspend(m_native); }
+    void suspend() final { dispatch_suspend(m_native); }
+
+    void cancel() final
+    {
+        dispatch_source_cancel(m_native);
+        m_active.disable(m_queue);
+    }
 
     socket_t socket() const final { return m_socket; }
 
@@ -102,6 +113,7 @@ private:
     const socket_t m_socket;
     const notifier_type m_type;
     dispatch_source_t m_native;
+    cancelable m_active;
 };
 
 isocket_notifier_impl_ptr

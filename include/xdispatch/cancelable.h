@@ -69,6 +69,13 @@ public:
     void disable(const queue& executor_queue);
 
     /**
+       Marks the entity as not to be queued anywhere,
+       i.e. sets it to active_disabled
+       @param executor_queue The queue on which the entity would be executed
+    */
+    void disable(const iqueue_impl_ptr& executor_queue);
+
+    /**
         Marks the entity as having been queued,
         i.e. sets it to active_enabled
     */
