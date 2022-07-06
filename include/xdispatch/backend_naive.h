@@ -28,7 +28,6 @@
  */
 
 #include "xdispatch/dispatch.h"
-#include "xdispatch/backend_naive_ithread.h"
 #include "xdispatch/backend_naive_ithreadpool.h"
 #if (!BUILD_XDISPATCH2_BACKEND_NAIVE)
     #error "The naive backend is not available on this platform"
@@ -48,7 +47,7 @@ namespace naive {
     */
 XDISPATCH_EXPORT queue
 create_serial_queue(const std::string& label,
-                    const ithread_ptr& thread,
+                    const ithreadpool_ptr& thread,
                     queue_priority priority = queue_priority::DEFAULT);
 
 /**

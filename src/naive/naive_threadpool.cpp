@@ -124,6 +124,8 @@ public:
                 // priority Note: there has to be such operation as we acquired
                 // the semaphore above
                 //       so if popping fails spontaneously we are good to repeat
+                // FIXME(zwicker): This is unfair; if enough high prio ops get
+                //                 queued we will never drain the lower prio ops
                 for (label = 0; !m_data->m_cancelled; ++label) {
                     if (bucket_count == label) {
                         label = 0;

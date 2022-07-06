@@ -106,7 +106,7 @@ create_serial_queue(const std::string& label,
 
 queue
 create_serial_queue(const std::string& label,
-                    const ithread_ptr& thread,
+                    const ithreadpool_ptr& thread,
                     backend_type backend);
 
 queue
