@@ -55,7 +55,8 @@ public:
       , m_type(type)
       , m_queue(queue)
       , m_handler()
-      , m_running(0)
+      , m_resume_counter(0)
+      , m_worker_cookie(0)
     {}
 
     ~socket_notifier_impl() override { socket_notifier_impl::suspend(); }
@@ -75,11 +76,11 @@ public:
     void resume() final
     {
         std::lock_guard<std::mutex> lock(m_CS);
-        if (m_running < 0) {
+        if (m_resume_counter < 0) {
             // cancelled so do not proceed
             return;
         }
-        if (1 != ++m_running) {
+        if (1 != ++m_resume_counter) {
             // only proceed when we become runnable
             return;
         }
@@ -89,16 +90,17 @@ public:
         //                 we might end up with two handlers running
 
         const auto this_ptr = shared_from_this();
+        const auto cookie = m_worker_cookie;
 
         // the notifier will execute via a helper borrowed from the
         // global default threadpool. It is ensured that enough
         // threads are available for the pool even though the
         // notifier is blocking while it is active
-        auto socket_notifier_op = make_operation([this_ptr] {
+        auto socket_notifier_op = make_operation([this_ptr, cookie] {
             threadpool::instance()->notify_thread_blocked();
 
             std::unique_lock<std::mutex> lock(this_ptr->m_CS);
-            while (this_ptr->m_running > 0) {
+            while (cookie == this_ptr->m_worker_cookie) {
                 const auto socket = this_ptr->m_socket;
                 const auto type = this_ptr->m_type;
 
@@ -123,7 +125,8 @@ public:
                     }
                 }
 
-                if (this_ptr->m_running <= 0) {
+                if (cookie != this_ptr->m_worker_cookie) {
+                    // bail out if we were woken as a result of suspending
                     break;
                 }
 
@@ -179,8 +182,14 @@ public:
     void suspend() final
     {
         std::lock_guard<std::mutex> lock(m_CS);
-        if (m_running > 0) {
-            --m_running;
+        if (m_resume_counter > 0) {
+            --m_resume_counter;
+            // when we have just suspended increment the cookie
+            // so any workers kicked off with the previous cookie
+            // know they should end.
+            if (0 == m_resume_counter) {
+                ++m_worker_cookie;
+            }
         };
     }
 
@@ -188,7 +197,8 @@ public:
     {
         {
             std::lock_guard<std::mutex> lock(m_CS);
-            m_running = -1;
+            m_resume_counter = -1;
+            ++m_worker_cookie;
         }
         m_handler_cancelable.disable(m_queue);
     }
@@ -206,8 +216,8 @@ private:
     const notifier_type m_type;
     iqueue_impl_ptr m_queue;
     socket_notifier_operation_ptr m_handler;
-    int m_running;
-    cancelable m_active;
+    int m_resume_counter;
+    int m_worker_cookie;
     cancelable m_handler_cancelable;
 };
 
