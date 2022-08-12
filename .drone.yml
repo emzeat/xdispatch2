@@ -15,6 +15,12 @@ kind: pipeline
 type: docker
 name: ubuntu-1804-clang
 
+workspace:
+  path: /drone/src
+environment:
+  CONAN_CPU_COUNT: 12
+  CONAN_USER_HOME: /drone/src
+
 steps:
 - name: submodules
   image: alpine/git
@@ -29,6 +35,11 @@ steps:
     - bash ./generator.sh mode=release compiler=clang generator=ninja location=inside -DBUILD_XDISPATCH2_TESTS=ON
     - cd clang-ninja-release
     - ninja -j 12
+
+- name: package
+  image: ${MZ_DOCKER_REGISTRY}/builder-1804-clang:latest
+  commands:
+    - ./conan_package_test.sh
 
 - name: test
   image: ${MZ_DOCKER_REGISTRY}/builder-1804-clang:latest
@@ -61,6 +72,10 @@ steps:
     - bash ./generator.sh mode=release compiler=clang generator=ninja location=inside -DBUILD_XDISPATCH2_TESTS=ON
     - cd clang-ninja-release
     - ninja -j 12
+
+- name: package
+  commands:
+    - ./conan_package_test.sh
 
 - name: test
   environment:

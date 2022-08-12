@@ -56,6 +56,9 @@ if( XDISPATCH2_HAVE_LIBDISPATCH_NATIVE )
 else()
     option(BUILD_XDISPATCH2_BACKEND_LIBDISPATCH "Build the libdispatch backend" OFF)
 endif()
+if( MZ_MACOS )
+    option(BUILD_XDISPATCH2_AS_FRAMEWORK "Build xdispatch2 as framework" ON)
+endif()
 
 
 # configuration and version information
@@ -168,7 +171,7 @@ if(MZ_IOS)
                 DESTINATION include
                 PATTERN "*.git" EXCLUDE)
 
-elseif(MZ_MACOS)
+elseif(MZ_MACOS AND BUILD_XDISPATCH2_AS_FRAMEWORK)
     set_target_properties( xdispatch PROPERTIES
         FRAMEWORK TRUE
         MACOSX_FRAMEWORK_IDENTIFIER "de.emzeat.xdispatch"
