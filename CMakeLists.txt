@@ -59,27 +59,9 @@ endif()
 
 
 # configuration and version information
-find_package(Git)
-if(GIT_FOUND)
-    # we use a short hash
-    execute_process(
-        COMMAND ${GIT_EXECUTABLE} log --pretty=format:%h -n 1
-        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-        OUTPUT_VARIABLE XDISPATCH_WC_REVISION
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    execute_process(
-        COMMAND ${GIT_EXECUTABLE} describe --tags
-        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-        OUTPUT_VARIABLE XDISPATCH_WC_TAG
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    if(NOT XDISPATCHAM_WC_TAG)
-        set(XDISPATCH_WC_TAG "alpha-${XDISPATCH_WC_REVISION}")
-    endif()
-endif()
-set( XDISPATCH_WC_TAG "2.${XDISPATCH_WC_TAG}" )
-mz_message( "xdispatch version ${XDISPATCH_WC_TAG}" )
+include(build/semver.cmake)
+mz_determine_sem_ver(XDISPATCH2)
+mz_message("xdispatch version ${XDISPATCH2_VERSION}")
 
 
 # dependencies
@@ -167,8 +149,8 @@ message("-- linking xdispatch with: ${LIBS}")
 target_link_libraries( xdispatch ${LIBS})
 
 set_target_properties( xdispatch PROPERTIES
-    VERSION ${XDISPATCH_WC_TAG}
-    SOVERSION ${XDISPATCH_WC_TAG}
+    VERSION ${XDISPATCH2_VERSION}
+    SOVERSION ${XDISPATCH2_VERSION}
     INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include;${CMAKE_CURRENT_BINARY_DIR}/include"
 )
 
@@ -190,7 +172,7 @@ elseif(MZ_MACOS)
     set_target_properties( xdispatch PROPERTIES
         FRAMEWORK TRUE
         MACOSX_FRAMEWORK_IDENTIFIER "de.mlba-team.xdispatch"
-        MACOSX_FRAMEWORK_BUNDLE_VERSION "${XDISPATCH_WC_TAG}"
+        MACOSX_FRAMEWORK_BUNDLE_VERSION "${XDISPATCH2_VERSION}"
         PUBLIC_HEADER "${CXX_INCL}"
     )
 
