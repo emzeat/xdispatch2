@@ -89,8 +89,8 @@ target_link_libraries( xdispatch2_tests
 )
 if( BUILD_XDISPATCH2_BACKEND_QT5 )
     target_link_libraries( xdispatch2_tests
-        qt5-gui
-        qt5-widgets
+        Qt5::Gui
+        Qt5::Widgets
     )
 endif()
 mz_target_props( xdispatch2_tests )

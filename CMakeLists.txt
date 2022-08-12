@@ -27,14 +27,11 @@ project(xdispatch2)
 if(NOT HAS_MZ_GLOBAL)
     include(build/global.cmake)
     include(build/macros.cmake)
-    include(build/3rdparty.cmake)
+    include(build/conan.cmake)
 endif()
 
 # enable linting
-if(NOT COMMAND mz_auto_format)
-    mz_add_library(clang-tools-extra 3rdparty/clang-tools-extra)
-    include(build/linting.cmake)
-endif()
+include(build/linting.cmake)
 
 # check for platform features
 check_symbol_exists( dispatch_queue_create "dispatch/dispatch.h" XDISPATCH2_HAVE_LIBDISPATCH_NATIVE )
@@ -86,8 +83,8 @@ mz_message( "xdispatch version ${XDISPATCH_WC_TAG}" )
 
 
 # dependencies
-if( BUILD_XDISPATCH2_BACKEND_QT5 AND NOT TARGET qt5-core )
-    mz_add_library(qt5 3rdparty/qt5)
+if( BUILD_XDISPATCH2_BACKEND_QT5 )
+    include(build/qt5.cmake)
 endif()
 
 # we hide all unneeded symbols
@@ -143,7 +140,7 @@ if( BUILD_XDISPATCH2_BACKEND_QT5 )
     mz_qt_auto_moc(MOC_QT5 ${CXX_QT5})
     list(APPEND CXX_QT5 ${MOC_QT5})
     set(LIBS ${LIBS}
-        qt5-core
+        Qt5::Core
     )
 endif()
 

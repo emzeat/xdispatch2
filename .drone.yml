@@ -13,7 +13,7 @@ steps:
 ---
 kind: pipeline
 type: docker
-name: ubuntu-1604-clang
+name: ubuntu-1804-clang
 
 steps:
 - name: submodules
@@ -23,7 +23,7 @@ steps:
     - git submodule update --init --recursive
 
 - name: build
-  image: ${MZ_DOCKER_REGISTRY}/builder-1604-cache:latest
+  image: ${MZ_DOCKER_REGISTRY}/builder-1804-clang:latest
   commands:
     - cd build
     - bash ./generator.sh mode=release compiler=clang generator=ninja location=inside -DBUILD_XDISPATCH2_TESTS=ON
@@ -31,7 +31,7 @@ steps:
     - ninja -j 12
 
 - name: test
-  image: ${MZ_DOCKER_REGISTRY}/builder-1604-cache:latest
+  image: ${MZ_DOCKER_REGISTRY}/builder-1804-clang:latest
   environment:
     USER: test_runner
     # XDISPATCH2_TRACE: 1
@@ -116,7 +116,7 @@ steps:
 - name: build
   commands:
     - cd build
-    - .\generator.bat release ninja_64 inside '"-DBUILD_XDISPATCH2_TESTS=ON"'
+    - .\generator.bat release ninja_64 inside -DBUILD_XDISPATCH2_TESTS=ON
     - cd win32-ninja_64-release
     - ninja
 
