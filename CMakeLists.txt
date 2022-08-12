@@ -110,6 +110,7 @@ endif()
 
 # libdispatch backend
 if( BUILD_XDISPATCH2_BACKEND_LIBDISPATCH )
+    mz_message("Building backend: libdispatch")
     file(GLOB CXX_LIBDISPATCH
         src/libdispatch/*.cpp
         src/libdispatch/*.h
@@ -118,6 +119,7 @@ endif()
 
 # qt backend
 if( BUILD_XDISPATCH2_BACKEND_QT5 )
+    mz_message("Building backend: qt5")
     file(GLOB CXX_QT5
         src/qt5/*.cpp
         src/qt5/*.h

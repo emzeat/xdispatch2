@@ -35,12 +35,12 @@ class XDispatch2Conan(ConanFile):
     options = {
         "build_tests": [True, False],
         "backend_qt5": [True, False],
-        "backend_libdispatch": [True, False],
+        "backend_libdispatch": ["None", True, False],
     }
     default_options = {
         "build_tests": False,
         "backend_qt5": True,
-        "backend_libdispatch": True,
+        "backend_libdispatch": "None",
     }
 
     def export_sources(self):
@@ -66,7 +66,8 @@ class XDispatch2Conan(ConanFile):
         cmake.definitions["CMAKE_MODULE_PATH"] = self.build_folder.replace("\\", "/")
         cmake.definitions["CONAN_EXPORTED"] = True
         cmake.definitions["BUILD_XDISPATCH2_BACKEND_QT5"] = self.options.backend_qt5
-        cmake.definitions["BUILD_XDISPATCH2_BACKEND_LIBDISPATCH"] = self.options.backend_libdispatch
+        if self.options.backend_libdispatch != "None":
+            cmake.definitions["BUILD_XDISPATCH2_BACKEND_LIBDISPATCH"] = self.options.backend_libdispatch
         cmake.definitions["BUILD_XDISPATCH2_TESTS"] = self.options.build_tests
         cmake.definitions["MZ_DO_AUTO_FORMAT"] = False
         cmake.definitions["MZ_DO_CPPLINT"] = False
