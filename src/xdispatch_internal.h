@@ -59,15 +59,15 @@
         }                                                                      \
     }
 
-constexpr const char k_label_main[] = "de.mlba-team.xdispatch2.main";
+constexpr const char k_label_main[] = "de.emzeat.xdispatch2.main";
 constexpr const char k_label_global_INTERACTIVE[] =
-  "de.mlba-team.xdispatch2.interactive";
+  "de.emzeat.xdispatch2.interactive";
 constexpr const char k_label_global_INITIATED[] =
-  "de.mlba-team.xdispatch2.initiated";
+  "de.emzeat.xdispatch2.initiated";
 constexpr const char k_label_global_UTILITY[] =
-  "de.mlba-team.xdispatch2.utility";
+  "de.emzeat.xdispatch2.utility";
 constexpr const char k_label_global_BACKGROUND[] =
-  "de.mlba-team.xdispatch2.background";
+  "de.emzeat.xdispatch2.background";
 
 #include "xdispatch/config.h"
 #include "../include/xdispatch/operation.h"

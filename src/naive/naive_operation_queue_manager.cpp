@@ -59,7 +59,7 @@ operation_queue_manager::instance()
 }
 
 operation_queue_manager::operation_queue_manager()
-  : m_thread("de.mlba-team.xdispatch2.op_q_manager", queue_priority::BACKGROUND)
+  : m_thread("de.emzeat.xdispatch2.op_q_manager", queue_priority::BACKGROUND)
 {}
 
 } // namespace naive

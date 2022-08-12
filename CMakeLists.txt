@@ -171,7 +171,7 @@ if(MZ_IOS)
 elseif(MZ_MACOS)
     set_target_properties( xdispatch PROPERTIES
         FRAMEWORK TRUE
-        MACOSX_FRAMEWORK_IDENTIFIER "de.mlba-team.xdispatch"
+        MACOSX_FRAMEWORK_IDENTIFIER "de.emzeat.xdispatch"
         MACOSX_FRAMEWORK_BUNDLE_VERSION "${XDISPATCH2_VERSION}"
         PUBLIC_HEADER "${CXX_INCL}"
     )
