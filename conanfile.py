@@ -66,7 +66,7 @@ class XDispatch2Conan(ConanFile):
         cmake.definitions["MZ_DO_AUTO_FORMAT"] = False
         cmake.definitions["MZ_DO_CPPLINT"] = False
         cmake.definitions["MZ_DO_CPPLINT_DIFF"] = False
-        cmake.definitions["MZ_CONAN_INSTALL_DIR"] = self.install_folder
+        cmake.definitions["MZ_CONAN_INSTALL_DIR"] = self.install_folder.replace("\\", "/")
         cmake.definitions["BUILD_XDISPATCH2_AS_FRAMEWORK"] = False
         cmake.definitions["XDISPATCH2_VERSION"] = self.version or '0.0+conan.dev'
         cmake.configure(source_folder=self.source_folder,
