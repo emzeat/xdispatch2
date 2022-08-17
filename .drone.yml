@@ -39,7 +39,20 @@ steps:
 - name: package
   image: ${MZ_DOCKER_REGISTRY}/builder-1804-clang:latest
   commands:
-    - ./conan_package_test.sh
+    - python3 build/conan_package.py --create
+  when:
+    ref:
+      - refs/pull/*/head
+
+- name: package - upload
+  image: ${MZ_DOCKER_REGISTRY}/builder-1804-clang:latest
+  commands:
+    - python3 build/conan_package.py --create --upload
+  when:
+    branch:
+    - master
+    event:
+    - tag
 
 - name: test
   image: ${MZ_DOCKER_REGISTRY}/builder-1804-clang:latest
@@ -75,7 +88,19 @@ steps:
 
 - name: package
   commands:
-    - ./conan_package_test.sh
+    - python3 build/conan_package.py --create
+  when:
+    ref:
+      - refs/pull/*/head
+
+- name: package - upload
+  commands:
+    - python3 build/conan_package.py --create --upload
+  when:
+    branch:
+    - master
+    event:
+    - tag
 
 - name: test
   environment:
@@ -112,6 +137,21 @@ steps:
     - cd ios-makefiles-release
     - make -j 12
 
+- name: package
+  commands:
+    - python3 build/conan_package.py --create
+  when:
+    ref:
+      - refs/pull/*/head
+
+- name: package - upload
+  commands:
+    - python3 build/conan_package.py --create --upload
+  when:
+    branch:
+    - master
+    event:
+    - tag
 
 ---
 kind: pipeline
@@ -134,6 +174,22 @@ steps:
     - .\generator.bat release ninja_64 inside -DBUILD_XDISPATCH2_TESTS=ON
     - cd win32-ninja_64-release
     - ninja
+
+- name: package
+  commands:
+    - python3 build/conan_package.py --create
+  when:
+    ref:
+      - refs/pull/*/head
+
+- name: package - upload
+  commands:
+    - python3 build/conan_package.py --create --upload
+  when:
+    branch:
+    - master
+    event:
+    - tag
 
 - name: test
   environment:

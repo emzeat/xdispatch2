@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# conan_package_create.sh
+# CMakeLists.txt
 #
 # Copyright (c) 2022 Marius Zwicker
 # All rights reserved.
@@ -20,20 +19,13 @@
 # limitations under the License.
 #
 
-PROFILE=$(ls build/*/profile.conan 2>/dev/null | head -n 1)
-if [ -z $PROFILE ]; then
-    echo "Please do a local build first to have a suitable profile"
-    exit 1
-fi
+cmake_minimum_required(VERSION 3.1)
+project(example CXX)
+set(CMAKE_CXX_STANDARD 14)
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup(TARGETS)
 
-BASE_DIR=$(dirname $PROFILE)
-TEST_DIR=$BASE_DIR/conan_package
-mkdir -p $TEST_DIR
-echo "Using profile '$PROFILE' and testing below '$TEST_DIR'"
+find_package(xdispatch2 REQUIRED CONFIG)
 
-cmake -DMZ_SEMVER_TO_FILE=$TEST_DIR/version.txt -P build/semver.cmake
-VERSION=$(cat $TEST_DIR/version.txt)
-echo "Package export for version '$VERSION'"
-
-set -ex
-conan export . xdispatch2/$VERSION@emzeat/oss
+add_executable(${PROJECT_NAME} test_package.cpp)
+target_link_libraries(${PROJECT_NAME} xdispatch2::xdispatch2)

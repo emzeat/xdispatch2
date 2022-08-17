@@ -20,7 +20,6 @@
 """
 
 from conans import ConanFile, CMake
-from pathlib import Path
 
 class XDispatch2Conan(ConanFile):
     name = "xdispatch2"
@@ -49,14 +48,9 @@ class XDispatch2Conan(ConanFile):
     def requirements(self):
         if self.options.backend_qt5:
             self.requires("qt/5.15.4@emzeat/external")
-            # pin versions of dependent packages
-            self.requires("sqlite3/3.29.0")
+            self.requires("sqlite3/3.29.0", override=True)
             if self.settings.os == "Linux":
-                self.requires("xorg/system@emzeat/external")
-                self.requires("expat/2.4.8")
-                self.requires("libiconv/1.17")
-                self.requires("pcre2/10.39")
-                self.requires("glib/2.72.0")
+                self.requires("xorg/system@emzeat/external", override=True)
 
     def build_requirements(self):
         self.tool_requires("clang-tools-extra/13.0.1@emzeat/external")
@@ -97,11 +91,15 @@ class XDispatch2Conan(ConanFile):
     def package_info(self):
         self.cpp_info.set_property("cmake_file_name", "xdispatch2")
         self.cpp_info.set_property("cmake_target_name", "xdispatch2::xdispatch2")
-        self.cpp_info.libs = ["xdispatch2"]
-        self.cpp_info.requires = ["qt::qtCore"]
-        if self.settings.os in ["iOS"]:
-            self.cpp_info.frameworks.append("CoreFoundation")
-            self.cpp_info.frameworks.append("Security")
+        self.cpp_info.libs = ["xdispatch"]
+        if self.options.backend_qt5:
+            self.cpp_info.requires = ["qt::qtCore"]
+            if self.settings.os in ["iOS"]:
+                # these are indirect dependencies inherited through qt5
+                self.cpp_info.frameworks.append("CoreFoundation")
+                self.cpp_info.frameworks.append("Security")
+                self.cpp_info.frameworks.append("UIKit")
+                self.cpp_info.frameworks.append("MobileCoreServices")
 
         self.cpp_info.names["cmake_find_package"] = "xdispatch2"
         self.cpp_info.names["cmake_find_package_multi"] = "xdispatch2"
