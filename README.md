@@ -52,11 +52,26 @@ Numbers have been collected on an AMD Ryzen 3900x 12 core processor. They try to
 | dispatch | 585 nsec     | 448 nsec       | 780 nsec  |
 | qt       | 544 nsec     | 411 nsec       | 693 nsec  |
 
-## Getting Started
+## Usage
 
-As in v1 CMake is used as the build system wrapped with my [mz-cmaketools](https://github.com/emzeat/mz-cmaketools) for convenience.
+`xdispatch2` is provided as [conan](https://conan.io/) package through the registry at https://mirrors.emzeat.de.
 
-Make sure you have `cmake`, `g++` and `ninja` installed and available in your path. Use cmake to configure and build the project:
+Simply add this as a remote and install the package including all dependencies:
+
+```bash
+conan remote add emzeat https://mirrors.emzeat.de/repository/conan/
+conan install --build=always xdispatch/2.0.0@emzeat/oss
+```
+
+Available options to configure enabled backends can be found by looking at the [conanfile.py](conanfile.py).
+Refer to the [conan documentation](https://docs.conan.io/en/latest/getting_started.html) for further details on consuming the package in your project.
+
+
+## Building from source
+
+As in v1 CMake is used as the build system wrapped with my [mz-cmaketools](https://emzeat.de/mz-cmaketools) for convenience.
+
+Make sure you have `cmake`, `conan`, `g++` and `ninja` installed and available in your path. Use cmake to configure and build the project:
 ```bash
 mkdir build/release
 cd build/release
@@ -64,14 +79,14 @@ cmake -G Ninja -D CMAKE_BUILD_TYPE=Release -S ../.. -B .
 cmake --build .
 ```
 
-The resulting binaries can be found in the `bin` directory of the build folder created above. You simply need to pull the `include` directory in your compiler's include path and link the `xdispatch2` library with your program.
+The resulting binaries can be found in the `bin` directory of the build folder created above. You simply need to pull the `include` directory in your compiler's include path and link the `xdispatch` library with your program.
 
-A (very) minimal use might look like this:
+A (very) minimal example might look like this:
 ```C++
 #include <xdispatch/dispatch>
 #include <iostream>
 
-int main()
+int main(int, char**)
 {
     xdispatch::global_queue().async([]
     {
@@ -79,10 +94,12 @@ int main()
 
         xdispatch::main_queue().async([]{
             std::cout << "PONG" << std::endl;
+            exit(0);
         });
     });
 
     xdispatch::exec();
+    return 0;
 }
 ```
 
