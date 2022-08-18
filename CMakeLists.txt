@@ -63,7 +63,7 @@ endif()
 
 # configuration and version information
 include(build/semver.cmake)
-mz_determine_sem_ver(XDISPATCH2)
+mz_determine_sem_ver(PREFIX "XDISPATCH2")
 mz_message("xdispatch version ${XDISPATCH2_VERSION}")
 
 
