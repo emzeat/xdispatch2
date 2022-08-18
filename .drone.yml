@@ -49,8 +49,6 @@ steps:
   commands:
     - python3 build/conan_package.py --create --upload
   when:
-    branch:
-    - master
     event:
     - tag
 
@@ -97,8 +95,6 @@ steps:
   commands:
     - python3 build/conan_package.py --create --upload
   when:
-    branch:
-    - master
     event:
     - tag
 
@@ -148,8 +144,6 @@ steps:
   commands:
     - python3 build/conan_package.py --create --upload
   when:
-    branch:
-    - master
     event:
     - tag
 
@@ -186,8 +180,6 @@ steps:
   commands:
     - python3 build/conan_package.py --create --upload
   when:
-    branch:
-    - master
     event:
     - tag
 
