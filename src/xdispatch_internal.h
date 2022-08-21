@@ -64,8 +64,7 @@ constexpr const char k_label_global_INTERACTIVE[] =
   "de.emzeat.xdispatch2.interactive";
 constexpr const char k_label_global_INITIATED[] =
   "de.emzeat.xdispatch2.initiated";
-constexpr const char k_label_global_UTILITY[] =
-  "de.emzeat.xdispatch2.utility";
+constexpr const char k_label_global_UTILITY[] = "de.emzeat.xdispatch2.utility";
 constexpr const char k_label_global_BACKGROUND[] =
   "de.emzeat.xdispatch2.background";
 
