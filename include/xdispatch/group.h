@@ -171,6 +171,12 @@ public:
      */
     group& operator=(const group&) = default;
 
+    /**
+        @brief move assignment operator
+     */
+    group& operator=(group&&) = default;
+
+private:
     igroup_impl_ptr m_impl;
 };
 

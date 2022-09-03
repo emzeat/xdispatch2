@@ -152,6 +152,11 @@ public:
     socket_notifier& operator=(const socket_notifier&) = default;
 
     /**
+        @brief move assignment operator
+     */
+    socket_notifier& operator=(socket_notifier&&) = default;
+
+    /**
         Sets the operation to dispatch onto the target queue whenever
         the notifier becomes ready.
     */

@@ -134,6 +134,11 @@ public:
     timer& operator=(const timer&) = default;
 
     /**
+        @brief move assignment operator
+     */
+    timer& operator=(timer&&) = default;
+
+    /**
         Sets the operation to dispatch onto the target queue whenever
         the timer becomes ready.
     */

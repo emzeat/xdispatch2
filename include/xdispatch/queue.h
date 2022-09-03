@@ -155,6 +155,11 @@ public:
     queue& operator=(const queue&) = default;
 
     /**
+        @brief Move assignment operator
+    */
+    queue& operator=(queue&&) = default;
+
+    /**
         @brief Equality operator
     */
     bool operator==(const queue& other) const;
