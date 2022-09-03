@@ -99,23 +99,23 @@ protected:
       backend_type backend);
 };
 
-queue
+XDISPATCH_EXPORT queue
 create_serial_queue(const std::string& label,
                     queue_priority priority,
                     backend_type backend = backend_type::naive);
 
-queue
+XDISPATCH_EXPORT queue
 create_serial_queue(const std::string& label,
                     const ithreadpool_ptr& thread,
                     backend_type backend);
 
-queue
+XDISPATCH_EXPORT queue
 create_serial_queue(const std::string& label,
                     const ithreadpool_ptr& threadpool,
                     queue_priority priority,
                     backend_type backend);
 
-queue
+XDISPATCH_EXPORT queue
 create_parallel_queue(const std::string& label,
                       const ithreadpool_ptr& pool,
                       queue_priority priority,

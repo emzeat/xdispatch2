@@ -64,6 +64,15 @@ else()
         ${TEST_LIBDISPATCH}
         ${RES_FILES}
     )
+
+    add_executable( xdispatch2_platform_demo
+        demo.cpp
+    )
+    target_link_libraries( xdispatch2_platform_demo
+        xdispatch
+    )
+    mz_target_props( xdispatch2_platform_demo )
+    mz_auto_format( xdispatch2_platform_demo )
 endif()
 
 # manifest (somehow we need one when using mingw - but only for this binary !?
@@ -89,8 +98,19 @@ target_link_libraries( xdispatch2_tests
 )
 if( BUILD_XDISPATCH2_BACKEND_QT5 )
     target_link_libraries( xdispatch2_tests
+        xdispatch_qt5
         Qt5::Gui
         Qt5::Widgets
+    )
+endif()
+if( BUILD_XDISPATCH2_BACKEND_LIBDISPATCH )
+    target_link_libraries( xdispatch2_tests
+        xdispatch_libdispatch
+    )
+endif()
+if( XDISPATCH2_HAVE_WINSOCK2 )
+    target_link_libraries( xdispatch2_tests
+        Ws2_32
     )
 endif()
 mz_target_props( xdispatch2_tests )

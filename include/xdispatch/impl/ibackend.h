@@ -82,4 +82,17 @@ __XDISPATCH_END_NAMESPACE
 
 /** @} */
 
+/** Helper macro for backend implementations to define their entry point */
+#define XDISPATCH_DEFINE_BACKEND(type, class)                                  \
+    extern "C" XDISPATCH_EXPORT xdispatch::ibackend*                           \
+      type##_backend_get_static_instance()                                     \
+    {                                                                          \
+        static class _instance;                                                \
+        return &_instance;                                                     \
+    }
+
+/** Helper macro to declare a backend entry point */
+#define XDISPATCH_DECLARE_BACKEND(type)                                        \
+    extern "C" xdispatch::ibackend* type##_backend_get_static_instance();
+
 #endif /* XDISPATCH_IBACKEND_H_ */

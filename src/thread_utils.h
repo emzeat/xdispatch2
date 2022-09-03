@@ -34,7 +34,7 @@ __XDISPATCH_BEGIN_NAMESPACE
 /**
     @brief Utilities to help with development using xdispatch
  */
-class thread_utils
+class XDISPATCH_EXPORT thread_utils
 {
 public:
     /**

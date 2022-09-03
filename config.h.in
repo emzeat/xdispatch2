@@ -55,6 +55,10 @@
 
 #cmakedefine XDISPATCH2_HAVE_WINSOCK2
 
+#cmakedefine XDISPATCH2_HAVE_DLSYM
+
+#cmakedefine XDISPATCH2_GET_PROC_ADDRESS
+
 /** @} */
 
 #endif /* XDISPATCH_CONFIG_H_ */

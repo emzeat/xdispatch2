@@ -24,15 +24,16 @@
 #include "platform_tests.h"
 #include "signal_tests.h"
 
+#include "xdispatch/impl/ibackend.h"
 #if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
-    #include "../src/libdispatch/libdispatch_backend_internal.h"
+XDISPATCH_DECLARE_BACKEND(libdispatch)
 #endif
 #if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
-    #include "../src/naive/naive_backend_internal.h"
+XDISPATCH_DECLARE_BACKEND(naive)
 #endif
 #if (defined BUILD_XDISPATCH2_BACKEND_QT5)
     #include <QtCore/QCoreApplication>
-    #include "../src/qt5/qt5_backend_internal.h"
+XDISPATCH_DECLARE_BACKEND(qt5)
     #include "qt_tests.h"
 #endif
 
@@ -59,19 +60,17 @@ main(int argc, char* argv[])
     MU_initFramework(print_log);
 
 #if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
-    static xdispatch::libdispatch::backend s_libdispatch;
-    register_cxx_tests("libdispatch", &s_libdispatch);
+    register_cxx_tests("libdispatch",
+                       libdispatch_backend_get_static_instance());
 #endif
 
 #if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
-    static xdispatch::naive::backend s_naive;
-    register_cxx_tests("naive", &s_naive);
+    register_cxx_tests("naive", naive_backend_get_static_instance());
 #endif
 
 #if (defined BUILD_XDISPATCH2_BACKEND_QT5)
     QCoreApplication app(argc, argv);
-    static xdispatch::qt5::backend s_qt5;
-    register_cxx_tests("qt5", &s_qt5);
+    register_cxx_tests("qt5", qt5_backend_get_static_instance());
     register_qt_tests();
 #endif
 

@@ -149,8 +149,7 @@ operation_queue::async(const operation_ptr& job)
         XDISPATCH_TRACE() << "'" << m_label << "' already awake ("
                           << m_jobs.size() << ")";
     } else {
-        XDISPATCH_WARNING()
-          << "'" << m_label << "' detached, dropping operation";
+        XDISPATCH_TRACE() << "'" << m_label << "' detached, dropping operation";
     }
 }
 

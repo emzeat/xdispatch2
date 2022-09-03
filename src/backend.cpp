@@ -24,14 +24,36 @@
 #include "xdispatch/impl/isocket_notifier_impl.h"
 #include "xdispatch/impl/iqueue_impl.h"
 
+#include "symbol_utils.h"
+
+/** Helper macro to import a backend entry point by resolving its symbol
+ * globally, providing on or more fallbacks when unavailable */
+#define XDISPATCH_IMPORT_BACKEND(type, ...)                                    \
+    extern "C" xdispatch::ibackend* type##_backend_get_static_instance()       \
+    {                                                                          \
+        const char* backends[] = { #type, __VA_ARGS__ };                       \
+        for (const char* backend : backends) {                                 \
+            const auto symbol =                                                \
+              std::string(backend) + "_backend_get_static_instance";           \
+            auto* instance =                                                   \
+              xdispatch::symbol_utils::resolve<xdispatch::ibackend*(void)>(    \
+                symbol.c_str());                                               \
+            if (instance) {                                                    \
+                return instance();                                             \
+            }                                                                  \
+        }                                                                      \
+        XDISPATCH_WARNING() << "Failed to resolve backend '" << #type << "'";  \
+        return nullptr;                                                        \
+    }
+
 #if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
-    #include "naive/naive_backend_internal.h"
+XDISPATCH_DECLARE_BACKEND(naive)
 #endif
 #if (defined BUILD_XDISPATCH2_BACKEND_QT5)
-    #include "qt5/qt5_backend_internal.h"
+XDISPATCH_IMPORT_BACKEND(qt5, "libdispatch", "naive")
 #endif
 #if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
-    #include "libdispatch/libdispatch_backend_internal.h"
+XDISPATCH_DECLARE_BACKEND(libdispatch)
 #endif
 
 __XDISPATCH_BEGIN_NAMESPACE
@@ -42,20 +64,22 @@ backend_for_type(backend_type type)
     switch (type) {
 #if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
         case backend_type::libdispatch: {
-            static libdispatch::backend s_backend_libdispatch;
+            static ibackend& s_backend_libdispatch =
+              *libdispatch_backend_get_static_instance();
             return s_backend_libdispatch;
         }
 #endif
 #if (defined BUILD_XDISPATCH2_BACKEND_QT5)
         case backend_type::qt5: {
-            static qt5::backend s_backend_qt5;
+            static ibackend& s_backend_qt5 = *qt5_backend_get_static_instance();
             return s_backend_qt5;
         }
 #endif
         default:
 #if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
         {
-            static naive::backend s_backend_naive;
+            static ibackend& s_backend_naive =
+              *naive_backend_get_static_instance();
             return s_backend_naive;
         }
 #endif

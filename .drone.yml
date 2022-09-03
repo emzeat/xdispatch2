@@ -60,6 +60,7 @@ steps:
   commands:
     - cd build/clang-ninja-release/bin
     - ./xdispatch2_tests
+    - ./xdispatch2_platform_demo
 
 ---
 kind: pipeline
@@ -104,6 +105,7 @@ steps:
   commands:
     - cd build/clang-ninja-release/bin
     - ./xdispatch2_tests
+    - ./xdispatch2_platform_demo
   when:
     ref:
       - refs/heads/master
@@ -189,6 +191,7 @@ steps:
   commands:
     - cd build/win32-ninja_64-release/bin
     - .\xdispatch2_tests.exe
+    - .\xdispatch2_platform_demo.exe
   when:
     ref:
       - refs/heads/master

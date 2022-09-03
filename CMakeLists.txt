@@ -46,6 +46,10 @@ check_symbol_exists( HW_NCPU "sys/sysctl.h" XDISPATCH2_HAVE_SYSCTL_HW_NCPU )
 check_symbol_exists( GetSystemInfo "windows.h" XDISPATCH2_HAVE_GET_SYSTEM_INFO )
 check_symbol_exists( socketpair "sys/socket.h" XDISPATCH2_HAVE_SOCKETPAIR )
 check_symbol_exists( WSASocket "winsock2.h" XDISPATCH2_HAVE_WINSOCK2 )
+set(CMAKE_REQUIRED_LIBRARIES dl)
+check_symbol_exists( dlsym "dlfcn.h" XDISPATCH2_HAVE_DLSYM )
+unset(CMAKE_REQUIRED_LIBRARIES)
+check_symbol_exists( GetProcAddress "windows.h" XDISPATCH2_GET_PROC_ADDRESS )
 
 # build options
 set(BUILD_XDISPATCH2_BACKEND_NAIVE ON)
@@ -76,6 +80,12 @@ endif()
 if( NOT MZ_WINDOWS )
     mz_add_flag(GCC -fvisibility=hidden)
 endif()
+mz_add_definition(XDISPATCH_MAKEDLL)
+if( MZ_IOS )
+    set( XDISPATCH_BUILD_TYPE STATIC )
+else()
+    set( XDISPATCH_BUILD_TYPE SHARED )
+endif()
 
 # generate the build time configuration header
 configure_file(config.h.in
@@ -95,9 +105,15 @@ file(GLOB CXX_INCL
     include/xdispatch/*.h
     include/xdispatch/dispatch
 )
+if( XDISPATCH2_HAVE_DLSYM )
+    set(LIBS ${LIBS}
+        dl
+    )
+endif()
 
 # naive backend (required)
 if( BUILD_XDISPATCH2_BACKEND_NAIVE )
+    find_package(Threads REQUIRED)
     file(GLOB CXX_NAIVE
         src/naive/*.cpp
         src/naive/*.h
@@ -107,94 +123,137 @@ if( BUILD_XDISPATCH2_BACKEND_NAIVE )
             Ws2_32
         )
     endif()
-endif()
-
-# libdispatch backend
-if( BUILD_XDISPATCH2_BACKEND_LIBDISPATCH )
-    mz_message("Building backend: libdispatch")
-    file(GLOB CXX_LIBDISPATCH
-        src/libdispatch/*.cpp
-        src/libdispatch/*.h
-    )
-endif()
-
-# qt backend
-if( BUILD_XDISPATCH2_BACKEND_QT5 )
-    mz_message("Building backend: qt5")
-    file(GLOB CXX_QT5
-        src/qt5/*.cpp
-        src/qt5/*.h
-    )
-    mz_qt_auto_moc(MOC_QT5 ${CXX_QT5})
-    list(APPEND CXX_QT5 ${MOC_QT5})
     set(LIBS ${LIBS}
-        Qt5::Core
+        Threads::Threads
     )
 endif()
 
-# add new target xdispatch
-mz_add_definition(XDISPATCH_MAKEDLL)
-if( MZ_IOS )
-    set( XDISPATCH_BUILD_TYPE STATIC )
-else()
-    set( XDISPATCH_BUILD_TYPE SHARED )
-endif()
-
+# main library target (always including naive)
 add_library( xdispatch ${XDISPATCH_BUILD_TYPE}
     ${CXX}
     ${CXX_NAIVE}
-    ${CXX_LIBDISPATCH}
-    ${CXX_QT5}
-    ${RES_FILE}
 )
 mz_target_props( xdispatch )
 mz_auto_format( xdispatch )
-
-# link this target with all needed libraries
-message("-- linking xdispatch with: ${LIBS}")
-target_link_libraries( xdispatch ${LIBS})
-
+target_link_libraries( xdispatch
+    PRIVATE ${LIBS}
+)
 set_target_properties( xdispatch PROPERTIES
     VERSION ${XDISPATCH2_VERSION}
     SOVERSION ${XDISPATCH2_VERSION}
     INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include;${CMAKE_CURRENT_BINARY_DIR}/include"
 )
-
 target_include_directories( xdispatch
     PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/include
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-if(MZ_IOS)
-    install(TARGETS xdispatch
-                LIBRARY DESTINATION lib
-                RUNTIME DESTINATION bin
-                ARCHIVE DESTINATION lib)
-    install(DIRECTORY include/xdispatch
-                DESTINATION include
-                PATTERN "*.git" EXCLUDE)
+# helper macro to install an xdispatch target
+macro(install_xdispatch_target TGT_NAME)
+    if(MZ_IOS)
+        install(TARGETS ${TGT_NAME}
+                    LIBRARY DESTINATION lib
+                    RUNTIME DESTINATION bin
+                    ARCHIVE DESTINATION lib)
+        install(DIRECTORY include/xdispatch
+                    DESTINATION include
+                    PATTERN "*.git" EXCLUDE)
 
-elseif(MZ_MACOS AND BUILD_XDISPATCH2_AS_FRAMEWORK)
-    set_target_properties( xdispatch PROPERTIES
-        FRAMEWORK TRUE
-        MACOSX_FRAMEWORK_IDENTIFIER "de.emzeat.xdispatch"
-        MACOSX_FRAMEWORK_BUNDLE_VERSION "${XDISPATCH2_VERSION}"
-        PUBLIC_HEADER "${CXX_INCL}"
+    elseif(MZ_MACOS AND BUILD_XDISPATCH2_AS_FRAMEWORK)
+        set_target_properties( ${TGT_NAME} PROPERTIES
+            FRAMEWORK TRUE
+            MACOSX_FRAMEWORK_IDENTIFIER "de.emzeat.${TGT_NAME}"
+            MACOSX_FRAMEWORK_BUNDLE_VERSION "${XDISPATCH2_VERSION}"
+            PUBLIC_HEADER "${CXX_INCL}"
+        )
+
+        install(TARGETS ${TGT_NAME}
+                    COMPONENT lib${TGT_NAME}
+                    FRAMEWORK DESTINATION "Library/Frameworks")
+    else()
+        install(TARGETS ${TGT_NAME}
+                    COMPONENT lib${TGT_NAME}
+                    LIBRARY DESTINATION lib
+                    RUNTIME DESTINATION bin
+                    ARCHIVE DESTINATION lib)
+        install(DIRECTORY include/xdispatch
+                    DESTINATION include
+                    COMPONENT lib${TGT_NAME}-dev)
+    endif()
+endmacro()
+install_xdispatch_target(xdispatch)
+
+# helper macro to define a custom backend
+macro(add_xdispatch_backend SUFFIX)
+    set(_mz3_multiValueArgs
+    )
+    cmake_parse_arguments( _xb
+        "BUILTIN" # options
+        "" # one value
+        "SOURCES;LIBS" # multi value
+        ${ARGN}
     )
 
-    install(TARGETS xdispatch
-                COMPONENT libxdispatch
-                FRAMEWORK DESTINATION "Library/Frameworks")
-else()
-    install(TARGETS xdispatch
-                COMPONENT libxdispatch
-                LIBRARY DESTINATION lib
-                RUNTIME DESTINATION bin
-                ARCHIVE DESTINATION lib)
-    install(DIRECTORY include/xdispatch
-                DESTINATION include
-                COMPONENT libxdispatch-dev)
+    mz_message("Building backend: ${SUFFIX}")
+    if(_xb_BUILTIN)
+        add_library( xdispatch_${SUFFIX} ALIAS
+            xdispatch
+        )
+        target_sources( xdispatch
+            PRIVATE ${_xb_SOURCES}
+        )
+        target_link_libraries( xdispatch
+            PRIVATE ${_xb_LIBS}
+        )
+    else()
+        add_library( xdispatch_${SUFFIX} ${XDISPATCH_BUILD_TYPE}
+            ${_xb_SOURCES}
+        )
+        mz_target_props( xdispatch_${SUFFIX} )
+        mz_auto_format( xdispatch_${SUFFIX} )
+        target_link_libraries( xdispatch_${SUFFIX}
+            PUBLIC xdispatch
+            PRIVATE ${_xb_LIBS}
+        )
+        set_target_properties( xdispatch_${SUFFIX} PROPERTIES
+            VERSION ${XDISPATCH2_VERSION}
+            SOVERSION ${XDISPATCH2_VERSION}
+        )
+        install_xdispatch_target(xdispatch_${SUFFIX})
+    endif()
+endmacro()
+
+# libdispatch backend
+if( BUILD_XDISPATCH2_BACKEND_LIBDISPATCH )
+    file(GLOB CXX_LIBDISPATCH
+        src/libdispatch/*.cpp
+        src/libdispatch/*.h
+    )
+    # use libdispatch automatically, it causes no additional dependencies or license limits
+    add_xdispatch_backend(libdispatch
+        BUILTIN
+        SOURCES ${CXX_LIBDISPATCH}
+    )
 endif()
+
+# qt backend
+if( BUILD_XDISPATCH2_BACKEND_QT5 )
+    file(GLOB CXX_QT5
+        src/qt5/*.cpp
+        src/qt5/*.h
+    )
+    mz_qt_auto_moc(MOC_QT5 ${CXX_QT5})
+    if(BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
+        set(LIBS_QT5 xdispatch_libdispatch)
+    endif()
+    # not a builtin backend, linking with qt incurrs LGPL or other license
+    # limitations and as such should be made explicit
+    add_xdispatch_backend(qt5
+        SOURCES ${CXX_QT5} ${MOC_QT5}
+        LIBS Qt5::Core ${LIBS_QT5}
+    )
+endif()
+
 
 if(BUILD_XDISPATCH2_TESTS)
     mz_add_executable(xdispatch2_tests tests)

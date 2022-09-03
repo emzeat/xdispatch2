@@ -30,7 +30,7 @@
 
 __XDISPATCH_BEGIN_NAMESPACE
 
-class trace_utils
+class XDISPATCH_EXPORT trace_utils
 {
 public:
     static bool is_trace_enabled();
@@ -41,7 +41,7 @@ private:
     trace_utils() = delete;
 };
 
-class trace_stream
+class XDISPATCH_EXPORT trace_stream
 {
 public:
     inline trace_stream() { CS().lock(); }
@@ -67,11 +67,12 @@ private:
 #define XDISPATCH_TRACE_PREFIX "[xdispatch2] "
 
 #define XDISPATCH_TRACE()                                                      \
-    for (bool enabled = trace_utils::is_trace_enabled(); enabled;              \
+    for (bool enabled = ::xdispatch::trace_utils::is_trace_enabled(); enabled; \
          enabled = false)                                                      \
-    trace_stream() << XDISPATCH_TRACE_PREFIX
+    ::xdispatch::trace_stream() << XDISPATCH_TRACE_PREFIX
 
-#define XDISPATCH_WARNING() trace_stream() << XDISPATCH_TRACE_PREFIX
+#define XDISPATCH_WARNING()                                                    \
+    ::xdispatch::trace_stream() << XDISPATCH_TRACE_PREFIX
 
 __XDISPATCH_END_NAMESPACE
 
