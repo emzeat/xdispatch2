@@ -28,4 +28,9 @@ conan_basic_setup(TARGETS)
 find_package(xdispatch2 REQUIRED CONFIG)
 
 add_executable(${PROJECT_NAME} test_package.cpp)
-target_link_libraries(${PROJECT_NAME} xdispatch2::xdispatch2)
+target_link_libraries(${PROJECT_NAME} xdispatch2::xdispatch)
+
+if(TARGET xdispatch2::xdispatch_qt5)
+    add_executable(${PROJECT_NAME}_qt5 test_package_qt5.cpp)
+    target_link_libraries(${PROJECT_NAME}_qt5 xdispatch2::xdispatch_qt5)
+endif()

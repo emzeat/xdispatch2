@@ -35,3 +35,7 @@ class TestPackageConan(ConanFile):
         if not tools.cross_building(self.settings):
             bin_path = os.path.join("bin", "example")
             self.run(bin_path, run_environment=True)
+
+            bin_path_qt5 = os.path.join("bin", "example_qt5")
+            if os.path.exists(bin_path_qt5):
+                self.run(bin_path_qt5, run_environment=True)

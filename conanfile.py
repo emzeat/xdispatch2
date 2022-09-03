@@ -90,16 +90,19 @@ class XDispatch2Conan(ConanFile):
 
     def package_info(self):
         self.cpp_info.set_property("cmake_file_name", "xdispatch2")
-        self.cpp_info.set_property("cmake_target_name", "xdispatch2::xdispatch2")
-        self.cpp_info.libs = ["xdispatch"]
+
+        self.cpp_info.components["xdispatch"].names["cmake_target_name"] = "xdispatch2::xdispatch"
+        self.cpp_info.components["xdispatch"].libs = ["xdispatch"]
         if self.options.backend_qt5:
-            self.cpp_info.requires = ["qt::qtCore"]
+            self.cpp_info.components["xdispatch_qt5"].names["cmake_target_name"] = "xdispatch2::xdispatch_qt5"
+            self.cpp_info.components["xdispatch_qt5"].libs = ["xdispatch_qt5"]
+            self.cpp_info.components["xdispatch_qt5"].requires = ["qt::qtCore", "xdispatch"]
             if self.settings.os in ["iOS"]:
                 # these are indirect dependencies inherited through qt5
-                self.cpp_info.frameworks.append("CoreFoundation")
-                self.cpp_info.frameworks.append("Security")
-                self.cpp_info.frameworks.append("UIKit")
-                self.cpp_info.frameworks.append("MobileCoreServices")
+                self.cpp_info.components["xdispatch_qt5"].frameworks.append("CoreFoundation")
+                self.cpp_info.components["xdispatch_qt5"].frameworks.append("Security")
+                self.cpp_info.components["xdispatch_qt5"].frameworks.append("UIKit")
+                self.cpp_info.components["xdispatch_qt5"].frameworks.append("MobileCoreServices")
 
         self.cpp_info.names["cmake_find_package"] = "xdispatch2"
         self.cpp_info.names["cmake_find_package_multi"] = "xdispatch2"
