@@ -101,9 +101,9 @@ public:
     }
 
     /**
-        Applies the given iteration_operation for async execution
+        Applies the given iteration_operation for times execution
         in this queue and waits for all iterations of the operation to complete
-       execution.
+       execution before returning.
 
         @param times The number of times the operation will be executed
     */

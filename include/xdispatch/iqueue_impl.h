@@ -55,8 +55,9 @@ public:
     virtual void async(const operation_ptr& op) = 0;
 
     /**
-        Applies the given iteration_operation for async execution
-        in this iqueue_impl and returns immediately.
+        Applies the given iteration_operation for execution
+        in this iqueue_impl and blocks until times executions
+        have completed.
 
         @param times The number of times the operation will be executed
     */
