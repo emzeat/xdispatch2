@@ -19,8 +19,8 @@
  * limitations under the License.
  */
 
-#include "xdispatch/itimer_impl.h"
-#include "xdispatch/iqueue_impl.h"
+#include "xdispatch/impl/itimer_impl.h"
+#include "xdispatch/impl/iqueue_impl.h"
 
 #include "naive_threadpool.h"
 #include "naive_inverse_lockguard.h"

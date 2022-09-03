@@ -23,7 +23,7 @@
 
 #include "xdispatch_internal.h"
 #include "xdispatch/waitable_queue.h"
-#include "xdispatch/iqueue_impl.h"
+#include "xdispatch/impl/iqueue_impl.h"
 #include "trace_utils.h"
 #include "naive/naive_operations.h"
 

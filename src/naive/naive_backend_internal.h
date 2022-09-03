@@ -23,7 +23,7 @@
 #define XDISPATCH_NAIVE_INTERNAL_H_
 
 #include "xdispatch/backend_naive.h"
-#include "xdispatch/ibackend.h"
+#include "xdispatch/impl/ibackend.h"
 
 #include "../xdispatch_internal.h"
 

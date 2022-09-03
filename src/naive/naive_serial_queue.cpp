@@ -19,11 +19,11 @@
  * limitations under the License.
  */
 
-#include "xdispatch/iqueue_impl.h"
+#include "xdispatch/impl/iqueue_impl.h"
 
 #include "naive_backend_internal.h"
 #include "naive_operation_queue.h"
-#include "xdispatch/thread_utils.h"
+#include "../thread_utils.h"
 #include "naive_threadpool.h"
 
 #include <thread>

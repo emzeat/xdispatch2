@@ -20,9 +20,9 @@
  */
 
 #include "xdispatch_internal.h"
-#include "xdispatch/itimer_impl.h"
-#include "xdispatch/isocket_notifier_impl.h"
-#include "xdispatch/iqueue_impl.h"
+#include "xdispatch/impl/itimer_impl.h"
+#include "xdispatch/impl/isocket_notifier_impl.h"
+#include "xdispatch/impl/iqueue_impl.h"
 
 #if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
     #include "naive/naive_backend_internal.h"

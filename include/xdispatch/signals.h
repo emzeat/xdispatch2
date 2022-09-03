@@ -33,7 +33,7 @@
 #include <functional>
 
 #include "xdispatch/dispatch"
-#include "xdispatch/cancelable.h"
+#include "xdispatch/impl/cancelable.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 

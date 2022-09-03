@@ -19,7 +19,7 @@
  * limitations under the License.
  */
 
-#include "xdispatch/igroup_impl.h"
+#include "xdispatch/impl/igroup_impl.h"
 
 #include "libdispatch_backend_internal.h"
 #include "libdispatch_execution.h"

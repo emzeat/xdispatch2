@@ -20,7 +20,7 @@
  */
 
 #include "xdispatch_internal.h"
-#include "xdispatch/iqueue_impl.h"
+#include "xdispatch/impl/iqueue_impl.h"
 
 __XDISPATCH_USE_NAMESPACE
 

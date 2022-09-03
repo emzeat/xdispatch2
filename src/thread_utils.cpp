@@ -20,7 +20,7 @@
  */
 
 #include "xdispatch_internal.h"
-#include "xdispatch/thread_utils.h"
+#include "thread_utils.h"
 #include "trace_utils.h"
 
 #include <cstdio>

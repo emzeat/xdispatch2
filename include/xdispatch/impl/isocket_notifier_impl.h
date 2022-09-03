@@ -1,5 +1,5 @@
 /*
- * itimer_impl.h
+ * isocket_notifier_impl.h
  *
  * Copyright (c) 2011 - 2022 Marius Zwicker
  * All rights reserved.
@@ -19,45 +19,34 @@
  * limitations under the License.
  */
 
-#ifndef XDISPATCH_ITIMER_IMPL_H_
-#define XDISPATCH_ITIMER_IMPL_H_
+#ifndef XDISPATCH_ISOCKET_NOTIFIER_IMPL_H_
+#define XDISPATCH_ISOCKET_NOTIFIER_IMPL_H_
 
 /**
  * @addtogroup xdispatch
  * @{
  */
 
-#include "xdispatch/ibackend.h"
+#include "xdispatch/impl/ibackend.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 
 /**
-  @brief interface to be implemented to support a timer
+  @brief interface to be implemented to support a socket notifier
   */
-class itimer_impl
+class isocket_notifier_impl
 {
 public:
     /**
         @brief Destructor
     */
-    virtual ~itimer_impl() = default;
-
-    /**
-        @brief Use this to set the interval in nanoseconds.
-      */
-    virtual void interval(std::chrono::milliseconds interval) = 0;
-
-    /**
-        Use this to set the latency by which the timer
-        might be early or late.
-      */
-    virtual void latency(timer_precision) = 0;
+    virtual ~isocket_notifier_impl() = default;
 
     /**
         Sets the operation to dispatch onto the target queue whenever
-        the timer becomes ready.
+        the notifier becomes ready.
     */
-    virtual void handler(const operation_ptr& op) = 0;
+    virtual void handler(const socket_notifier_operation_ptr& op) = 0;
 
     /**
         Sets the queue the handler will be executed on
@@ -65,16 +54,29 @@ public:
     virtual void target_queue(const iqueue_impl_ptr&) = 0;
 
     /**
-        Start the timer
-
-        @param delay The time after which the timer will fire for the first time
+        Resume the notifier
       */
-    virtual void resume(std::chrono::milliseconds delay) = 0;
+    virtual void resume() = 0;
 
     /**
-        Will stop the timer.
+        Suspend the notifier
     */
     virtual void suspend() = 0;
+
+    /**
+        Cancel the notifier
+     */
+    virtual void cancel() = 0;
+
+    /**
+        @returns the socket monitored by the notifier
+    */
+    virtual socket_t socket() const = 0;
+
+    /**
+        @returns the type of the notifier
+    */
+    virtual notifier_type type() const = 0;
 
     /**
         @returns the backend type behind this implementation
@@ -82,14 +84,14 @@ public:
     virtual backend_type backend() = 0;
 
 protected:
-    itimer_impl() = default;
+    isocket_notifier_impl() = default;
 
 private:
-    itimer_impl(const itimer_impl&) = delete;
+    isocket_notifier_impl(const isocket_notifier_impl&) = delete;
 };
 
 __XDISPATCH_END_NAMESPACE
 
 /** @} */
 
-#endif /* XDISPATCH_ITIMER_IMPL_H_ */
+#endif /* XDISPATCH_ISOCKET_NOTIFIER_IMPL_H_ */

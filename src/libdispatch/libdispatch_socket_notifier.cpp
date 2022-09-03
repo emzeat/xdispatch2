@@ -21,9 +21,9 @@
 
 #include <thread>
 
-#include "xdispatch/isocket_notifier_impl.h"
-#include "xdispatch/iqueue_impl.h"
-#include "xdispatch/cancelable.h"
+#include "xdispatch/impl/isocket_notifier_impl.h"
+#include "xdispatch/impl/iqueue_impl.h"
+#include "xdispatch/impl/cancelable.h"
 #include "../trace_utils.h"
 
 #include "libdispatch_backend_internal.h"

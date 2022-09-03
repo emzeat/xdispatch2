@@ -19,9 +19,9 @@
  * limitations under the License.
  */
 
-#include "xdispatch/isocket_notifier_impl.h"
-#include "xdispatch/iqueue_impl.h"
-#include "xdispatch/cancelable.h"
+#include "xdispatch/impl/isocket_notifier_impl.h"
+#include "xdispatch/impl/iqueue_impl.h"
+#include "xdispatch/impl/cancelable.h"
 
 #include "naive_threadpool.h"
 #include "naive_inverse_lockguard.h"

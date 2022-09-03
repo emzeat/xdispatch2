@@ -19,7 +19,7 @@
  * limitations under the License.
  */
 
-#include "xdispatch/iqueue_impl.h"
+#include "xdispatch/impl/iqueue_impl.h"
 
 #include "naive_backend_internal.h"
 #include "naive_thread.h"

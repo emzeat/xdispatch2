@@ -23,7 +23,7 @@
 #ifndef CXX_TESTS_H_
 #define CXX_TESTS_H_
 
-#include <xdispatch/ibackend.h>
+#include <xdispatch/impl/ibackend.h>
 
 #include "munit/MUnit.h"
 

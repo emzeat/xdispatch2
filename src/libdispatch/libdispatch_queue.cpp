@@ -19,8 +19,8 @@
  * limitations under the License.
  */
 
-#include "xdispatch/iqueue_impl.h"
-#include "xdispatch/thread_utils.h"
+#include "xdispatch/impl/iqueue_impl.h"
+#include "../thread_utils.h"
 
 #include "libdispatch_backend_internal.h"
 #include "libdispatch_execution.h"

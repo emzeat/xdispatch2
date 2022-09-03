@@ -20,8 +20,8 @@
  */
 
 #include "xdispatch_internal.h"
-#include "xdispatch/igroup_impl.h"
-#include "xdispatch/iqueue_impl.h"
+#include "xdispatch/impl/igroup_impl.h"
+#include "xdispatch/impl/iqueue_impl.h"
 #include "trace_utils.h"
 
 __XDISPATCH_USE_NAMESPACE

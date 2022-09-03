@@ -22,7 +22,7 @@
 #include "libdispatch_execution.h"
 #include "../xdispatch_internal.h"
 #include "../trace_utils.h"
-#include "xdispatch/thread_utils.h"
+#include "../thread_utils.h"
 
 #include "dispatch/dispatch.h"
 

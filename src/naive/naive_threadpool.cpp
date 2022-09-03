@@ -20,11 +20,10 @@
  */
 
 #include "../trace_utils.h"
+#include "../thread_utils.h"
 
 #include "naive_threadpool.h"
 #include "naive_operation_queue_manager.h"
-
-#include "xdispatch/thread_utils.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive {

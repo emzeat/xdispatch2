@@ -24,7 +24,7 @@
 #include "naive_thread.h"
 #include "naive_inverse_lockguard.h"
 
-#include "xdispatch/thread_utils.h"
+#include "../thread_utils.h"
 #include "../trace_utils.h"
 
 __XDISPATCH_BEGIN_NAMESPACE

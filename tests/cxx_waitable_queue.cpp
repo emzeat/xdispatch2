@@ -22,7 +22,7 @@
 #include <list>
 
 #include <xdispatch/waitable_queue.h>
-#include <xdispatch/iqueue_impl.h>
+#include <xdispatch/impl/iqueue_impl.h>
 #include "cxx_tests.h"
 
 class manual_queue_impl : public xdispatch::iqueue_impl

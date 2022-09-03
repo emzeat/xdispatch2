@@ -19,7 +19,7 @@
  * limitations under the License.
  */
 
-#include "xdispatch/itimer_impl.h"
+#include "xdispatch/impl/itimer_impl.h"
 
 #include "libdispatch_backend_internal.h"
 #include "libdispatch_execution.h"

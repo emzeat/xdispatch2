@@ -21,7 +21,7 @@
 
 #include "qt5_backend_internal.h"
 
-#include "xdispatch/iqueue_impl.h"
+#include "xdispatch/impl/iqueue_impl.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace qt5 {

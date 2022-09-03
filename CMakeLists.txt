@@ -86,6 +86,7 @@ configure_file(config.h.in
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR})
 file(GLOB CXX
     include/xdispatch/*.h
+    include/xdispatch/impl/*.h
     include/xdispatch/dispatch
     src/*.cpp
     src/*.h
