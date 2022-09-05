@@ -36,6 +36,12 @@ cxx_dispatch_timer_serial(void*);
 void
 cxx_dispatch_timer_main(void*);
 void
+cxx_dispatch_after_global(void*);
+void
+cxx_dispatch_after_serial(void*);
+void
+cxx_dispatch_after_main(void*);
+void
 cxx_dispatch_notifier_read(void*);
 void
 cxx_dispatch_notifier_write(void*);
@@ -74,6 +80,9 @@ register_cxx_tests(const char* name, xdispatch::ibackend* backend)
     MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_timer_main, backend);
     MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_timer_global, backend);
     MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_timer_serial, backend);
+    MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_after_main, backend);
+    MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_after_global, backend);
+    MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_after_serial, backend);
     MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_notifier_read, backend);
     MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_notifier_write, backend);
     //    MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_fibo, backend );

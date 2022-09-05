@@ -77,6 +77,11 @@ public:
     virtual void suspend() = 0;
 
     /**
+        Will cancel the timer.
+    */
+    virtual void cancel() = 0;
+
+    /**
         @returns the backend type behind this implementation
      */
     virtual backend_type backend() = 0;

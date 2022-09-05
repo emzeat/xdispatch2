@@ -21,6 +21,8 @@
 
 #include "naive_operations.h"
 #include "naive_threadpool.h"
+
+#include "xdispatch/impl/itimer_impl.h"
 #include "../xdispatch_internal.h"
 
 #include <thread>
@@ -46,10 +48,31 @@ apply_operation::operator()()
     }
 }
 
-delayed_operation::delayed_operation(std::chrono::milliseconds delay,
+void
+delayed_operation::create_and_dispatch(itimer_impl_ptr&& timer,
+                                       std::chrono::milliseconds delay,
+                                       const operation_ptr& op)
+{
+    // this is using a little trick to make the operation self hosted
+    // while still ensuring the timer object gets released accordingly:
+    // 1) the operation is created and takes ownership of the timer
+    // 2) the operation is assigned as handler to the timer. This creates
+    //    a circular ownership which is accepted for the time being
+    // 3) the timer is started with a delay
+    // 4) the operation is executed by the timer at which point it will
+    //    cancel and release the timer hence breaking the circular
+    //    ownership and ensuring a clean destruction sequence
+
+    auto delayed_op = std::make_shared<delayed_operation>(std::move(timer), op);
+
+    delayed_op->m_timer->handler(delayed_op);
+    delayed_op->m_timer->resume(delay);
+}
+
+delayed_operation::delayed_operation(itimer_impl_ptr&& timer,
                                      const operation_ptr& op,
                                      const consumable_ptr& consumable)
-  : m_delay(delay)
+  : m_timer(std::move(timer))
   , m_op(op)
   , m_consumable(consumable)
 {}
@@ -57,14 +80,15 @@ delayed_operation::delayed_operation(std::chrono::milliseconds delay,
 void
 delayed_operation::operator()()
 {
-    threadpool::instance()->notify_thread_blocked();
-    std::this_thread::sleep_for(m_delay);
-    threadpool::instance()->notify_thread_unblocked();
-
     execute_operation_on_this_thread(*m_op);
 
     if (m_consumable) {
         m_consumable->consume_resource();
+    }
+
+    if (m_timer) {
+        m_timer->cancel();
+        m_timer.reset();
     }
 }
 

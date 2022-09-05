@@ -20,6 +20,7 @@
  */
 
 #include "xdispatch/impl/itimer_impl.h"
+#include "xdispatch/impl/cancelable.h"
 #include "xdispatch/impl/iqueue_impl.h"
 
 #include "naive_threadpool.h"
@@ -40,9 +41,14 @@ public:
       , m_queue(queue)
       , m_handler()
       , m_running(0)
+      , m_cancelable()
     {}
 
-    ~timer_impl() override { timer_impl::suspend(); }
+    ~timer_impl() override
+    {
+        std::lock_guard<std::mutex> lock(m_CS);
+        m_running = 0;
+    }
 
     void interval(std::chrono::milliseconds interval) final
     {
@@ -89,11 +95,26 @@ public:
                 const auto handler = this_ptr->m_handler;
                 const auto interval = this_ptr->m_interval;
                 const auto queue = this_ptr->m_queue;
+                auto& cancelable = this_ptr->m_cancelable;
 
                 inverse_lock_guard<std::mutex> unlock(this_ptr->m_CS);
-                queue->async(handler);
 
-                std::this_thread::sleep_for(interval);
+                barrier_operation barrier;
+                queue->async(make_operation([handler, &barrier, &cancelable] {
+                    cancelable_scope scope(cancelable);
+                    if (scope) {
+                        execute_operation_on_this_thread(*handler);
+                    }
+                    barrier();
+                }));
+                barrier.wait();
+
+                if (interval.count() > 0) {
+                    std::this_thread::sleep_for(interval);
+                } else {
+                    // singleshot timer
+                    break;
+                }
             }
             threadpool::instance()->notify_thread_unblocked();
         });
@@ -108,6 +129,15 @@ public:
         --m_running;
     }
 
+    void cancel() override
+    {
+        {
+            std::lock_guard<std::mutex> lock(m_CS);
+            m_running = 0;
+        }
+        m_cancelable.disable(m_queue);
+    }
+
     backend_type backend() final { return m_backend; }
 
 private:
@@ -117,6 +147,7 @@ private:
     iqueue_impl_ptr m_queue;
     operation_ptr m_handler;
     int m_running;
+    cancelable m_cancelable;
 };
 
 itimer_impl_ptr

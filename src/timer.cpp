@@ -55,6 +55,12 @@ timer::resume(std::chrono::milliseconds d)
 }
 
 void
+timer::cancel()
+{
+    m_impl->cancel();
+}
+
+void
 timer::handler(const operation_ptr& op)
 {
     queue_operation_with_d(*op, m_target_queue.implementation().get());

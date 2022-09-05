@@ -58,7 +58,7 @@ XDISPATCH_DECLARE_BACKEND(libdispatch)
 
 __XDISPATCH_BEGIN_NAMESPACE
 
-static ibackend&
+ibackend&
 backend_for_type(backend_type type)
 {
     switch (type) {

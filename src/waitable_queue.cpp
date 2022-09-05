@@ -24,6 +24,7 @@
 #include "xdispatch_internal.h"
 #include "xdispatch/waitable_queue.h"
 #include "xdispatch/impl/iqueue_impl.h"
+#include "xdispatch/impl/itimer_impl.h"
 #include "trace_utils.h"
 #include "naive/naive_operations.h"
 
@@ -123,7 +124,9 @@ private:
     bool m_active;
 };
 
-class waitable_queue::impl : public iqueue_impl
+class waitable_queue::impl
+  : public std::enable_shared_from_this<waitable_queue::impl>
+  , public iqueue_impl
 {
 public:
     impl(const queue& inner_queue)
@@ -152,7 +155,13 @@ public:
     void after(std::chrono::milliseconds delay,
                const operation_ptr& op) override
     {
-        async(std::make_shared<naive::delayed_operation>(delay, op));
+        auto timer =
+          backend_for_type(backend()).create_timer(shared_from_this());
+        timer->handler(make_operation([op, timer] {
+            execute_operation_on_this_thread(*op);
+            timer->cancel();
+        }));
+        timer->resume(delay);
     }
 
     backend_type backend() override

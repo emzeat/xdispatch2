@@ -23,7 +23,6 @@
 
 #include "naive_backend_internal.h"
 #include "naive_operation_queue.h"
-#include "../thread_utils.h"
 #include "naive_threadpool.h"
 
 #include <thread>
@@ -33,7 +32,9 @@
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive {
 
-class serial_queue_impl : public iqueue_impl
+class serial_queue_impl
+  : public std::enable_shared_from_this<serial_queue_impl>
+  , public iqueue_impl
 {
 public:
     serial_queue_impl(const ithreadpool_ptr& threadpool,
@@ -67,7 +68,9 @@ public:
 
     void after(std::chrono::milliseconds delay, const operation_ptr& op) final
     {
-        async(std::make_shared<delayed_operation>(delay, op));
+        auto timer =
+          backend_for_type(m_backend).create_timer(shared_from_this());
+        delayed_operation::create_and_dispatch(std::move(timer), delay, op);
     }
 
     backend_type backend() final { return m_backend; }

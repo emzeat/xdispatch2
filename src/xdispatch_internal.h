@@ -75,6 +75,7 @@ constexpr const char k_label_global_BACKGROUND[] =
 #include "../include/xdispatch/group.h"
 #include "../include/xdispatch/timer.h"
 #include "../include/xdispatch/socket_notifier.h"
+#include "../include/xdispatch/impl/ibackend.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 
@@ -84,6 +85,9 @@ void
 execute_operation_on_this_thread(operation&);
 bool
 operation_is_run_with_d(void const* const);
+
+ibackend&
+backend_for_type(backend_type type);
 
 __XDISPATCH_END_NAMESPACE
 

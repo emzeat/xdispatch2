@@ -129,6 +129,20 @@ public:
     void suspend();
 
     /**
+      @brief Cancels the timer
+
+      When the timer has been cancelled no further handler invocations will
+      be queued upon a subsequent timeout.
+
+      A cancelled timer cannot be reused again.
+
+      This is safe to be invoked recursively, i.e. from within
+      an active handler call in which case the current call will
+      complete but no further calls be made.
+    */
+    void cancel();
+
+    /**
         @brief assignment operator
      */
     timer& operator=(const timer&) = default;

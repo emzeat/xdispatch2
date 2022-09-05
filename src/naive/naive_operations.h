@@ -57,19 +57,29 @@ private:
 
 /**
     @brief An operation delaying the execution of
-           another through simple blocking
+           another by using a provided timer
+
+    The operation takes ownership of the timer and
+    will cancel/release it when completed
  */
 class delayed_operation : public operation
 {
 public:
     /**
-       @param delay The time to block and hence delay op
+       @brief Do not use, public to support std::make_shared
+     */
+    delayed_operation(itimer_impl_ptr&& timer,
+                      const operation_ptr& op,
+                      const consumable_ptr& consumable = consumable_ptr());
+
+    /**
+       @param timer The timer used for delayed execution
        @param op The operation to be executed after delay
        @param consumable The consumable to notify when done
      */
-    delayed_operation(std::chrono::milliseconds delay,
-                      const operation_ptr& op,
-                      const consumable_ptr& consumable = consumable_ptr());
+    static void create_and_dispatch(itimer_impl_ptr&& timer,
+                                    std::chrono::milliseconds delay,
+                                    const operation_ptr& op);
 
     /**
         @copydoc operation::operator()()
@@ -77,7 +87,7 @@ public:
     void operator()() final;
 
 private:
-    const std::chrono::milliseconds m_delay;
+    itimer_impl_ptr m_timer;
     const operation_ptr m_op;
     const consumable_ptr m_consumable;
 };

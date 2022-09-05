@@ -101,7 +101,11 @@ public:
         dispatch_resume(m_native);
     }
 
-    void suspend() override { dispatch_suspend(m_native); }
+    void suspend() final { dispatch_suspend(m_native); }
+
+    void cancel() final {
+        dispatch_source_cancel(m_native);
+    }
 
     backend_type backend() final { return backend_type::libdispatch; }
 

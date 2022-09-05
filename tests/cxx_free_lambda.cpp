@@ -42,6 +42,12 @@ public:
         ++m_ref_ct;
     }
 
+    ToBeFreed(ToBeFreed&& other)
+      : m_ref_ct(other.m_ref_ct)
+    {
+        ++m_ref_ct;
+    }
+
     ~ToBeFreed() { --m_ref_ct; }
 
     void someFunction() const
@@ -58,6 +64,9 @@ dispatch_outer()
     ToBeFreed outer(s_ref_outer);
     ToBeFreed inner(s_ref_inner);
 
+    MU_ASSERT_EQUAL(s_ref_outer, 1);
+    MU_ASSERT_EQUAL(s_ref_inner, 1);
+
     cxx_global_queue().apply(10, [inner](size_t) {
         inner.someFunction();
         ++s_loop_counter;
@@ -67,6 +76,9 @@ dispatch_outer()
     // but it must not have been freed by then, this may still be
     // in progress. Hence give the system a moment to settle.
     MU_SLEEP(1);
+
+    MU_ASSERT_EQUAL(s_ref_outer, 1);
+    MU_ASSERT_EQUAL(s_ref_inner, 1);
 
     cxx_main_queue().async([outer] {
         MU_ASSERT_EQUAL(s_loop_counter, 10);
