@@ -70,6 +70,14 @@ public:
      */
     static size_t system_thread_count();
 
+    /**
+        @brief CPU relax instruction
+
+        This is meant to optimize access to a resource blocked by another
+        CPU but known to become available within a few instructions
+     */
+    static void cpu_relax();
+
 private:
     thread_utils() = delete;
 };

@@ -27,7 +27,7 @@
 
 #if (defined XDISPATCH2_HAVE_DLSYM)
     #include <dlfcn.h>
-#elif (defined XDISPATCH2_GET_PROC_ADDRESS)
+#elif (defined XDISPATCH2_HAVE_GET_PROC_ADDRESS)
     /* Reduces build time by omitting extra system headers */
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
@@ -60,7 +60,7 @@ public:
             dlclose(handle);
             return function;
         }
-#elif (defined XDISPATCH2_GET_PROC_ADDRESS)
+#elif (defined XDISPATCH2_HAVE_GET_PROC_ADDRESS)
         // first search all loaded modules
         DWORD modCount = 0;
         HANDLE process = GetCurrentProcess();

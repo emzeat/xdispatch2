@@ -21,6 +21,7 @@
 
 cmake_minimum_required(VERSION 3.10)
 include(CheckSymbolExists)
+include(CheckIncludeFile)
 project(xdispatch2)
 
 # build scripts
@@ -49,7 +50,8 @@ check_symbol_exists( WSASocket "winsock2.h" XDISPATCH2_HAVE_WINSOCK2 )
 set(CMAKE_REQUIRED_LIBRARIES dl)
 check_symbol_exists( dlsym "dlfcn.h" XDISPATCH2_HAVE_DLSYM )
 unset(CMAKE_REQUIRED_LIBRARIES)
-check_symbol_exists( GetProcAddress "windows.h" XDISPATCH2_GET_PROC_ADDRESS )
+check_symbol_exists( GetProcAddress "windows.h" XDISPATCH2_HAVE_GET_PROC_ADDRESS )
+check_include_file( "immintrin.h" XDISPATCH2_HAVE_IMMINTRIN_H )
 
 # build options
 set(BUILD_XDISPATCH2_BACKEND_NAIVE ON)

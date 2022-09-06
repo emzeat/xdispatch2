@@ -22,7 +22,7 @@
 #include <thread>
 
 #include "naive_semaphore.h"
-#include "../trace_utils.h"
+#include "../thread_utils.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive {
@@ -36,7 +36,12 @@ semaphore::semaphore(int count)
 bool
 semaphore::try_acquire()
 {
-    auto old_count = m_count.load();
+    // use consume semantics since we do not require a full
+    // write barrier here but only depend on any changes to
+    // m_count to be visible. The full barrier will be issued
+    // by compare_exchange_weak below instead and would only
+    // be duplicated if done up here as well.
+    auto old_count = m_count.load(std::memory_order_consume);
     do {
         XDISPATCH_ASSERT(old_count >= 0);
         if (0 == old_count) {
@@ -56,7 +61,22 @@ semaphore::spin_acquire(int spins)
             return true;
         }
 
-        std::this_thread::yield();
+        // note discussions linked at
+        // https://en.cppreference.com/w/cpp/atomic/atomic_flag most notably
+        // https://www.realworldtech.com/forum/?threadid=189711&curpostid=189723
+        // which comes to the conclusion that doing sched_yield may be far from
+        // ideal on SMP systems and actually be worse than suspending the thread
+        // on a mutex especially considering this involves a syscall.
+        //
+        // So instead try to follow
+        // https://www.realworldtech.com/forum/?threadid=189711&curpostid=189755
+        // which basically suggests to do a plain read + relax operation instead
+        // to avoid stumping on cache lines while just waiting on the counter to
+        // be increased.
+        while (0 == m_count.load(std::memory_order_consume) && i < spins) {
+            thread_utils::cpu_relax();
+            ++i;
+        }
     }
     return false;
 }

@@ -45,6 +45,10 @@
     #include <unistd.h>
 #endif
 
+#if (defined XDISPATCH2_HAVE_IMMINTRIN_H)
+    #include <immintrin.h>
+#endif
+
 #if (defined XDISPATCH2_HAVE_GET_SYSTEM_INFO)
     /* Reduces build time by omitting extra system headers */
     #define WIN32_LEAN_AND_MEAN
@@ -243,6 +247,19 @@ thread_utils::system_thread_count()
     XDISPATCH_TRACE()
       << "system_thread_count using hardcoded default on this platform";
     return 2;
+}
+
+void
+thread_utils::cpu_relax()
+{
+#if defined(XDISPATCH2_HAVE_IMMINTRIN_H)
+    _mm_pause();
+#elif (defined(__arm__) && defined(_ARM_ARCH_7) && defined(__thumb__)) ||      \
+  defined(__arm64__)
+    __asm__("yield");
+#else
+    __asm__("");
+#endif
 }
 
 __XDISPATCH_END_NAMESPACE
