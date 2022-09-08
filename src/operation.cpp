@@ -84,8 +84,4 @@ operation_is_run_with_d(void const* const d)
     return (d == current_d);
 }
 
-operation::operation()
-  : m_d(nullptr)
-{}
-
 __XDISPATCH_END_NAMESPACE

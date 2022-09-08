@@ -27,55 +27,23 @@
  * @{
  */
 
-#include "platform.h"
 #include "dispatch_decl.h"
 
 #include <string>
 #include <memory>
+#include <atomic>
 
 __XDISPATCH_BEGIN_NAMESPACE
 
-/**
-  An operation is a functor used to
-  define single portions of work to be
-  dispatched to a single queue.
-
-  Derive from this class and implement
-  the operator to create specific operations
-  that can be executed on a queue.
-  */
-class XDISPATCH_EXPORT operation
-{
-public:
-    operation();
-    operation(const operation& other) = delete;
-
-    virtual ~operation() = default;
-
-protected:
-    /**
-        Will be invoked when the operation gets executed
-        after it had been queued.
-     */
-    virtual void operator()() = 0;
-
-private:
-    // opaque data pointer for internal book keeping
-    void* m_d;
-    friend void queue_operation_with_d(operation&, void*);
-    friend XDISPATCH_EXPORT void execute_operation_on_this_thread(operation&);
-};
-
-using operation_ptr = std::shared_ptr<operation>;
+class operation;
+template<typename... Params>
+class parameterized_operation;
 
 /**
   Will synchronously execute the given operation on the current thread
   */
 XDISPATCH_EXPORT void
 execute_operation_on_this_thread(operation&);
-
-template<typename... Params>
-class parameterized_operation;
 
 /**
   Will synchronously execute the given operation on the current thread
@@ -93,6 +61,56 @@ template<typename... Params>
 void
 queue_operation_with_d(parameterized_operation<Params...>&, void*);
 
+/**
+   @brief Common base class shared with all operations
+ */
+class XDISPATCH_EXPORT base_operation
+{
+public:
+    base_operation(const base_operation& other) = delete;
+
+protected:
+    base_operation() = default;
+    ~base_operation() = default;
+
+    // opaque data pointer for internal book keeping
+    void* m_d{ nullptr };
+};
+
+/**
+  An operation is a functor used to
+  define single portions of work to be
+  dispatched to a single queue.
+
+  Derive from this class and implement
+  the operator to create specific operations
+  that can be executed on a queue.
+  */
+class XDISPATCH_EXPORT operation : public base_operation
+{
+public:
+    operation() = default;
+
+    virtual ~operation() = default;
+
+protected:
+    /**
+        Will be invoked when the operation gets executed
+        after it had been queued.
+     */
+    virtual void operator()() = 0;
+
+private:
+    // allow access to internals
+    friend void queue_operation_with_d(operation&, void*);
+    friend XDISPATCH_EXPORT void execute_operation_on_this_thread(operation&);
+};
+
+using operation_ptr = std::shared_ptr<operation>;
+template<typename... Params>
+using parameterized_operation_ptr =
+  std::shared_ptr<parameterized_operation<Params...>>;
+
 template<typename Func, typename... Params>
 class function_parameterized_operation;
 
@@ -107,27 +125,23 @@ class member_parameterized_operation;
   functor is executed on a queue.
   */
 template<typename... Params>
-class parameterized_operation
+class parameterized_operation : public base_operation
 {
 public:
-    inline parameterized_operation()
-      : m_d(nullptr)
-    {}
+    parameterized_operation() = default;
 
     virtual ~parameterized_operation() = default;
 
-    inline static std::shared_ptr<parameterized_operation<Params...>> make(
-      const std::shared_ptr<parameterized_operation<Params...>>& op)
+    inline static parameterized_operation_ptr<Params...> make(
+      const parameterized_operation_ptr<Params...>& op)
     {
         return op;
     }
 
     template<typename Func>
     inline static typename std::enable_if<
-      !std::is_convertible<
-        Func,
-        std::shared_ptr<parameterized_operation<Params...>>>::value,
-      std::shared_ptr<parameterized_operation<Params...>>>::type
+      !std::is_convertible<Func, parameterized_operation_ptr<Params...>>::value,
+      parameterized_operation_ptr<Params...>>::type
     make(const Func& f)
     {
         return std::make_shared<
@@ -135,7 +149,7 @@ public:
     }
 
     template<class T>
-    inline static std::shared_ptr<parameterized_operation<Params...>> make(
+    inline static parameterized_operation_ptr<Params...> make(
       T* object,
       void (T::*function)(Params...))
     {
@@ -154,8 +168,7 @@ protected:
     virtual void operator()(Params... params) = 0;
 
 private:
-    // opaque data pointer for internal book keeping
-    void* m_d;
+    // allow access to internals
     friend void queue_operation_with_d<Params...>(
       parameterized_operation<Params...>&,
       void*);
