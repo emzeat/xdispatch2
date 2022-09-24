@@ -22,7 +22,7 @@
 #ifndef XDISPATCH_NAIVE_CONSUMABLE_H_
 #define XDISPATCH_NAIVE_CONSUMABLE_H_
 
-#include "xdispatch/barrier_operation.h"
+#include "xdispatch/impl/lightweight_barrier.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive {
@@ -85,7 +85,7 @@ public:
 private:
     const consumable_ptr m_preceeding;
     std::atomic<size_t> m_resources;
-    barrier_operation m_barrier;
+    lightweight_barrier m_barrier;
 };
 
 } // namespace naive

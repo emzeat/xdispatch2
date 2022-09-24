@@ -99,13 +99,13 @@ public:
 
                 inverse_lock_guard<std::mutex> unlock(this_ptr->m_CS);
 
-                barrier_operation barrier;
+                lightweight_barrier barrier;
                 queue->async(make_operation([handler, &barrier, &cancelable] {
                     cancelable_scope scope(cancelable);
                     if (scope) {
                         execute_operation_on_this_thread(*handler);
                     }
-                    barrier();
+                    barrier.complete();
                 }));
                 barrier.wait();
 

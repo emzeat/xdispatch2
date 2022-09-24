@@ -20,6 +20,8 @@
  */
 
 #include <list>
+#include <condition_variable>
+#include <mutex>
 
 #include "xdispatch_internal.h"
 #include "xdispatch/waitable_queue.h"
