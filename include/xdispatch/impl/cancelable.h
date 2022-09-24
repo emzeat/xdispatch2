@@ -29,7 +29,8 @@
  * @{
  */
 
-#include "xdispatch/dispatch.h"
+#include "xdispatch/dispatch_decl.h"
+#include "xdispatch/impl/lightweight_barrier.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 
@@ -64,29 +65,18 @@ public:
     /**
        Marks the entity as not to be queued anywhere,
        i.e. sets it to active_disabled
-       @param executor_queue The queue on which the entity would be executed
     */
-    void disable(const queue& executor_queue);
+    void disable();
 
-    /**
-       Marks the entity as not to be queued anywhere,
-       i.e. sets it to active_disabled
-       @param executor_queue The queue on which the entity would be executed
-    */
-    void disable(const iqueue_impl_ptr& executor_queue);
-
-    /**
-        Marks the entity as having been queued,
-        i.e. sets it to active_enabled
-    */
-    void enable();
+protected:
+    friend class cancelable_scope;
 
     /**
         Notifies the entity that it is about to be called,
         i.e. sets it to active_running if the entity had been enabled
 
         Make sure to balance this with calls to leave().
-        It is recommended to not invoket his directly but go through
+        It is recommended to not invoke this directly but go through
         cancelable_scope instead which manages this for you.
 
         @returns true if the entity had been active_enabled
@@ -103,6 +93,8 @@ public:
 private:
     // the current state of the handler
     std::atomic<active_state> m_active;
+    // barrier to ensure defined cancellation
+    lightweight_barrier m_barrier;
 };
 
 /**

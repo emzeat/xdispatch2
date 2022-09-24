@@ -244,12 +244,8 @@ protected:
         connection_handler(const queue& q, notification_mode m);
 
         /// Marks the handler as not to be queued anywhere,
-        /// i.e. sets it to active_disabled
+        /// i.e. makes sure it is not executed anymore
         void disable();
-
-        /// Marks the handler as having been queued,
-        /// i.e. sets it to active_enabled
-        void enable();
 
         // the queue to execute the handler on
         const queue m_queue;
@@ -394,7 +390,6 @@ public:
         for (const connection_handler_ptr& handler : m_handlers) {
             auto pending = handler->m_pending++;
             if (notification_mode::_synchronous_update == handler->m_mode) {
-                handler->enable();
                 cancelable_scope cancel_scope(handler->m_active);
                 if (cancel_scope) {
                     handler->m_pending--;
@@ -403,7 +398,6 @@ public:
                 }
             } else if (notification_mode::single_updates == handler->m_mode ||
                        pending < 1) {
-                handler->enable();
                 auto invocation = [=] {
                     cancelable_scope cancel_scope(handler->m_active);
                     if (cancel_scope) {

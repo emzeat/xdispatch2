@@ -171,13 +171,7 @@ signal_p::connection_handler::connection_handler(const queue& q,
 void
 signal_p::connection_handler::disable()
 {
-    m_active.disable(m_queue);
-}
-
-void
-signal_p::connection_handler::enable()
-{
-    m_active.enable();
+    m_active.disable();
 }
 
 signal_p::signal_p(const group& g)

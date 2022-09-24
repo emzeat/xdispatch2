@@ -135,7 +135,7 @@ public:
             std::lock_guard<std::mutex> lock(m_CS);
             m_running = 0;
         }
-        m_cancelable.disable(m_queue);
+        m_cancelable.disable();
     }
 
     backend_type backend() final { return m_backend; }
