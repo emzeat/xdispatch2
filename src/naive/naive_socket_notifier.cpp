@@ -200,7 +200,7 @@ public:
             m_resume_counter = -1;
             ++m_worker_cookie;
         }
-        m_handler_cancelable.disable(m_queue);
+        m_handler_cancelable.disable();
     }
 
     socket_t socket() const final { return m_socket; }

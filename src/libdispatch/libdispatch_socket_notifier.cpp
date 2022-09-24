@@ -99,7 +99,7 @@ public:
     void cancel() final
     {
         dispatch_source_cancel(m_native);
-        m_active.disable(m_queue);
+        m_active.disable();
     }
 
     socket_t socket() const final { return m_socket; }
