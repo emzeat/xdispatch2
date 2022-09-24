@@ -19,46 +19,30 @@
  * limitations under the License.
  */
 
-#include "xdispatch_internal.h"
 #include "xdispatch/barrier_operation.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 
 barrier_operation::barrier_operation()
   : operation()
-  , m_should_wait(true)
-  , m_mutex()
-  , m_cond()
 {}
 
 bool
 barrier_operation::wait(std::chrono::milliseconds timeout)
 {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    if (m_should_wait) {
-        if (std::chrono::milliseconds(-1) != timeout) {
-            return m_cond.wait_for(
-              lock, timeout, [this] { return !m_should_wait; });
-        }
-        m_cond.wait(lock, [this] { return !m_should_wait; });
-        return true;
-    }
-    return true;
+    return m_barrier.wait(timeout);
 }
 
 bool
 barrier_operation::has_passed() const
 {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    return !m_should_wait;
+    return m_barrier.was_completed();
 }
 
 void
 barrier_operation::operator()()
 {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    m_should_wait = false;
-    m_cond.notify_all();
+    m_barrier.complete();
 }
 
 __XDISPATCH_END_NAMESPACE

@@ -30,7 +30,7 @@
 #include <tuple>
 
 #include "xdispatch/signals.h"
-#include "xdispatch/barrier_operation.h"
+#include "xdispatch/impl/lightweight_barrier.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 
@@ -96,7 +96,7 @@ public:
       , m_connection(signal.connect([this](Args... values) {
           m_values.set(values...);
           m_connection.disconnect();
-          m_barrier();
+          m_barrier.complete();
       }))
     {}
 
@@ -127,7 +127,7 @@ public:
      */
     inline std::tuple<Args...> values() const
     {
-        if (m_barrier.has_passed()) {
+        if (m_barrier.was_completed()) {
             return m_values.get();
         }
         throw std::runtime_error("Barrier was not signalled yet");
@@ -153,7 +153,7 @@ public:
 
 private:
     signal<void(Args...)>& m_signal;
-    barrier_operation m_barrier;
+    lightweight_barrier m_barrier;
     scoped_connection m_connection;
     value_holder<0> m_values;
 };

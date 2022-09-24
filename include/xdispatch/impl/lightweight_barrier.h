@@ -1,5 +1,5 @@
 /*
- * barrier_operation.h
+ * lightweight_barrier.h
  *
  * Copyright (c) 2011 - 2022 Marius Zwicker
  * All rights reserved.
@@ -19,22 +19,27 @@
  * limitations under the License.
  */
 
-#ifndef XDISPATCH_BARRIER_OPERATION_H_
-#define XDISPATCH_BARRIER_OPERATION_H_
+#ifndef XDISPATCH_LIGHWEIGHT_BARRIER_H_
+#define XDISPATCH_LIGHWEIGHT_BARRIER_H_
 
-#include "xdispatch/operation.h"
-#include "xdispatch/impl/lightweight_barrier.h"
+#include <atomic>
+
+/**
+ * @addtogroup xdispatch
+ * @{
+ */
+
+#include "xdispatch/dispatch_decl.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
 
-/**
- * @brief Implements a barrier operation which may be used to synchronize
- *        with the execution of an operation
- */
-class XDISPATCH_EXPORT barrier_operation : public operation
+class XDISPATCH_EXPORT lightweight_barrier
 {
 public:
-    barrier_operation();
+    class waiter;
+
+    lightweight_barrier();
+    ~lightweight_barrier();
 
     /**
         @brief Will wait for the operation to be executed
@@ -51,22 +56,22 @@ public:
       std::chrono::milliseconds timeout = std::chrono::milliseconds(-1));
 
     /**
-        @returns true if the operation was already executed.
+       @brief Completes the barrier
+     */
+    void complete();
+
+    /**
+        @returns true if the barrier was completed.
 
         This is identical to calling wait( std::chrono::milliseconds( 0 ) )
         but implemented in a slightly more efficient manner
      */
-    bool has_passed() const;
-
-    /**
-        @copydoc operation::operator()()
-     */
-    void operator()() final;
+    bool was_completed() const;
 
 private:
-    lightweight_barrier m_barrier;
+    std::atomic<waiter*> m_owner;
 };
 
 __XDISPATCH_END_NAMESPACE
 
-#endif // XDISPATCH_BARRIER_OPERATION_H_
+#endif /* XDISPATCH_LIGHWEIGHT_BARRIER_H_ */

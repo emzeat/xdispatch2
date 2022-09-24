@@ -135,8 +135,6 @@ add_library( xdispatch ${XDISPATCH_BUILD_TYPE}
     ${CXX}
     ${CXX_NAIVE}
 )
-mz_target_props( xdispatch )
-mz_auto_format( xdispatch )
 target_link_libraries( xdispatch
     PRIVATE ${LIBS}
 )
@@ -256,6 +254,9 @@ if( BUILD_XDISPATCH2_BACKEND_QT5 )
     )
 endif()
 
+# finalize xdispatch properties considering all sources added lazily
+mz_target_props( xdispatch )
+mz_auto_format( xdispatch )
 
 if(BUILD_XDISPATCH2_TESTS)
     mz_add_executable(xdispatch2_tests tests)

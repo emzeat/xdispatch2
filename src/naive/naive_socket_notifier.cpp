@@ -155,7 +155,7 @@ public:
                     const auto queue = this_ptr->m_queue;
                     auto& handler_cancelable = this_ptr->m_handler_cancelable;
 
-                    barrier_operation barrier;
+                    lightweight_barrier barrier;
                     queue->async(make_operation(
                       [handler, socket, type, &barrier, &handler_cancelable] {
                           cancelable_scope scope(handler_cancelable);
@@ -163,7 +163,7 @@ public:
                               execute_operation_on_this_thread(
                                 *handler, socket, type);
                           }
-                          barrier();
+                          barrier.complete();
                       }));
                     barrier.wait();
                 } else {

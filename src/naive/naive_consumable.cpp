@@ -46,7 +46,7 @@ consumable::consume_resource()
     // the count is one at the time of this call
     // we can complete the barrier
     if (1 == m_resources.fetch_sub(size_t(1))) {
-        m_barrier();
+        m_barrier.complete();
     }
 }
 
