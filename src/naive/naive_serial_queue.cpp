@@ -51,13 +51,15 @@ public:
 
     ~serial_queue_impl() override { m_queue->detach(); }
 
-    void async(const operation_ptr& op) final { m_queue->async(op); }
+    void async(const queued_operation& op) final { m_queue->async(op); }
 
     void apply(size_t times, const iteration_operation_ptr& op) final
     {
         const auto completed = std::make_shared<consumable>(times);
         for (size_t i = 0; i < times; ++i) {
-            async(std::make_shared<apply_operation>(i, op, completed));
+            operation_ptr operation =
+              std::make_shared<apply_operation>(i, op, completed);
+            async(std::move(operation));
         }
         completed->wait_for_consumed();
 
@@ -66,7 +68,8 @@ public:
         //                 an operation active on this very same queue
     }
 
-    void after(std::chrono::milliseconds delay, const operation_ptr& op) final
+    void after(std::chrono::milliseconds delay,
+               const queued_operation& op) final
     {
         auto timer =
           backend_for_type(m_backend).create_timer(shared_from_this());

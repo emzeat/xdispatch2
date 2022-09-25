@@ -42,8 +42,8 @@ group::async(const operation_ptr& op, const queue& q) const
         trace_utils::assert_same_backend(m_impl->backend(), q_impl->backend());
     }
 
-    queue_operation_with_d(*op, q_impl.get());
-    m_impl->async(op, q_impl);
+    auto queued_op = queue_operation_with_target(op, q_impl.get());
+    m_impl->async(std::move(queued_op), q_impl);
 }
 
 void
@@ -62,8 +62,8 @@ group::notify(const operation_ptr& op, const queue& q) const
         trace_utils::assert_same_backend(m_impl->backend(), q_impl->backend());
     }
 
-    queue_operation_with_d(*op, q_impl.get());
-    m_impl->notify(op, q_impl);
+    auto queued_op = queue_operation_with_target(op, q_impl.get());
+    m_impl->notify(std::move(queued_op), q_impl);
 }
 
 bool

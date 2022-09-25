@@ -76,7 +76,7 @@ public:
         dispatch_source_set_timer(m_native, m_delay, m_interval, m_latency);
     }
 
-    void handler(const operation_ptr& op) final
+    void handler(const queued_operation& op) final
     {
         m_wrapper.reset(new operation_wrap(op));
         dispatch_set_context(m_native, m_wrapper.get());
@@ -103,9 +103,7 @@ public:
 
     void suspend() final { dispatch_suspend(m_native); }
 
-    void cancel() final {
-        dispatch_source_cancel(m_native);
-    }
+    void cancel() final { dispatch_source_cancel(m_native); }
 
     backend_type backend() final { return backend_type::libdispatch; }
 

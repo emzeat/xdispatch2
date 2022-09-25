@@ -39,11 +39,20 @@ class operation;
 template<typename... Params>
 class parameterized_operation;
 
+using operation_ptr = std::shared_ptr<operation>;
+template<typename... Params>
+using parameterized_operation_ptr =
+  std::shared_ptr<parameterized_operation<Params...>>;
+
+class queued_operation;
+template<typename... Params>
+using queued_parameterized_operation = parameterized_operation_ptr<Params...>;
+
 /**
   Will synchronously execute the given operation on the current thread
   */
 XDISPATCH_EXPORT void
-execute_operation_on_this_thread(operation&);
+execute_operation_on_this_thread(const operation_ptr&);
 
 /**
   Will synchronously execute the given operation on the current thread
@@ -51,15 +60,21 @@ execute_operation_on_this_thread(operation&);
   */
 template<typename... Params>
 XDISPATCH_EXPORT void
-execute_operation_on_this_thread(parameterized_operation<Params...>&,
+execute_operation_on_this_thread(const parameterized_operation_ptr<Params...>&,
                                  Params... params);
 
 /**
-  Private Internal Function
+  Private Internal Functions
 */
 template<typename... Params>
+queued_parameterized_operation<Params...>
+queue_operation_with_target(const parameterized_operation_ptr<Params...>&,
+                            void*);
+template<typename... Params>
 void
-queue_operation_with_d(parameterized_operation<Params...>&, void*);
+execute_operation_on_this_thread(
+  const queued_parameterized_operation<Params...>&,
+  Params... params);
 
 /**
    @brief Common base class shared with all operations
@@ -72,9 +87,6 @@ public:
 protected:
     base_operation() = default;
     ~base_operation() = default;
-
-    // opaque data pointer for internal book keeping
-    void* m_d{ nullptr };
 };
 
 /**
@@ -102,14 +114,10 @@ protected:
 
 private:
     // allow access to internals
-    friend void queue_operation_with_d(operation&, void*);
-    friend XDISPATCH_EXPORT void execute_operation_on_this_thread(operation&);
+    friend queued_operation queue_operation_with_target(const operation_ptr&,
+                                                        void*);
+    friend void execute_operation_on_this_thread(const queued_operation&);
 };
-
-using operation_ptr = std::shared_ptr<operation>;
-template<typename... Params>
-using parameterized_operation_ptr =
-  std::shared_ptr<parameterized_operation<Params...>>;
 
 template<typename Func, typename... Params>
 class function_parameterized_operation;
@@ -169,11 +177,12 @@ protected:
 
 private:
     // allow access to internals
-    friend void queue_operation_with_d<Params...>(
-      parameterized_operation<Params...>&,
+    friend queued_parameterized_operation<Params...>
+    queue_operation_with_target<Params...>(
+      const parameterized_operation_ptr<Params...>&,
       void*);
-    friend XDISPATCH_EXPORT void execute_operation_on_this_thread<Params...>(
-      parameterized_operation<Params...>&,
+    friend void execute_operation_on_this_thread<Params...>(
+      const queued_parameterized_operation<Params...>&,
       Params...);
 };
 
@@ -303,23 +312,23 @@ private:
 template<class T>
 using member_iteration_operation = member_parameterized_operation<T, size_t>;
 
-inline iteration_operation_ptr
-make_iteration_operation(const iteration_operation_ptr& op)
+inline std::shared_ptr<iteration_operation>
+make_iteration_operation(const std::shared_ptr<iteration_operation>& op)
 {
     return iteration_operation::make(op);
 }
 
 template<typename Func>
 inline typename std::enable_if<
-  !std::is_convertible<Func, iteration_operation_ptr>::value,
-  iteration_operation_ptr>::type
+  !std::is_convertible<Func, std::shared_ptr<iteration_operation>>::value,
+  std::shared_ptr<iteration_operation>>::type
 make_iteration_operation(const Func& f)
 {
     return iteration_operation::make(f);
 }
 
 template<class T>
-inline iteration_operation_ptr
+inline std::shared_ptr<iteration_operation>
 make_iteration_operation(T* object, void (T::*function)(size_t))
 {
     return iteration_operation::make(object, function);

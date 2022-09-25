@@ -64,7 +64,7 @@ public:
     /**
         @copydoc IThreadPool::execute
      */
-    void execute(const operation_ptr& work,
+    void execute(const queued_operation& work,
                  queue_priority priority = queue_priority::DEFAULT) override;
 
 private:
@@ -72,7 +72,7 @@ private:
     const queue_priority m_priority;
     std::mutex m_CS;
     std::condition_variable m_cond;
-    std::vector<operation_ptr> m_queued_ops;
+    std::vector<queued_operation> m_queued_ops;
     bool m_cancelled;
 };
 

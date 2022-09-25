@@ -57,7 +57,7 @@ public:
         Sets the operation to dispatch onto the target queue whenever
         the timer becomes ready.
     */
-    virtual void handler(const operation_ptr& op) = 0;
+    virtual void handler(const queued_operation& op) = 0;
 
     /**
         Sets the queue the handler will be executed on

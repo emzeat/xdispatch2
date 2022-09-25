@@ -81,7 +81,7 @@ public:
           }
           cancelable_scope scope(m_active);
           if (scope) {
-              execute_operation_on_this_thread(*op_strong_ref, socket, type);
+              execute_operation_on_this_thread(op_strong_ref, socket, type);
           }
         });
     }

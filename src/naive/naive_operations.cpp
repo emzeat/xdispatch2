@@ -30,9 +30,10 @@
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive {
 
-apply_operation::apply_operation(size_t index,
-                                 const iteration_operation_ptr& op,
-                                 const consumable_ptr& consumable)
+apply_operation::apply_operation(
+  size_t index,
+  const queued_parameterized_operation<size_t>& op,
+  const consumable_ptr& consumable)
   : m_index(index)
   , m_op(op)
   , m_consumable(consumable)
@@ -41,7 +42,7 @@ apply_operation::apply_operation(size_t index,
 void
 apply_operation::operator()()
 {
-    execute_operation_on_this_thread(*m_op, m_index);
+    execute_operation_on_this_thread(m_op, m_index);
 
     if (m_consumable) {
         m_consumable->consume_resource();
@@ -51,7 +52,7 @@ apply_operation::operator()()
 void
 delayed_operation::create_and_dispatch(itimer_impl_ptr&& timer,
                                        std::chrono::milliseconds delay,
-                                       const operation_ptr& op)
+                                       const queued_operation& op)
 {
     // this is using a little trick to make the operation self hosted
     // while still ensuring the timer object gets released accordingly:
@@ -64,13 +65,14 @@ delayed_operation::create_and_dispatch(itimer_impl_ptr&& timer,
     //    ownership and ensuring a clean destruction sequence
 
     auto delayed_op = std::make_shared<delayed_operation>(std::move(timer), op);
+    auto queued_op = queue_operation_with_ctx(delayed_op, op.m_ctx);
 
-    delayed_op->m_timer->handler(delayed_op);
+    delayed_op->m_timer->handler(std::move(queued_op));
     delayed_op->m_timer->resume(delay);
 }
 
 delayed_operation::delayed_operation(itimer_impl_ptr&& timer,
-                                     const operation_ptr& op,
+                                     const queued_operation& op,
                                      const consumable_ptr& consumable)
   : m_timer(std::move(timer))
   , m_op(op)
@@ -80,7 +82,7 @@ delayed_operation::delayed_operation(itimer_impl_ptr&& timer,
 void
 delayed_operation::operator()()
 {
-    execute_operation_on_this_thread(*m_op);
+    execute_operation_on_this_thread(m_op);
 
     if (m_consumable) {
         m_consumable->consume_resource();
@@ -92,7 +94,7 @@ delayed_operation::operator()()
     }
 }
 
-consuming_operation::consuming_operation(const operation_ptr& op,
+consuming_operation::consuming_operation(const queued_operation& op,
                                          const consumable_ptr& consumable)
   : m_op(op)
   , m_consumable(consumable)
@@ -101,7 +103,7 @@ consuming_operation::consuming_operation(const operation_ptr& op,
 void
 consuming_operation::operator()()
 {
-    execute_operation_on_this_thread(*m_op);
+    execute_operation_on_this_thread(m_op);
 
     if (m_consumable) {
         m_consumable->consume_resource();

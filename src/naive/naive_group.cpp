@@ -43,12 +43,14 @@ public:
 
     ~group_impl() override = default;
 
-    void async(const operation_ptr& op, const iqueue_impl_ptr& q) final
+    void async(const queued_operation& op, const iqueue_impl_ptr& q) final
     {
         const auto c = std::atomic_load(&m_consumable);
         XDISPATCH_ASSERT(c);
         c->add_resource();
-        q->async(std::make_shared<consuming_operation>(op, c));
+
+        operation_ptr consuming = std::make_shared<consuming_operation>(op, c);
+        q->async(std::move(consuming));
     }
 
     bool wait(std::chrono::milliseconds timeout) final
@@ -74,7 +76,7 @@ public:
         //                 operations listed in the consumable
     }
 
-    void notify(const operation_ptr& op, const iqueue_impl_ptr& q) final
+    void notify(const queued_operation& op, const iqueue_impl_ptr& q) final
     {
         XDISPATCH_ASSERT(q);
 

@@ -19,7 +19,7 @@
  * limitations under the License.
  */
 
-#include "xdispatch/dispatch.h"
+#include "../xdispatch_internal.h"
 #include "naive_consumable.h"
 
 #ifndef XDISPATCH_NAIVE_OPERATIONS_H_
@@ -41,7 +41,7 @@ public:
        @param consumable The consumable to notify when done
      */
     apply_operation(size_t index,
-                    const iteration_operation_ptr& op,
+                    const queued_parameterized_operation<size_t>& op,
                     const consumable_ptr& consumable = consumable_ptr());
 
     /**
@@ -51,7 +51,7 @@ public:
 
 private:
     const size_t m_index;
-    const iteration_operation_ptr m_op;
+    const queued_parameterized_operation<size_t> m_op;
     const consumable_ptr m_consumable;
 };
 
@@ -69,7 +69,7 @@ public:
        @brief Do not use, public to support std::make_shared
      */
     delayed_operation(itimer_impl_ptr&& timer,
-                      const operation_ptr& op,
+                      const queued_operation& op,
                       const consumable_ptr& consumable = consumable_ptr());
 
     /**
@@ -79,7 +79,7 @@ public:
      */
     static void create_and_dispatch(itimer_impl_ptr&& timer,
                                     std::chrono::milliseconds delay,
-                                    const operation_ptr& op);
+                                    const queued_operation& op);
 
     /**
         @copydoc operation::operator()()
@@ -88,7 +88,7 @@ public:
 
 private:
     itimer_impl_ptr m_timer;
-    const operation_ptr m_op;
+    const queued_operation m_op;
     const consumable_ptr m_consumable;
 };
 
@@ -102,7 +102,7 @@ public:
        @param op The operation to be executed
        @param consumable The consumable to notify when done
      */
-    consuming_operation(const operation_ptr& op,
+    consuming_operation(const queued_operation& op,
                         const consumable_ptr& consumable);
 
     /**
@@ -111,7 +111,7 @@ public:
     void operator()() final;
 
 private:
-    const operation_ptr m_op;
+    const queued_operation m_op;
     const consumable_ptr m_consumable;
 };
 

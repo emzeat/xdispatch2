@@ -42,22 +42,22 @@ ThreadPoolProxy::~ThreadPoolProxy()
 }
 
 void
-ThreadPoolProxy::execute(const operation_ptr& work,
+ThreadPoolProxy::execute(const queued_operation& work,
                          const queue_priority priority)
 {
     class OperationRunnable : public QRunnable
     {
     public:
-        OperationRunnable(const operation_ptr& op)
+        OperationRunnable(const queued_operation& op)
           : m_operation(op)
         {
             setAutoDelete(true);
         }
 
-        void run() final { execute_operation_on_this_thread(*m_operation); }
+        void run() final { execute_operation_on_this_thread(m_operation); }
 
     private:
-        const operation_ptr m_operation;
+        const queued_operation m_operation;
     };
 
     int p = 0;

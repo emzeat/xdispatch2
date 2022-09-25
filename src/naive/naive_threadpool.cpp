@@ -56,7 +56,7 @@ public:
     // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
     std::atomic<int> m_idle_threads;
     // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
-    std::array<concurrentqueue<operation_ptr>, bucket_count> m_operations;
+    std::array<concurrentqueue<queued_operation>, bucket_count> m_operations;
     // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
     std::atomic<bool> m_cancelled;
 };
@@ -85,7 +85,7 @@ public:
 
         int last_label = -1;
         while (!m_data->m_cancelled) {
-            operation_ptr op;
+            queued_operation op;
             int label = -1;
             {
                 // if no op we are idling and need to block on our op counter
@@ -145,7 +145,7 @@ public:
                     last_label = label;
                 }
 
-                execute_operation_on_this_thread(*op);
+                execute_operation_on_this_thread(op);
                 op.reset();
             }
         }
@@ -179,7 +179,7 @@ threadpool::~threadpool()
 }
 
 void
-threadpool::execute(const operation_ptr& work, const queue_priority priority)
+threadpool::execute(const queued_operation& work, const queue_priority priority)
 {
     int index = -1;
     switch (priority) {

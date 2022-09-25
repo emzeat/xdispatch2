@@ -44,7 +44,7 @@ public:
         m_native = nullptr;
     }
 
-    void async(const operation_ptr& op, const iqueue_impl_ptr& q) final
+    void async(const queued_operation& op, const iqueue_impl_ptr& q) final
     {
         std::unique_ptr<operation_wrap> wrapper(new operation_wrap(op));
         dispatch_group_async_f(m_native,
@@ -67,7 +67,7 @@ public:
         return 0 == dispatch_group_wait(m_native, time);
     }
 
-    void notify(const operation_ptr& op, const iqueue_impl_ptr& q) final
+    void notify(const queued_operation& op, const iqueue_impl_ptr& q) final
     {
         std::unique_ptr<operation_wrap> wrapper(new operation_wrap(op));
         dispatch_group_notify_f(m_native,

@@ -54,7 +54,7 @@ public:
         Notify may be invoked from multiple threads at the same time and also
        while a previously scheduled work is actively executing.
      */
-    virtual void execute(const operation_ptr& work,
+    virtual void execute(const queued_operation& work,
                          queue_priority priority) = 0;
 };
 

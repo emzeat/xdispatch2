@@ -60,7 +60,7 @@ public:
                  ) final
     {}
 
-    void handler(const operation_ptr& op) final
+    void handler(const queued_operation& op) final
     {
         std::lock_guard<std::mutex> lock(m_CS);
         m_handler = op;
@@ -103,7 +103,7 @@ public:
                 queue->async(make_operation([handler, &barrier, &cancelable] {
                     cancelable_scope scope(cancelable);
                     if (scope) {
-                        execute_operation_on_this_thread(*handler);
+                        execute_operation_on_this_thread(handler);
                     }
                     barrier.complete();
                 }));
@@ -145,7 +145,7 @@ private:
     std::mutex m_CS;
     std::chrono::milliseconds m_interval;
     iqueue_impl_ptr m_queue;
-    operation_ptr m_handler;
+    queued_operation m_handler;
     int m_running;
     cancelable m_cancelable;
 };

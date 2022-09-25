@@ -161,7 +161,7 @@ public:
                           cancelable_scope scope(handler_cancelable);
                           if (scope) {
                               execute_operation_on_this_thread(
-                                *handler, socket, type);
+                                handler, socket, type);
                           }
                           barrier.complete();
                       }));

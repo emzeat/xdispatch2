@@ -45,7 +45,7 @@ public:
         m_native = nullptr;
     }
 
-    void async(const operation_ptr& op) final
+    void async(const queued_operation& op) final
     {
         std::unique_ptr<operation_wrap> wrapper(new operation_wrap(op));
         dispatch_async_f(
@@ -59,7 +59,8 @@ public:
         dispatch_apply_f(times, m_native, &wrap, _xdispatch2_run_iter_wrap);
     }
 
-    void after(std::chrono::milliseconds delay, const operation_ptr& op) final
+    void after(std::chrono::milliseconds delay,
+               const queued_operation& op) final
     {
         const auto time = dispatch_time(
           DISPATCH_TIME_NOW, std::int64_t(delay.count() * NSEC_PER_MSEC));

@@ -43,15 +43,14 @@ run_wrapper(operation_wrap* wrapper)
 {
     XDISPATCH_ASSERT(wrapper);
 
-    const operation_ptr& wrappedOp = wrapper->type();
-    XDISPATCH_ASSERT(wrappedOp);
+    const auto& wrappedOp = wrapper->type();
 
 #if !(defined DEBUG)
     try
 #endif
     {
         set_debugger_threadname_from_queue();
-        execute_operation_on_this_thread(*wrappedOp);
+        execute_operation_on_this_thread(wrappedOp);
     }
 #if !(defined DEBUG)
     catch (const std::exception& e) {
@@ -118,15 +117,14 @@ _xdispatch2_run_iter_wrap(void* dt, size_t index)
     auto* wrapper = static_cast<iteration_operation_wrap*>(dt);
     XDISPATCH_ASSERT(wrapper);
 
-    const iteration_operation_ptr& wrapped_op = wrapper->type();
-    XDISPATCH_ASSERT(wrapped_op);
+    const auto& wrapped_op = wrapper->type();
 
 #if !(defined DEBUG)
     try
 #endif
     {
         set_debugger_threadname_from_queue();
-        execute_operation_on_this_thread(*wrapped_op, index);
+        execute_operation_on_this_thread(wrapped_op, index);
     }
 #if !(defined DEBUG)
     catch (const std::exception& e) {

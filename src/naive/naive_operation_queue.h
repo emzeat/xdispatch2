@@ -73,7 +73,7 @@ public:
 
         @remark A queue needs to have been attached for this to show an effect
      */
-    void async(const operation_ptr& job);
+    void async(const queued_operation& job);
 
     /**
         @brief Marks the queue as active
@@ -103,15 +103,15 @@ public:
 private:
     const std::string m_label;
     const queue_priority m_priority;
-    std::list<operation_ptr> m_jobs;
+    std::list<queued_operation> m_jobs;
     std::mutex m_CS;
     bool m_active_drain;
-    operation_ptr m_notify_operation;
+    queued_operation m_notify_operation;
     ithreadpool_ptr m_threadpool;
 
     void drain();
 
-    static void process_job(operation& job);
+    static void process_job(const queued_operation& job);
 };
 
 using operation_queue_ptr = std::shared_ptr<operation_queue>;

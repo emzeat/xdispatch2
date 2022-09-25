@@ -35,23 +35,25 @@ void
 queue::async(const operation_ptr& op) const
 {
     XDISPATCH_ASSERT(op);
-    queue_operation_with_d(*op, m_impl.get());
-    m_impl->async(op);
+    auto queued_op = queue_operation_with_target(op, m_impl.get());
+    m_impl->async(std::move(queued_op));
 }
 
 void
 queue::apply(size_t times, const iteration_operation_ptr& op) const
 {
     XDISPATCH_ASSERT(op);
-    queue_operation_with_d(*op, m_impl.get());
-    m_impl->apply(times, op);
+    auto queued_op = queue_operation_with_target(op, m_impl.get());
+    m_impl->apply(times, std::move(queued_op));
 }
 
 void
 queue::after(std::chrono::milliseconds delay, const operation_ptr& op) const
 {
     XDISPATCH_ASSERT(op);
-    m_impl->after(delay, op);
+
+    auto queued_op = queue_operation_with_target(op, m_impl.get());
+    m_impl->after(delay, std::move(queued_op));
 }
 
 std::string
@@ -75,5 +77,5 @@ queue::implementation() const
 bool
 queue::is_current_queue() const
 {
-    return operation_is_run_with_d(m_impl.get());
+    return operation_is_run_with_target(m_impl.get());
 }

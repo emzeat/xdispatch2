@@ -35,7 +35,8 @@ manual_thread::manual_thread(const std::string& name, queue_priority priority)
 manual_thread::~manual_thread() = default;
 
 void
-manual_thread::execute(const operation_ptr& work, queue_priority /* priority */
+manual_thread::execute(const queued_operation& work,
+                       queue_priority /* priority */
 )
 {
     std::lock_guard<std::mutex> guard(m_CS);
@@ -49,7 +50,7 @@ manual_thread::run()
     thread_utils::set_current_thread_name(m_name);
     thread_utils::set_current_thread_priority(m_priority);
     while (!m_cancelled) {
-        std::vector<operation_ptr> active_ops;
+        std::vector<queued_operation> active_ops;
         {
             std::unique_lock<std::mutex> guard(m_CS);
             if (m_queued_ops.empty()) {
@@ -59,7 +60,7 @@ manual_thread::run()
         }
 
         for (const auto& op : active_ops) {
-            execute_operation_on_this_thread(*op);
+            execute_operation_on_this_thread(op);
         }
     }
 

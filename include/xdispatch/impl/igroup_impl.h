@@ -49,7 +49,8 @@ public:
         @param q The Queue to use. If no Queue is given, the system default
        queue will be used
     */
-    virtual void async(const operation_ptr& op, const iqueue_impl_ptr& q) = 0;
+    virtual void async(const queued_operation& op,
+                       const iqueue_impl_ptr& q) = 0;
 
     /**
         Waits until the given time has passed
@@ -76,7 +77,8 @@ public:
        submitted to the target queue immediately. The igroup_impl may either be
        deleted or reused for additional operations.
     */
-    virtual void notify(const operation_ptr& op, const iqueue_impl_ptr& q) = 0;
+    virtual void notify(const queued_operation& op,
+                        const iqueue_impl_ptr& q) = 0;
 
     /**
         @returns the backend type behind this implementation

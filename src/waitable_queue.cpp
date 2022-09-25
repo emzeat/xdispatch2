@@ -58,7 +58,7 @@ public:
             m_operations.pop_front();
 
             lock.unlock();
-            xdispatch::execute_operation_on_this_thread(*op);
+            xdispatch::execute_operation_on_this_thread(op);
             lock.lock();
             ++m_completed;
         }
@@ -109,7 +109,7 @@ public:
         }
     }
 
-    void add_one(const operation_ptr& op)
+    void add_one(const queued_operation& op)
     {
         std::unique_lock<std::mutex> lock(m_CS);
         m_operations.push_back(op);
@@ -119,7 +119,7 @@ private:
     std::mutex m_CS;
     std::condition_variable m_cond;
 
-    std::list<operation_ptr> m_operations;
+    std::list<queued_operation> m_operations;
     size_t m_completed;
     bool m_active;
 };
@@ -138,27 +138,30 @@ public:
 
     void wait_for_all() { m_worker->wait_for_all(); }
 
-    void async(const operation_ptr& op) override
+    void async(const queued_operation& op) override
     {
         m_worker->add_one(op);
         m_inner_queue.async(m_worker);
     }
 
-    void apply(size_t times, const iteration_operation_ptr& op) override
+    void apply(size_t times,
+               const queued_parameterized_operation<size_t>& op) override
     {
         for (size_t i = 0; i < times; ++i) {
-            async(std::make_shared<naive::apply_operation>(i, op));
+            operation_ptr operation =
+              std::make_shared<naive::apply_operation>(i, op);
+            async(std::move(operation));
         }
         m_worker->wait_for_all();
     }
 
     void after(std::chrono::milliseconds delay,
-               const operation_ptr& op) override
+               const queued_operation& op) override
     {
         auto timer =
           backend_for_type(backend()).create_timer(shared_from_this());
         timer->handler(make_operation([op, timer] {
-            execute_operation_on_this_thread(*op);
+            execute_operation_on_this_thread(op);
             timer->cancel();
         }));
         timer->resume(delay);

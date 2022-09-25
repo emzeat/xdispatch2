@@ -24,8 +24,6 @@
 #include <QtCore/QEvent>
 
 #include "qt5_backend_internal.h"
-#include "qt5_threadpool.h"
-#include "../naive/naive_threadpool.h"
 #include "../trace_utils.h"
 
 __XDISPATCH_BEGIN_NAMESPACE
@@ -40,15 +38,15 @@ public:
         return static_cast<QEvent::Type>(sType);
     }
 
-    ExecuteOperationEvent(const operation_ptr& work)
+    ExecuteOperationEvent(const queued_operation& work)
       : QEvent(Type())
       , m_work(work)
     {}
 
-    void execute() { execute_operation_on_this_thread(*m_work); }
+    void execute() { execute_operation_on_this_thread(m_work); }
 
 private:
-    const operation_ptr m_work;
+    const queued_operation m_work;
 };
 
 class ThreadProxy
@@ -64,7 +62,7 @@ public:
     }
 
     ~ThreadProxy() override = default;
-    void execute(const operation_ptr& work, queue_priority /* priority */
+    void execute(const queued_operation& work, queue_priority /* priority */
                  ) final
     {
         QCoreApplication::postEvent(this, new ExecuteOperationEvent(work));

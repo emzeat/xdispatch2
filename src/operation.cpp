@@ -23,65 +23,116 @@
 
 __XDISPATCH_BEGIN_NAMESPACE
 
-static thread_local void* current_d = nullptr;
+static thread_local void* current_target = nullptr;
+
+queued_operation
+queue_operation_with_target(const operation_ptr& op, void* target)
+{
+    queued_operation queued;
+    queued.m_ctx.m_target = target;
+    queued.m_op = op;
+    return queued;
+}
+
+queued_operation
+queue_operation_with_ctx(const operation_ptr& op, const queued_ctx& ctx)
+{
+    queued_operation queued;
+    queued.m_ctx = ctx;
+    queued.m_op = op;
+    return queued;
+}
+
+template<typename... Params>
+queued_parameterized_operation<Params...>
+queue_operation_with_target(const parameterized_operation_ptr<Params...>& op,
+                            void* target)
+{ /*
+     queued_parameterized_operation<Params...> queued;
+     queued.m_ctx.m_target = target;
+     queued.m_op = op;
+     return queued;
+  */
+    return op;
+}
+
+template queued_parameterized_operation<size_t>
+queue_operation_with_target<size_t>(const iteration_operation_ptr&, void*);
+
+template queued_parameterized_operation<socket_t, notifier_type>
+queue_operation_with_target<socket_t, notifier_type>(
+  const std::shared_ptr<socket_notifier_operation>&,
+  void*);
 
 void
-queue_operation_with_d(operation& op, void* d)
+execute_operation_on_this_thread(const queued_operation& op)
 {
-    op.m_d = d;
+    void* previous = current_target;
+    if (op.m_ctx.m_target) {
+        current_target = op.m_ctx.m_target;
+    }
+    (*op.m_op)();
+    current_target = previous;
+}
+
+void
+execute_operation_on_this_thread(const operation_ptr& op)
+{
+    auto local = queue_operation_with_target(op, nullptr);
+    execute_operation_on_this_thread(local);
 }
 
 template<typename... Params>
 void
-queue_operation_with_d(parameterized_operation<Params...>& op, void* d)
+execute_operation_on_this_thread(
+  const queued_parameterized_operation<Params...>& op,
+  Params... params)
 {
-    op.m_d = d;
-}
-
-template void
-queue_operation_with_d<size_t>(iteration_operation&, void*);
-
-template void
-queue_operation_with_d<socket_t, notifier_type>(socket_notifier_operation&,
-                                                void*);
-
-void
-execute_operation_on_this_thread(operation& op)
-{
-    void* previous = current_d;
-    if (op.m_d) {
-        current_d = op.m_d;
+    /*void* previous = current_target;
+    if (op.m_ctx.m_target) {
+        current_target = op.m_ctx.m_target;
     }
-    op();
-    current_d = previous;
+    (*op.m_op)(params...);
+    current_target = previous;*/
+    (*op)(params...);
 }
-
+/*
 template<typename... Params>
 XDISPATCH_EXPORT void
-execute_operation_on_this_thread(parameterized_operation<Params...>& op,
-                                 Params... params)
+execute_operation_on_this_thread(
+  const parameterized_operation_ptr<Params...>& op,
+  Params... params)
 {
-    void* previous = current_d;
-    if (op.m_d) {
-        current_d = op.m_d;
-    }
-    op(params...);
-    current_d = previous;
-}
+    auto local = queue_operation_with_target(op, nullptr);
+    execute_operation_on_this_thread(local, params...);
+} */
 
-template XDISPATCH_EXPORT void
-execute_operation_on_this_thread<size_t>(iteration_operation&, size_t);
+template void
+execute_operation_on_this_thread<size_t>(
+  const queued_parameterized_operation<size_t>&,
+  size_t);
+/*
+template void
+execute_operation_on_this_thread<size_t>(
+  const parameterized_operation_ptr<size_t>&,
+  size_t);*/
 
-template XDISPATCH_EXPORT void
+template void
 execute_operation_on_this_thread<socket_t, notifier_type>(
-  socket_notifier_operation&,
+  const queued_parameterized_operation<socket_t, notifier_type>&,
   socket_t,
   notifier_type);
+/*
+template void
+execute_operation_on_this_thread<socket_t, notifier_type>(
+  const parameterized_operation_ptr<socket_t, notifier_type>&,
+  socket_t,
+  notifier_type);*/
 
 bool
-operation_is_run_with_d(void const* const d)
+operation_is_run_with_target(void const* const d)
 {
-    return (d == current_d);
+    return (d == current_target);
 }
 
 __XDISPATCH_END_NAMESPACE

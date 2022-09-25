@@ -63,8 +63,9 @@ timer::cancel()
 void
 timer::handler(const operation_ptr& op)
 {
-    queue_operation_with_d(*op, m_target_queue.implementation().get());
-    m_impl->handler(op);
+    auto queued_op =
+      queue_operation_with_target(op, m_target_queue.implementation().get());
+    m_impl->handler(std::move(queued_op));
 }
 
 queue

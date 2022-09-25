@@ -89,7 +89,7 @@ private:
 class deferred_pop
 {
 public:
-    explicit deferred_pop(std::list<operation_ptr>& list)
+    explicit deferred_pop(std::list<queued_operation>& list)
       : m_list(list)
     {}
     deferred_pop(const deferred_pop&) = delete;
@@ -97,7 +97,7 @@ public:
     ~deferred_pop() { m_list.pop_front(); }
 
 private:
-    std::list<operation_ptr>& m_list;
+    std::list<queued_operation>& m_list;
 };
 
 void
@@ -117,13 +117,13 @@ operation_queue::drain()
     // 2. make sure not to free an operation while m_CS is
     //    locked so that recursive scenarios are supported
     while (!m_jobs.empty()) {
-        operation_ptr job;
+        queued_operation job;
         deferred_pop pop(m_jobs);
         std::swap(m_jobs.front(), job);
         {
             inverse_lock_guard<std::mutex> unlock(m_CS);
             if (job) {
-                process_job(*job);
+                process_job(job);
                 job.reset();
             }
         }
@@ -131,10 +131,10 @@ operation_queue::drain()
 }
 
 void
-operation_queue::async(const operation_ptr& job)
+operation_queue::async(const queued_operation& job)
 {
     // preallocate outside the lock
-    operation_ptr job2 = job;
+    queued_operation job2 = job;
 
     std::lock_guard<std::mutex> lock(m_CS);
     // we only need to notify, i.e. wake the thread
@@ -193,7 +193,7 @@ operation_queue::detach()
 }
 
 void
-operation_queue::process_job(operation& job)
+operation_queue::process_job(const queued_operation& job)
 {
 #if !(defined DEBUG)
     try

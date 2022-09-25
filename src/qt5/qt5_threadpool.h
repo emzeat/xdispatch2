@@ -37,7 +37,7 @@ public:
 
     ~ThreadPoolProxy();
 
-    void execute(const operation_ptr& work, queue_priority priority) final;
+    void execute(const queued_operation& work, queue_priority priority) final;
 
 private:
     QPointer<QThreadPool> m_pool;

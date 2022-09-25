@@ -28,16 +28,17 @@
 class manual_queue_impl : public xdispatch::iqueue_impl
 {
 public:
-    void async(const xdispatch::operation_ptr& op) override
+    void async(const xdispatch::queued_operation& op) override
     {
         m_ops.push_back(op);
     }
-    void apply(size_t, const xdispatch::iteration_operation_ptr&) override
+    void apply(size_t, const xdispatch::queued_parameterized_operation<size_t>&)
+      override
     {
         MU_FAIL("Not implemented for this test");
     }
     void after(std::chrono::milliseconds,
-               const xdispatch::operation_ptr&) override
+               const xdispatch::queued_operation&) override
     {
         MU_FAIL("Not implemented for this test");
     }
@@ -52,12 +53,12 @@ public:
         if (!m_ops.empty()) {
             auto op = m_ops.front();
             m_ops.pop_front();
-            xdispatch::execute_operation_on_this_thread(*op);
+            xdispatch::execute_operation_on_this_thread(op);
         }
     }
 
 private:
-    std::list<xdispatch::operation_ptr> m_ops;
+    std::list<xdispatch::queued_operation> m_ops;
 };
 
 class manual_queue : public xdispatch::queue

@@ -52,7 +52,7 @@ public:
       set the auto_delete flag of the operation.
       @see operation::auto_delete()
       */
-    virtual void async(const operation_ptr& op) = 0;
+    virtual void async(const queued_operation& op) = 0;
 
     /**
         Applies the given iteration_operation for execution
@@ -61,7 +61,8 @@ public:
 
         @param times The number of times the operation will be executed
     */
-    virtual void apply(size_t times, const iteration_operation_ptr& op) = 0;
+    virtual void apply(size_t times,
+                       const queued_parameterized_operation<size_t>& op) = 0;
 
     /**
         Applies the given operation for async execution
@@ -71,7 +72,7 @@ public:
                      the iqueue_impl.
     */
     virtual void after(std::chrono::milliseconds delay,
-                       const operation_ptr& op) = 0;
+                       const queued_operation& op) = 0;
 
     /**
         @returns the backend type behind this implementation

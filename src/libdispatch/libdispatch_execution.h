@@ -40,20 +40,20 @@ template<class T>
 class wrap_T
 {
 public:
-    explicit wrap_T(const std::shared_ptr<T>& t)
+    inline explicit wrap_T(const T& t)
       : m_type(t)
     {}
 
     ~wrap_T() = default;
 
-    inline const std::shared_ptr<T>& type() const { return m_type; }
+    inline const T& type() const { return m_type; }
 
 private:
-    const std::shared_ptr<T> m_type;
+    const T m_type;
 };
 
-using operation_wrap = wrap_T<operation>;
-using iteration_operation_wrap = wrap_T<iteration_operation>;
+using operation_wrap = wrap_T<queued_operation>;
+using iteration_operation_wrap = wrap_T<queued_parameterized_operation<size_t>>;
 
 } // namespace libdispatch
 __XDISPATCH_END_NAMESPACE

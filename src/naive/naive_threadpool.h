@@ -65,7 +65,7 @@ public:
     /**
         @copydoc ithreadpool::execute
      */
-    void execute(const operation_ptr& work, queue_priority priority) final;
+    void execute(const queued_operation& work, queue_priority priority) final;
 
     /**
         @brief Marks a thread as blocked, i.e. waiting on a resource

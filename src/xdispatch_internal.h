@@ -79,12 +79,51 @@ constexpr const char k_label_global_BACKGROUND[] =
 
 __XDISPATCH_BEGIN_NAMESPACE
 
-void
-queue_operation_with_d(operation&, void*);
-void
-execute_operation_on_this_thread(operation&);
+struct queued_ctx
+{
+    void* m_target = nullptr;
+};
+
+class queued_operation
+{
+public:
+    queued_operation() = default;
+    inline queued_operation(const operation_ptr& op)
+      : m_op(op)
+      , m_ctx()
+    {}
+
+    operator bool() const
+    {
+        if (m_op) {
+            return true;
+        }
+        return false;
+    }
+
+    inline void reset() { m_op.reset(); }
+
+    operation_ptr m_op;
+    queued_ctx m_ctx;
+};
+
+/*
+template<typename... Params>
+class queued_parameterized_operation
+{
+public:
+    parameterized_queued_operation<Params...> m_op;
+    queued_ctx m_ctx;
+}; */
+
+queued_operation
+queue_operation_with_target(const operation_ptr&, void*);
+queued_operation
+queue_operation_with_ctx(const operation_ptr&, const queued_ctx&);
+XDISPATCH_EXPORT void
+execute_operation_on_this_thread(const queued_operation&);
 bool
-operation_is_run_with_d(void const* const);
+operation_is_run_with_target(void const* const);
 
 ibackend&
 backend_for_type(backend_type type);
