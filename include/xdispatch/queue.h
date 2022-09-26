@@ -177,15 +177,6 @@ public:
      */
     iqueue_impl_ptr implementation() const;
 
-    /**
-        @brief helper to test if the queue is active on this thread
-
-        Active means that an operation added to this queue is currently
-       executing on the thread invoking this function. This can be used to
-       detect recursion.
-     */
-    bool is_current_queue() const;
-
 private:
     iqueue_impl_ptr m_impl;
     std::string m_label;

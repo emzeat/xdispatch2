@@ -71,9 +71,3 @@ queue::implementation() const
 {
     return m_impl;
 }
-
-bool
-queue::is_current_queue() const
-{
-    return operation_is_run_with_d(m_impl.get());
-}

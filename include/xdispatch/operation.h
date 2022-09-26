@@ -72,9 +72,6 @@ public:
 protected:
     base_operation() = default;
     ~base_operation() = default;
-
-    // opaque data pointer for internal book keeping
-    void* m_d{ nullptr };
 };
 
 /**

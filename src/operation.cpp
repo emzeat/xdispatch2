@@ -23,20 +23,14 @@
 
 __XDISPATCH_BEGIN_NAMESPACE
 
-static thread_local void* current_d = nullptr;
-
 void
-queue_operation_with_d(operation& op, void* d)
-{
-    op.m_d = d;
-}
+queue_operation_with_d(operation&, void*)
+{}
 
 template<typename... Params>
 void
-queue_operation_with_d(parameterized_operation<Params...>& op, void* d)
-{
-    op.m_d = d;
-}
+queue_operation_with_d(parameterized_operation<Params...>&, void*)
+{}
 
 template void
 queue_operation_with_d<size_t>(iteration_operation&, void*);
@@ -48,12 +42,7 @@ queue_operation_with_d<socket_t, notifier_type>(socket_notifier_operation&,
 void
 execute_operation_on_this_thread(operation& op)
 {
-    void* previous = current_d;
-    if (op.m_d) {
-        current_d = op.m_d;
-    }
     op();
-    current_d = previous;
 }
 
 template<typename... Params>
@@ -61,12 +50,7 @@ XDISPATCH_EXPORT void
 execute_operation_on_this_thread(parameterized_operation<Params...>& op,
                                  Params... params)
 {
-    void* previous = current_d;
-    if (op.m_d) {
-        current_d = op.m_d;
-    }
     op(params...);
-    current_d = previous;
 }
 
 template XDISPATCH_EXPORT void
@@ -77,11 +61,5 @@ execute_operation_on_this_thread<socket_t, notifier_type>(
   socket_notifier_operation&,
   socket_t,
   notifier_type);
-
-bool
-operation_is_run_with_d(void const* const d)
-{
-    return (d == current_d);
-}
 
 __XDISPATCH_END_NAMESPACE
