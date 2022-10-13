@@ -127,7 +127,11 @@ thread_utils::set_current_thread_priority(queue_priority priority)
 #if (defined XDISPATCH2_HAVE_PTHREAD_SET_QOS_CLASS_SELF_NP)
 
     const qos_class_t qos_class = map_priority_to_qos(priority);
-    pthread_set_qos_class_self_np(qos_class, 0);
+    const auto err = pthread_set_qos_class_self_np(qos_class, 0);
+    if (err) {
+        XDISPATCH_WARNING() << "Failed to set QoS " << qos_class
+                            << " for thread: " << strerror(err);
+    }
 
     #ifdef DEBUG
     qos_class_t qos_actual = QOS_CLASS_DEFAULT;
@@ -137,24 +141,13 @@ thread_utils::set_current_thread_priority(queue_priority priority)
 
 #elif (defined XDISPATCH2_HAVE_SETPRIORITY)
 
-    int nice = 0;
-    switch (priority) {
-        case queue_priority::USER_INTERACTIVE:
-            nice = 5; // NOLINT
-            break;
-        case queue_priority::USER_INITIATED:
-            nice = 4; // NOLINT
-            break;
-        case queue_priority::UTILITY:
-            nice = 3; // NOLINT
-            break;
-        case queue_priority::DEFAULT:
-        case queue_priority::BACKGROUND:
-            nice = 0; // NOLINT
-            break;
-    }
+    const auto nicety = map_priority_to_nice(priority);
     const int tid = static_cast<int>(syscall(SYS_gettid));
-    setpriority(PRIO_PROCESS, tid, nice);
+    const auto err = setpriority(PRIO_PROCESS, tid, nicety);
+    if (err) {
+        XDISPATCH_WARNING() << "Failed to set priority " << nicety
+                            << " for thread: " << strerror(err);
+    }
 
 #else
 
@@ -187,6 +180,34 @@ thread_utils::map_priority_to_qos(queue_priority priority)
             break;
     }
     return qos_class;
+}
+
+#endif
+
+#if (defined XDISPATCH2_HAVE_SETPRIORITY)
+
+int
+thread_utils::map_priority_to_nice(queue_priority priority)
+{
+    // obtain the nicety the process was originally started with
+    // this will be used as the highest level with lower prios
+    // calculated relative to it
+    static int sNiceBase = getpriority(PRIO_PROCESS, 0);
+    int nice = 0;
+    switch (priority) {
+        case queue_priority::USER_INTERACTIVE:
+        case queue_priority::USER_INITIATED:
+        case queue_priority::DEFAULT:
+            nice = sNiceBase;
+            break;
+        case queue_priority::UTILITY:
+            nice = sNiceBase + 1;
+            break;
+        case queue_priority::BACKGROUND:
+            nice = sNiceBase + 2;
+            break;
+    }
+    return nice;
 }
 
 #endif

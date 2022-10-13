@@ -55,9 +55,18 @@ public:
 
 #if (defined XDISPATCH2_HAVE_PTHREAD_SET_QOS_CLASS_SELF_NP)
     /**
-        @returns the qos class mapped to the given queue_priority
+        @returns the queue_priority mapped to the related qos class
     */
     static qos_class_t map_priority_to_qos(queue_priority priority);
+#endif
+
+#if (defined XDISPATCH2_HAVE_SETPRIORITY)
+    /**
+        @returns the queue_priority mapped to a matching nice level chosen
+                 relative to the nice level the process was originally started
+       with.
+    */
+    static int map_priority_to_nice(queue_priority priority);
 #endif
 
     /**
