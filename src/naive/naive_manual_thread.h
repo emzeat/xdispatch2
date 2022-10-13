@@ -67,6 +67,16 @@ public:
     void execute(const operation_ptr& work,
                  queue_priority priority = queue_priority::DEFAULT) override;
 
+    /**
+        @copydoc IThreadPool::notify_thread_blocked
+     */
+    void notify_thread_blocked() override;
+
+    /**
+        @copydoc IThreadPool::notify_thread_unblocked
+     */
+    void notify_thread_unblocked() override;
+
 private:
     const std::string m_name;
     const queue_priority m_priority;

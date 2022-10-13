@@ -28,6 +28,35 @@
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive {
 
+static thread_local ithreadpool* s_current_pool = nullptr;
+
+ithreadpool*
+ithreadpool::current()
+{
+    return s_current_pool;
+}
+
+void
+ithreadpool::run_with_threadpool(operation& op, ithreadpool* pool)
+{
+    struct scoped_setter
+    {
+        scoped_setter(ithreadpool* pool)
+          : m_previous(s_current_pool)
+        {
+            s_current_pool = pool;
+        }
+
+        ~scoped_setter() { s_current_pool = m_previous; }
+
+    private:
+        ithreadpool* m_previous;
+    };
+
+    scoped_setter pool_scope(pool);
+    execute_operation_on_this_thread(op);
+}
+
 char const* const s_bucket_labels[threadpool::bucket_count] = {
     k_label_global_INTERACTIVE,
     k_label_global_INITIATED,
@@ -38,8 +67,9 @@ char const* const s_bucket_labels[threadpool::bucket_count] = {
 class threadpool::data
 {
 public:
-    data()
-      : m_operations_counter(0)
+    data(threadpool* owner)
+      : m_pool(owner)
+      , m_operations_counter(0)
       , m_max_threads(0)
       , m_active_threads(0)
       , m_idle_threads(0)
@@ -47,6 +77,8 @@ public:
       , m_cancelled(false)
     {}
 
+    // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
+    threadpool* const m_pool;
     // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
     semaphore m_operations_counter;
     // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
@@ -145,7 +177,7 @@ public:
                     last_label = label;
                 }
 
-                execute_operation_on_this_thread(*op);
+                run_with_threadpool(*op, m_data->m_pool);
                 op.reset();
             }
         }
@@ -162,7 +194,7 @@ private:
 
 threadpool::threadpool()
   : ithreadpool()
-  , m_data(std::make_shared<data>())
+  , m_data(std::make_shared<data>(this))
 {
     // we are overcommitting by default so that it becomes less likely
     // that operations get starved due to threads blocking on resources

@@ -69,9 +69,8 @@ consumable::wait_for_consumed(const std::chrono::milliseconds timeout) // NOLINT
     if (0 == m_resources.load()) {
         return true;
     }
-    threadpool::instance()->notify_thread_blocked();
+    ithreadpool::block_scope blocked;
     const auto ret = m_barrier.wait(timeout);
-    threadpool::instance()->notify_thread_unblocked();
     return ret;
 }
 

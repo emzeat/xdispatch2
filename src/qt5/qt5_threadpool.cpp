@@ -81,5 +81,17 @@ ThreadPoolProxy::execute(const operation_ptr& work,
     m_pool->start(new OperationRunnable(work), p);
 }
 
+void
+ThreadPoolProxy::notify_thread_blocked()
+{
+    m_pool->reserveThread();
+}
+
+void
+ThreadPoolProxy::notify_thread_unblocked()
+{
+    m_pool->releaseThread();
+}
+
 } // namespace qt5
 __XDISPATCH_END_NAMESPACE

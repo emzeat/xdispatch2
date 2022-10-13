@@ -44,6 +44,14 @@ manual_thread::execute(const operation_ptr& work, queue_priority /* priority */
 }
 
 void
+manual_thread::notify_thread_blocked()
+{}
+
+void
+manual_thread::notify_thread_unblocked()
+{}
+
+void
 manual_thread::run()
 {
     thread_utils::set_current_thread_name(m_name);

@@ -68,13 +68,19 @@ public:
     void execute(const operation_ptr& work, queue_priority priority) final;
 
     /**
+        @return the shared pool instance
+     */
+    static std::shared_ptr<threadpool> instance();
+
+protected:
+    /**
         @brief Marks a thread as blocked, i.e. waiting on a resource
 
         Use this to notify the pool that it may spawn additional threads
         without overallocating the system's processor count as the calling
         thread is blocking on a resource
      */
-    void notify_thread_blocked();
+    void notify_thread_blocked() final;
 
     /**
         @brief Marks a thread as unblocked, i.e. busy again
@@ -83,12 +89,7 @@ public:
         has obtained its resource and will now make use of CPU resources
         again.
      */
-    void notify_thread_unblocked();
-
-    /**
-        @return the shared pool instance
-     */
-    static std::shared_ptr<threadpool> instance();
+    void notify_thread_unblocked() final;
 
 private:
     class worker;

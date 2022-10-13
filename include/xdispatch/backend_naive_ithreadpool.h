@@ -32,6 +32,9 @@
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive {
 
+class ithreadpool;
+using ithreadpool_ptr = std::shared_ptr<ithreadpool>;
+
 /**
     @brief Defines an interface to be implemented by a thread pool instance
 
@@ -56,9 +59,74 @@ public:
      */
     virtual void execute(const operation_ptr& work,
                          queue_priority priority) = 0;
+
+    /**
+        @brief Returns the threadpool instance currently executing this thread
+       or null
+     */
+    static ithreadpool* current();
+
+    /**
+        @brief Helper to mark a thread as blocked, i.e. not running anymore.
+
+        Will automatically notify the underlying threadpool (if any) so that
+        thread counts can be adapted accordingly
+     */
+    class block_scope
+    {
+    public:
+        block_scope();
+        block_scope(ithreadpool*);
+        block_scope(const block_scope&) = delete;
+        ~block_scope();
+
+    private:
+        ithreadpool* m_pool;
+    };
+
+protected:
+    /**
+        @brief Marks a thread as blocked, i.e. waiting on a resource
+
+        Use this to notify the pool that it may spawn additional threads
+        without overallocating the system's processor count as the calling
+        thread is blocking on a resource
+     */
+    virtual void notify_thread_blocked() = 0;
+
+    /**
+        @brief Marks a thread as unblocked, i.e. busy again
+
+        Use this to notify the pool that a previously blocked thread
+        has obtained its resource and will now make use of CPU resources
+        again.
+     */
+    virtual void notify_thread_unblocked() = 0;
+
+    /**
+        @brief Runs the given operation in the scope of the given threadpool
+    */
+    static void run_with_threadpool(operation&, ithreadpool*);
 };
 
-using ithreadpool_ptr = std::shared_ptr<ithreadpool>;
+inline ithreadpool::block_scope::block_scope()
+  : block_scope(ithreadpool::current())
+{}
+
+inline ithreadpool::block_scope::block_scope(ithreadpool* pool)
+  : m_pool(pool)
+{
+    if (m_pool) {
+        m_pool->notify_thread_blocked();
+    }
+}
+
+inline ithreadpool::block_scope::~block_scope()
+{
+    if (m_pool) {
+        m_pool->notify_thread_unblocked();
+    }
+}
 
 } // namespace naive
 __XDISPATCH_END_NAMESPACE

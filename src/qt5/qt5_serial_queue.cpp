@@ -70,6 +70,9 @@ public:
         QCoreApplication::postEvent(this, new ExecuteOperationEvent(work));
     }
 
+    void notify_thread_blocked() final {}
+    void notify_thread_unblocked() final {}
+
 protected:
     void customEvent(QEvent* event) final
     {

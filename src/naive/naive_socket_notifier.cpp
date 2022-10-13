@@ -97,7 +97,7 @@ public:
         // threads are available for the pool even though the
         // notifier is blocking while it is active
         auto socket_notifier_op = make_operation([this_ptr, cookie] {
-            threadpool::instance()->notify_thread_blocked();
+            ithreadpool::block_scope blocked;
 
             std::unique_lock<std::mutex> lock(this_ptr->m_CS);
             while (cookie == this_ptr->m_worker_cookie) {
@@ -171,7 +171,6 @@ public:
                                         << ") failed: " << strerror(errno);
                 }
             }
-            threadpool::instance()->notify_thread_unblocked();
         });
 
         // FIXME(zwicker): Add accessors to execute with the queue's priority

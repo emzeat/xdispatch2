@@ -87,7 +87,7 @@ public:
         // threads are available for the pool even though the
         // timer is blocking while it is active
         auto timer_op = make_operation([this_ptr, delay] {
-            threadpool::instance()->notify_thread_blocked();
+            ithreadpool::block_scope blocked;
             std::this_thread::sleep_for(delay);
 
             std::unique_lock<std::mutex> lock(this_ptr->m_CS);
@@ -116,7 +116,6 @@ public:
                     break;
                 }
             }
-            threadpool::instance()->notify_thread_unblocked();
         });
 
         // FIXME(zwicker): Add accessors to execute with the queue's priority
