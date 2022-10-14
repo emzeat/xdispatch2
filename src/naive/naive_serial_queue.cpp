@@ -94,16 +94,6 @@ create_serial_queue(const std::string& label,
 
 queue
 create_serial_queue(const std::string& label,
-                    queue_priority priority,
-                    backend_type backend)
-{
-    return queue(label,
-                 std::make_shared<serial_queue_impl>(
-                   threadpool::instance(), label, priority, backend));
-}
-
-queue
-create_serial_queue(const std::string& label,
                     const ithreadpool_ptr& thread,
                     queue_priority priority)
 {
@@ -116,7 +106,7 @@ backend::create_serial_queue(const std::string& label,
                              backend_type backend)
 {
     return std::make_shared<serial_queue_impl>(
-      threadpool::instance(), label, priority, backend);
+      global_threadpool(), label, priority, backend);
 }
 
 static std::shared_ptr<manual_thread>

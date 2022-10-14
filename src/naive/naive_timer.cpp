@@ -34,11 +34,14 @@ class timer_impl
   , public std::enable_shared_from_this<timer_impl>
 {
 public:
-    timer_impl(const iqueue_impl_ptr& queue, backend_type backend)
+    timer_impl(const iqueue_impl_ptr& queue,
+               const ithreadpool_ptr& pool,
+               backend_type backend)
       : itimer_impl()
       , m_backend(backend)
       , m_interval(0)
       , m_queue(queue)
+      , m_pool(pool)
       , m_handler()
       , m_running(0)
       , m_cancelable()
@@ -119,7 +122,7 @@ public:
         });
 
         // FIXME(zwicker): Add accessors to execute with the queue's priority
-        threadpool::instance()->execute(timer_op, queue_priority::DEFAULT);
+        m_pool->execute(timer_op, queue_priority::DEFAULT);
     }
 
     void suspend() override
@@ -144,6 +147,7 @@ private:
     std::mutex m_CS;
     std::chrono::milliseconds m_interval;
     iqueue_impl_ptr m_queue;
+    ithreadpool_ptr m_pool;
     operation_ptr m_handler;
     int m_running;
     cancelable m_cancelable;
@@ -152,7 +156,7 @@ private:
 itimer_impl_ptr
 backend::create_timer(const iqueue_impl_ptr& queue, backend_type backend)
 {
-    return std::make_shared<timer_impl>(queue, backend);
+    return std::make_shared<timer_impl>(queue, global_threadpool(), backend);
 }
 
 } // namespace naive

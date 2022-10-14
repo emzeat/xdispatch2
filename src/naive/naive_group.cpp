@@ -35,8 +35,9 @@ class group_impl
   , public std::enable_shared_from_this<group_impl>
 {
 public:
-    group_impl(backend_type backend)
+    group_impl(const ithreadpool_ptr& pool, backend_type backend)
       : igroup_impl()
+      , m_pool(pool)
       , m_backend(backend)
       , m_consumable(std::make_shared<consumable>())
     {}
@@ -88,12 +89,13 @@ public:
         });
 
         // FIXME(zwicker): Add accessors to execute with the queue's priority
-        threadpool::instance()->execute(notify_op, queue_priority::DEFAULT);
+        m_pool->execute(notify_op, queue_priority::DEFAULT);
     }
 
     backend_type backend() final { return m_backend; }
 
 private:
+    const ithreadpool_ptr m_pool;
     const backend_type m_backend;
     consumable_ptr m_consumable;
 };
@@ -101,7 +103,7 @@ private:
 igroup_impl_ptr
 backend::create_group(backend_type backend)
 {
-    return std::make_shared<group_impl>(backend);
+    return std::make_shared<group_impl>(global_threadpool(), backend);
 }
 
 } // namespace naive

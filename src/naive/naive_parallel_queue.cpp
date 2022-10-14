@@ -104,7 +104,7 @@ backend::create_parallel_queue(const std::string& /*label*/,
                                backend_type backend)
 {
     return std::make_shared<parallel_queue_impl>(
-      threadpool::instance(), priority, backend);
+      global_threadpool(), priority, backend);
 }
 
 } // namespace naive

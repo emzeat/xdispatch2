@@ -239,13 +239,18 @@ threadpool::execute(const operation_ptr& work, const queue_priority priority)
     schedule();
 }
 
-std::shared_ptr<threadpool>
-threadpool::instance()
+ithreadpool_ptr
+backend::create_threadpool()
+{
+    return std::make_shared<threadpool>();
+}
+
+ithreadpool_ptr
+backend::global_threadpool()
 {
     // this is an intentional leak so that the destructor is ok to run from
     // within a pool thread
-    static auto* s_instance =
-      new std::shared_ptr<threadpool>(std::make_shared<threadpool>());
+    static auto* s_instance = new ithreadpool_ptr(create_threadpool());
     return *s_instance;
 }
 

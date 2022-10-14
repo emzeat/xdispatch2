@@ -46,6 +46,7 @@ class socket_notifier_impl
 {
 public:
     socket_notifier_impl(const iqueue_impl_ptr& queue,
+                         const ithreadpool_ptr& pool,
                          socket_t socket,
                          notifier_type type,
                          backend_type backend)
@@ -54,6 +55,7 @@ public:
       , m_socket(socket)
       , m_type(type)
       , m_queue(queue)
+      , m_pool(pool)
       , m_handler()
       , m_resume_counter(0)
       , m_worker_cookie(0)
@@ -174,8 +176,7 @@ public:
         });
 
         // FIXME(zwicker): Add accessors to execute with the queue's priority
-        threadpool::instance()->execute(socket_notifier_op,
-                                        queue_priority::DEFAULT);
+        m_pool->execute(socket_notifier_op, queue_priority::DEFAULT);
     }
 
     void suspend() final
@@ -214,6 +215,7 @@ private:
     const socket_t m_socket;
     const notifier_type m_type;
     iqueue_impl_ptr m_queue;
+    ithreadpool_ptr m_pool;
     socket_notifier_operation_ptr m_handler;
     int m_resume_counter;
     int m_worker_cookie;
@@ -226,7 +228,8 @@ backend::create_socket_notifier(const iqueue_impl_ptr& queue,
                                 notifier_type type,
                                 backend_type backend)
 {
-    return std::make_shared<socket_notifier_impl>(queue, socket, type, backend);
+    return std::make_shared<socket_notifier_impl>(
+      queue, global_threadpool(), socket, type, backend);
 }
 
 } // namespace naive

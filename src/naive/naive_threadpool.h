@@ -67,11 +67,6 @@ public:
      */
     void execute(const operation_ptr& work, queue_priority priority) final;
 
-    /**
-        @return the shared pool instance
-     */
-    static std::shared_ptr<threadpool> instance();
-
 protected:
     /**
         @brief Marks a thread as blocked, i.e. waiting on a resource
