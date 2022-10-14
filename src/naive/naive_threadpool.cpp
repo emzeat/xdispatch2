@@ -133,7 +133,13 @@ public:
                         last_label = -1;
                     }
 
-                    const auto idle_threads = ++m_data->m_idle_threads;
+                    // FIXME(zwicker): We mark a thread as idle pretty late
+                    // as it is technically idle during try_acquire() and
+                    // spin_acquire() as well but this is kept in here for now
+                    // to keep the fast path as simple as possible.
+                    const auto idle_threads = m_data->m_idle_threads.fetch_add(
+                                                1, std::memory_order_acq_rel) +
+                                              1;
                     XDISPATCH_TRACE()
                       << std::this_thread::get_id() << " idling ("
                       << idle_threads << " idle)";
@@ -144,10 +150,34 @@ public:
                     if (m_data->m_operations_counter.wait_acquire(
                           skMaxSleepBeforeThreadExit)) {
                         // all good go pick the operation
+                        m_data->m_idle_threads.fetch_sub(
+                          1, std::memory_order_release);
                     } else {
                         // end this thread it seems there is no work remaining
-                        --m_data->m_idle_threads;
-                        break;
+                        m_data->m_idle_threads.fetch_sub(
+                          1, std::memory_order_release);
+                        m_data->m_active_threads.fetch_sub(
+                          1, std::memory_order_release);
+
+                        // Opportunistic recovery:
+                        // There is a chance that while we made the decision to
+                        // end (as no work seems remaining) such work was
+                        // actually added while we updated the two counters
+                        // above. In that case we must not end, because the
+                        // entity adding work may have decided there is no need
+                        // to trigger a new thread (as it still deemed us
+                        // active). To recover we need to check a last time for
+                        // pending work added since. Worst case this may cause
+                        // one excess thread to be created which would then
+                        // expire again eventually but not cause real harm.
+                        if (m_data->m_operations_counter.try_acquire()) {
+                            // found another operation, restore the active
+                            // counter and go pick/execute that operation
+                            m_data->m_active_threads.fetch_add(
+                              1, std::memory_order_release);
+                        } else {
+                            break;
+                        }
                     }
                 }
 
@@ -182,7 +212,8 @@ public:
             }
         }
 
-        const auto remaining = --m_data->m_active_threads;
+        const auto remaining =
+          m_data->m_active_threads.load(std::memory_order_acquire);
         XDISPATCH_TRACE() << "joining thread - " << remaining << " remaining";
         operation_queue_manager::instance().detach(this);
     }
@@ -258,20 +289,28 @@ void
 threadpool::schedule()
 {
     // lets check if there is an idle thread first
-    const int active_threads = m_data->m_active_threads;
-    const int idle_threads = m_data->m_idle_threads;
+    const int active_threads =
+      m_data->m_active_threads.load(std::memory_order_consume);
+    const int idle_threads =
+      m_data->m_idle_threads.load(std::memory_order_consume);
+    XDISPATCH_ASSERT(idle_threads >= 0);
+    XDISPATCH_ASSERT(active_threads >= 0);
+    XDISPATCH_ASSERT(idle_threads <= active_threads &&
+                     "We must never have more idle than active threads");
+
     if (idle_threads > 0) {
-        --m_data->m_idle_threads;
-        XDISPATCH_TRACE() << "Waking one of " << idle_threads
-                          << " idle threads (" << active_threads << " active)";
+        // idle count will be decremented by thread waking up again
+        XDISPATCH_TRACE() << "Woke one of " << idle_threads << " idle threads ("
+                          << active_threads << " active)";
     }
     // check if we are good to create another thread
-    else if (active_threads < m_data->m_max_threads) {
+    else if (active_threads <
+             m_data->m_max_threads.load(std::memory_order_consume)) {
         auto thread = std::make_shared<worker>(m_data);
         operation_queue_manager::instance().attach(thread);
-        ++m_data->m_active_threads;
+        m_data->m_active_threads.fetch_add(1, std::memory_order_release);
 
-        XDISPATCH_TRACE() << "spawned thread " << thread->get_id() << " ("
+        XDISPATCH_TRACE() << "Spawned thread " << thread->get_id() << " ("
                           << (active_threads + 1) << "/"
                           << m_data->m_max_threads << ")";
     }
@@ -282,16 +321,19 @@ threadpool::schedule()
 void
 threadpool::notify_thread_blocked()
 {
-    const auto max_threads = ++m_data->m_max_threads;
-    XDISPATCH_TRACE() << "increased threadcount to " << max_threads;
+    const auto max_threads =
+      m_data->m_max_threads.fetch_add(1, std::memory_order_acquire) + 1;
+    XDISPATCH_TRACE() << "Increased threadcount to " << max_threads;
     schedule();
 }
 
 void
 threadpool::notify_thread_unblocked()
 {
-    const auto max_threads = --m_data->m_max_threads;
-    XDISPATCH_TRACE() << "lowered threadcount to " << max_threads;
+    const auto max_threads =
+      m_data->m_max_threads.fetch_sub(1, std::memory_order_acquire) - 1;
+    ;
+    XDISPATCH_TRACE() << "Lowered threadcount to " << max_threads;
 }
 
 } // namespace naive
