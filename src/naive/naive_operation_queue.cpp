@@ -132,26 +132,33 @@ operation_queue::drain()
 }
 
 void
+operation_queue::async_unsafe(operation_ptr&& job)
+{
+    // we only need to notify, i.e. wake the thread
+    // if all previous jobs have been COMPLETED. Elsewise
+    // the thread is awake anyways and we can spare the overhead
+    const bool notify = m_jobs.empty();
+    m_jobs.push_back(std::move(job));
+    if (notify && m_notify_operation) {
+        XDISPATCH_TRACE() << "'" << m_label << "' wake threadpool";
+        m_threadpool->execute(m_notify_operation, m_priority);
+    } else if (m_notify_operation) {
+        XDISPATCH_TRACE() << "'" << m_label << "' already awake ("
+                          << m_jobs.size() << " jobs)";
+    } else {
+        XDISPATCH_WARNING()
+          << "'" << m_label << "' detached, dropping operation";
+    }
+}
+
+void
 operation_queue::async(const operation_ptr& job)
 {
     // preallocate outside the lock
     operation_ptr job2 = job;
 
     std::lock_guard<std::mutex> lock(m_CS);
-    // we only need to notify, i.e. wake the thread
-    // if all previous jobs have been COMPLETED. Elsewise
-    // the thread is awake anyways and we can spare the overhead
-    const bool notify = m_jobs.empty();
-    m_jobs.push_back(std::move(job2));
-    if (notify && m_notify_operation) {
-        XDISPATCH_TRACE() << "'" << m_label << "' wake threadpool";
-        m_threadpool->execute(m_notify_operation, m_priority);
-    } else if (m_notify_operation) {
-        XDISPATCH_TRACE() << "'" << m_label << "' already awake ("
-                          << m_jobs.size() << ")";
-    } else {
-        XDISPATCH_TRACE() << "'" << m_label << "' detached, dropping operation";
-    }
+    async_unsafe(std::move(job2));
 }
 
 void
@@ -168,17 +175,12 @@ operation_queue::attach()
 void
 operation_queue::detach()
 {
-    bool empty = false;
-    {
-        std::lock_guard<std::mutex> lock(m_CS);
-        empty = m_jobs.empty();
-        m_notify_operation.reset();
-    }
+    std::lock_guard<std::mutex> lock(m_CS);
+    const auto empty = m_jobs.empty();
 
     if (empty) {
-        // if there was no jobs remaining at the time the notify
-        // operation was reset, there is no chance anymore for an
-        // operation to be dispatched. As such we can cut it short
+        // if there is no jobs remaining, there is no chance anymore for
+        // an operation to be dispatched. As such we can cut it short
         // and skip the wakeup of our thread, directly unregistering
         // with the manager instead as no barrier is needed
         operation_queue_manager::instance().detach(this);
@@ -187,10 +189,14 @@ operation_queue::detach()
         // all others which have been queued so far. The final
         // operation will make sure to unregister with the queue
         // manager and hence release the operation_queue
-        const auto detach_op = make_operation(
+        auto detach_op = make_operation(
           [this] { operation_queue_manager::instance().detach(this); });
-        async(detach_op);
+        async_unsafe(std::move(detach_op));
     }
+
+    // prevent any further notifications to be made for
+    // jobs queued after detaching
+    m_notify_operation.reset();
 }
 
 void

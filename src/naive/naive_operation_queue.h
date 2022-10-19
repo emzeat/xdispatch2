@@ -110,6 +110,7 @@ private:
     ithreadpool_ptr m_threadpool;
 
     void drain();
+    void async_unsafe(operation_ptr&& job);
 
     static void process_job(operation& job);
 };
