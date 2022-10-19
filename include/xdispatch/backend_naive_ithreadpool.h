@@ -41,7 +41,7 @@ using ithreadpool_ptr = std::shared_ptr<ithreadpool>;
     The pool will be notified whenever work is pending that should be
     executed.
  */
-class ithreadpool
+class XDISPATCH_EXPORT ithreadpool
 {
 public:
     ithreadpool() = default;

@@ -48,16 +48,21 @@ ThreadPoolProxy::execute(const operation_ptr& work,
     class OperationRunnable : public QRunnable
     {
     public:
-        OperationRunnable(const operation_ptr& op)
+        OperationRunnable(const operation_ptr& op, naive::ithreadpool* pool)
           : m_operation(op)
+          , m_pool(pool)
         {
             setAutoDelete(true);
         }
 
-        void run() final { execute_operation_on_this_thread(*m_operation); }
+        void run() final
+        {
+            naive::ithreadpool::run_with_threadpool(*m_operation, m_pool);
+        }
 
     private:
         const operation_ptr m_operation;
+        naive::ithreadpool* const m_pool;
     };
 
     int p = 0;
@@ -78,7 +83,7 @@ ThreadPoolProxy::execute(const operation_ptr& work,
     }
 
     XDISPATCH_ASSERT(m_pool);
-    m_pool->start(new OperationRunnable(work), p);
+    m_pool->start(new OperationRunnable(work, this), p);
 }
 
 void
