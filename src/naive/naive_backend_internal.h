@@ -111,8 +111,8 @@ public:
 protected:
     ithreadpool_ptr global_threadpool();
 
-    iqueue_impl_ptr create_main_queue(const std::string& label,
-                                      backend_type backend);
+    static iqueue_impl_ptr create_main_queue(const std::string& label,
+                                             backend_type backend);
 
     iqueue_impl_ptr create_serial_queue(const std::string& label,
                                         queue_priority priority,
