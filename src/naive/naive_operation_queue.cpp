@@ -45,7 +45,8 @@ operation_queue::operation_queue(const ithreadpool_ptr& threadpool,
   , m_jobs()
   , m_CS()
   , m_active_drain(false)
-  , m_notify_operation()
+  , m_is_attached(false)
+  , m_notify_operation(make_operation(this, &operation_queue::drain))
   , m_threadpool(threadpool)
 {}
 
@@ -96,15 +97,23 @@ private:
 class deferred_pop
 {
 public:
-    explicit deferred_pop(std::list<operation_ptr>& list)
+    explicit deferred_pop(std::list<operation_ptr>& list, size_t& remaining)
       : m_list(list)
+      , m_remaining(remaining)
     {}
     deferred_pop(const deferred_pop&) = delete;
 
-    ~deferred_pop() { m_list.pop_front(); }
+    ~deferred_pop()
+    {
+        XDISPATCH_ASSERT(m_remaining > 0);
+        XDISPATCH_ASSERT(!m_list.empty());
+        m_list.pop_front();
+        --m_remaining;
+    }
 
 private:
     std::list<operation_ptr>& m_list;
+    size_t& m_remaining;
 };
 
 void
@@ -116,16 +125,21 @@ operation_queue::drain()
 
     std::lock_guard<std::mutex> lock(m_CS);
     drain_scope scope(m_active_drain);
-    // we need to satisfy two constraints here:
+    // we need to satisfy several constraints here:
     // 1. do not remove the entry from m_jobs
     //    until AFTER it has been executed so that async()
     //    can test if all operations in m_jobs have COMPLETED
     //    by checking if m_jobs is empty
     // 2. make sure not to free an operation while m_CS is
     //    locked so that recursive scenarios are supported
-    while (!m_jobs.empty()) {
+    // 3. only execute a limited amount of operations to ensure
+    //    fair use of the draining thread in case jobs get
+    //    added quickly
+    static constexpr size_t kMaxOpsPerDrain = 10;
+    auto remaining = std::min(m_jobs.size(), kMaxOpsPerDrain);
+    while (0 != remaining) {
         operation_ptr job;
-        deferred_pop pop(m_jobs);
+        deferred_pop pop(m_jobs, remaining);
         std::swap(m_jobs.front(), job);
         {
             inverse_lock_guard<std::mutex> unlock(m_CS);
@@ -134,6 +148,24 @@ operation_queue::drain()
                 job.reset();
             }
         }
+    }
+    if (!m_jobs.empty()) {
+        // not all jobs have been drained but to ensure fairness
+        // we do not continue but let others make use of our thread
+        // first. Queue another wakeup from here
+        XDISPATCH_Q_TRACE("yield");
+        notify_unsafe();
+    }
+}
+
+void
+operation_queue::notify_unsafe()
+{
+    if (m_notify_operation) {
+        XDISPATCH_Q_TRACE("notify");
+        m_threadpool->execute(m_notify_operation, m_priority);
+    } else {
+        XDISPATCH_Q_WARNING("detached, dropping operation");
     }
 }
 
@@ -145,13 +177,8 @@ operation_queue::async_unsafe(operation_ptr&& job)
     // the thread is awake anyways and we can spare the overhead
     const bool notify = m_jobs.empty();
     m_jobs.push_back(std::move(job));
-    if (notify && m_notify_operation) {
-        XDISPATCH_Q_TRACE("notify");
-        m_threadpool->execute(m_notify_operation, m_priority);
-    } else if (m_notify_operation) {
-        XDISPATCH_Q_TRACE("already awake");
-    } else {
-        XDISPATCH_Q_WARNING("detached, dropping operation");
+    if (notify && m_is_attached) {
+        notify_unsafe();
     }
 }
 
@@ -169,11 +196,12 @@ void
 operation_queue::attach()
 {
     std::lock_guard<std::mutex> lock(m_CS);
-    m_notify_operation = make_operation(this, &operation_queue::drain);
 
     const auto this_ptr = shared_from_this();
     XDISPATCH_ASSERT(this_ptr);
     operation_queue_manager::instance().attach(this_ptr);
+
+    m_is_attached = true;
 }
 
 void
@@ -200,7 +228,7 @@ operation_queue::detach()
 
     // prevent any further notifications to be made for
     // jobs queued after detaching
-    m_notify_operation.reset();
+    m_is_attached = false;
 }
 
 void

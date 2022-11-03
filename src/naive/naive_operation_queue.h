@@ -106,11 +106,13 @@ private:
     std::list<operation_ptr> m_jobs;
     std::mutex m_CS;
     bool m_active_drain;
+    bool m_is_attached;
     operation_ptr m_notify_operation;
     ithreadpool_ptr m_threadpool;
 
     void drain();
     void async_unsafe(operation_ptr&& job);
+    void notify_unsafe();
 
     static void process_job(operation& job);
 };
