@@ -30,6 +30,13 @@
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive {
 
+#define XDISPATCH_Q_TRACE(msg)                                                 \
+    XDISPATCH_TRACE() << "Queue '" << m_label << "' " msg " ("                 \
+                      << m_jobs.size() << " jobs)"
+#define XDISPATCH_Q_WARNING(msg)                                               \
+    XDISPATCH_WARNING() << "Queue '" << m_label << "' " msg " ("               \
+                        << m_jobs.size() << " jobs)"
+
 operation_queue::operation_queue(const ithreadpool_ptr& threadpool,
                                  const std::string& label,
                                  queue_priority priority)
@@ -139,14 +146,12 @@ operation_queue::async_unsafe(operation_ptr&& job)
     const bool notify = m_jobs.empty();
     m_jobs.push_back(std::move(job));
     if (notify && m_notify_operation) {
-        XDISPATCH_TRACE() << "'" << m_label << "' wake threadpool";
+        XDISPATCH_Q_TRACE("notify");
         m_threadpool->execute(m_notify_operation, m_priority);
     } else if (m_notify_operation) {
-        XDISPATCH_TRACE() << "'" << m_label << "' already awake ("
-                          << m_jobs.size() << " jobs)";
+        XDISPATCH_Q_TRACE("already awake");
     } else {
-        XDISPATCH_WARNING()
-          << "'" << m_label << "' detached, dropping operation";
+        XDISPATCH_Q_WARNING("detached, dropping operation");
     }
 }
 
