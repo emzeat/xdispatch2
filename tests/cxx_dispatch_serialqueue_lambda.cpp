@@ -54,10 +54,14 @@ cxx_dispatch_serialqueue_lambda(void* data)
     // dispatch some jobs
     for (unsigned int x = 0; x < JOBS_NO; x++) {
         q.async([=] {
-            MU_ASSERT_EQUAL(*worker, x);
+            auto previous = worker->load();
+            MU_ASSERT_EQUAL(previous, x);
+
             // keep cpu busy
+            MU_SLEEP(0);
             for (int i = 0; i < LOOP_COUNT; i++) {
             }
+
             worker->store(x + 1);
         });
     }
