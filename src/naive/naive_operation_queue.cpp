@@ -110,24 +110,23 @@ operation_queue::drain()
     std::lock_guard<std::mutex> lock(m_CS);
     drain_scope scope(m_active_drain);
     // we need to satisfy two constraints here:
-    // 1. Swap all entries from m_jobs and process them
-    //    before returning so that a lot of small jobs
-    //    can get drained efficiently in one go but the thread
-    //    is not blocked forever when jobs get added more quickly
-    //    than being drained
+    // 1. do not remove the entry from m_jobs
+    //    until AFTER it has been executed so that async()
+    //    can test if all operations in m_jobs have COMPLETED
+    //    by checking if m_jobs is empty
     // 2. make sure not to free an operation while m_CS is
     //    locked so that recursive scenarios are supported
-    decltype(m_jobs) jobs;
-    std::swap(jobs, m_jobs);
-    {
-        inverse_lock_guard<std::mutex> unlock(m_CS);
-        for (auto& job : jobs) {
+    while (!m_jobs.empty()) {
+        operation_ptr job;
+        deferred_pop pop(m_jobs);
+        std::swap(m_jobs.front(), job);
+        {
+            inverse_lock_guard<std::mutex> unlock(m_CS);
             if (job) {
                 process_job(*job);
                 job.reset();
             }
         }
-        jobs.clear();
     }
 }
 
