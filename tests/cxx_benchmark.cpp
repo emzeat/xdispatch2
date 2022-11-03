@@ -68,7 +68,7 @@ cxx_benchmark_serial_queue(void* data)
 {
     CXX_BEGIN_BACKEND_TEST(cxx_benchmark_serial_queue);
 
-    auto queue = cxx_create_queue("serial_benchmark");
+    auto queue = cxx_create_queue("cxx_benchmark_serial_queue");
     do_benchmark(queue);
 
     MU_PASS("Test completed");

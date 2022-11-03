@@ -45,10 +45,12 @@ static std::atomic<bool> done(false);
     #define LOOP_COUNT 20000000
 #endif
 
-static const char* labels[PRIORITIES] = { "BACKGROUND",
-                                          "UTILITY",
-                                          "USER_INITIATED",
-                                          "USER_INTERACTIVE" };
+static const char* labels[PRIORITIES] = {
+    "cxx_dispatch_priority_custom_BACKGROUND",
+    "cxx_dispatch_priority_custom_UTILITY",
+    "cxx_dispatch_priority_custom_USER_INITIATED",
+    "cxx_dispatch_priority_custom_USER_INTERACTIVE"
+};
 
 static xdispatch::queue_priority priorities[PRIORITIES] = {
     xdispatch::queue_priority::BACKGROUND,

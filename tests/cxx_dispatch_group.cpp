@@ -58,7 +58,7 @@ create_group(size_t count, int delay)
     auto group = cxx_create_group();
 
     for (i = 0; i < count; ++i) {
-        xdispatch::queue queue = cxx_create_queue("foo");
+        xdispatch::queue queue = cxx_create_queue("cxx_dispatch_group");
 
         group.async(std::make_shared<work>(delay), queue);
     }

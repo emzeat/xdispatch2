@@ -39,7 +39,7 @@ create_group(size_t count, int delay)
     auto group = cxx_create_group();
 
     for (i = 0; i < count; ++i) {
-        auto queue = cxx_create_queue("foo");
+        auto queue = cxx_create_queue("cxx_dispatch_group_lambda");
 
         group.async(
           [=] {
