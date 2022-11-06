@@ -374,18 +374,18 @@ print_begin(int times)
 }
 
 void
-print_result(int times, int failed_iterations)
+print_result(int passed_iterations, int failed_iterations)
 {
     if (failed_iterations != 0) {
         printf("\n##################################\nTEST RUN HAD FAILURES\n");
         printf("\tPassed iterations: %i\n\tFailed iterations: %i\n",
-               times - failed_iterations,
+               passed_iterations,
                failed_iterations);
         printf("##################################\n");
     } else {
         printf("\n##################################\nTEST RUN PASSED\n");
         printf("\tPassed iterations: %i\n\tFailed iterations: %i\n",
-               times - failed_iterations,
+               passed_iterations,
                failed_iterations);
         printf("##################################\n");
     }
@@ -412,7 +412,7 @@ repeat_test(const char* bin, int no, char keep_running, int times)
             failed_iterations++;
 
             if (!keep_running) {
-                print_result(times, failed_iterations);
+                print_result(iteration, failed_iterations);
                 return EXIT_FAILURE;
             }
         }
