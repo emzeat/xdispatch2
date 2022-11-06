@@ -31,7 +31,9 @@ semaphore::semaphore(int count)
   : m_count(count)
   , m_CS()
   , m_cond()
-{}
+{
+    XDISPATCH_ASSERT(m_count.is_lock_free());
+}
 
 bool
 semaphore::try_acquire()
@@ -47,9 +49,11 @@ semaphore::try_acquire()
         if (0 == old_count) {
             return false;
         }
-        if (m_count.compare_exchange_weak(old_count, old_count - 1)) {
+        if (m_count.compare_exchange_weak(
+              old_count, old_count - 1, std::memory_order_seq_cst)) {
             return true;
         }
+        // compare exchange failed, old_count was updated with the actual value
     } while (true);
 }
 
@@ -99,7 +103,7 @@ void
 semaphore::release(int count)
 {
     XDISPATCH_ASSERT(count > 0);
-    const auto previous = m_count.fetch_add(count);
+    const auto previous = m_count.fetch_add(count, std::memory_order_seq_cst);
     XDISPATCH_ASSERT(previous >= 0);
 
     // if drained before we need to notify
