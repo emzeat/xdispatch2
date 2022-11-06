@@ -90,11 +90,11 @@ cxx_dispatch_group(void* data)
     group.async(std::make_shared<foo>(), cxx_global_queue());
     MU_ASSERT_TRUE(group.wait());
 
-    group = create_group(3, 7);
-    bool res = group.wait(std::chrono::seconds(5));
+    group = create_group(3, 3);
+    bool res = group.wait(std::chrono::seconds(2));
     MU_ASSERT_EQUAL(res, false);
     // retry after timeout (this time succeed)
-    res = group.wait(std::chrono::seconds(5));
+    res = group.wait(std::chrono::seconds(2));
     MU_ASSERT_EQUAL(res, true);
 
     group = create_group(100, 0);
