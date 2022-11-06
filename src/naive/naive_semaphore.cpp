@@ -29,10 +29,12 @@ namespace naive {
 
 semaphore::semaphore(int count)
   : m_count(count)
+  , m_waiters(0)
   , m_CS()
   , m_cond()
 {
     XDISPATCH_ASSERT(m_count.is_lock_free());
+    XDISPATCH_ASSERT(m_waiters.is_lock_free());
 }
 
 bool
@@ -92,6 +94,25 @@ semaphore::wait_acquire(std::chrono::milliseconds timeout)
         std::unique_lock<std::mutex> lock(m_CS);
         // test again as we hold the lock this time
         if (!try_acquire()) {
+
+            struct waiter_scope
+            {
+                explicit waiter_scope(std::atomic<int>& waiters)
+                  : m_waiters(waiters)
+                {
+                    m_waiters.fetch_add(1, std::memory_order_release);
+                }
+                waiter_scope(const waiter_scope& other) = delete;
+                ~waiter_scope()
+                {
+                    m_waiters.fetch_sub(1, std::memory_order_release);
+                }
+
+            private:
+                std::atomic<int>& m_waiters;
+            };
+
+            waiter_scope waiting(m_waiters);
             return m_cond.wait_for(
               lock, timeout, [this] { return try_acquire(); });
         }
@@ -103,11 +124,10 @@ void
 semaphore::release(int count)
 {
     XDISPATCH_ASSERT(count > 0);
-    const auto previous = m_count.fetch_add(count, std::memory_order_seq_cst);
-    XDISPATCH_ASSERT(previous >= 0);
+    m_count.fetch_add(count, std::memory_order_seq_cst);
 
-    // if drained before we need to notify
-    if (0 == previous) {
+    // if there is waiters we should notify them
+    if (0 != m_waiters.load(std::memory_order_acquire)) {
         std::unique_lock<std::mutex> lock(m_CS);
         if (1 == count) {
             m_cond.notify_one();

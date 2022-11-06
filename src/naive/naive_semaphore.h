@@ -86,6 +86,7 @@ public:
 
 private:
     std::atomic<int> m_count;
+    std::atomic<int> m_waiters;
     std::mutex m_CS;
     std::condition_variable m_cond;
 };
