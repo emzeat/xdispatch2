@@ -52,6 +52,7 @@ check_symbol_exists( dlsym "dlfcn.h" XDISPATCH2_HAVE_DLSYM )
 unset(CMAKE_REQUIRED_LIBRARIES)
 check_symbol_exists( GetProcAddress "windows.h" XDISPATCH2_HAVE_GET_PROC_ADDRESS )
 check_include_file( "immintrin.h" XDISPATCH2_HAVE_IMMINTRIN_H )
+find_library(XDISPATCH2_HAVE_LIBATOMIC NAMES atomic atomic.so.1 libatomic.so.1)
 
 # build options
 set(BUILD_XDISPATCH2_BACKEND_NAIVE ON)
@@ -128,6 +129,12 @@ if( BUILD_XDISPATCH2_BACKEND_NAIVE )
     set(LIBS ${LIBS}
         Threads::Threads
     )
+    if( XDISPATCH2_HAVE_LIBATOMIC )
+        set(LIBS ${LIBS}
+            atomic
+        )
+        mz_message("Linking atomics from '${XDISPATCH2_HAVE_LIBATOMIC}'")
+    endif()
 endif()
 
 # main library target (always including naive)

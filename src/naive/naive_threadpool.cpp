@@ -28,6 +28,13 @@
 __XDISPATCH_BEGIN_NAMESPACE
 namespace naive {
 
+#define XDISPATCH_TP_TRACE(pool, idle, active)                                 \
+    XDISPATCH_TRACE() << (pool) << "[idle=" << (idle) << "|total=" << (active) \
+                      << "] "
+#define XDISPATCH_TP_WARNING(pool, idle, active)                               \
+    XDISPATCH_WARNING() << (pool) << "[idle=" << (idle)                        \
+                        << "|total=" << (active) << "] "
+
 static thread_local ithreadpool* s_current_pool = nullptr;
 
 ithreadpool*
@@ -75,7 +82,11 @@ public:
       , m_idle_threads(0)
       , m_operations()
       , m_cancelled(false)
-    {}
+    {
+        XDISPATCH_ASSERT(m_max_threads.is_lock_free());
+        XDISPATCH_ASSERT(m_active_threads.is_lock_free());
+        XDISPATCH_ASSERT(m_idle_threads.is_lock_free());
+    }
 
     // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
     threadpool* const m_pool;
@@ -140,9 +151,11 @@ public:
                     const auto idle_threads = m_data->m_idle_threads.fetch_add(
                                                 1, std::memory_order_acq_rel) +
                                               1;
-                    XDISPATCH_TRACE()
-                      << std::this_thread::get_id() << " idling ("
-                      << idle_threads << " idle)";
+                    const auto active_threads =
+                      m_data->m_active_threads.load(std::memory_order_consume);
+                    XDISPATCH_TP_TRACE(
+                      m_data->m_pool, idle_threads, active_threads)
+                      << "Thread " << std::this_thread::get_id() << " idling";
 
                     // wait up to a timeout for the counter to acquire, if the
                     // timeout is reached we end this thread again to free
@@ -182,9 +195,10 @@ public:
                 }
 
                 // search for the next operation starting with the highest
-                // priority Note: there has to be such operation as we acquired
-                // the semaphore above
-                //       so if popping fails spontaneously we are good to repeat
+                // priority
+                // Note: there has to be such operation as we acquired the
+                //       semaphore above so if popping fails spontaneously
+                //       we are good to repeat
                 // FIXME(zwicker): This is unfair; if enough high prio ops get
                 //                 queued we will never drain the lower prio ops
                 for (label = 0; !m_data->m_cancelled; ++label) {
@@ -198,6 +212,7 @@ public:
                         break;
                     }
                 }
+                XDISPATCH_ASSERT(op);
             }
 
             if (op) {
@@ -213,8 +228,11 @@ public:
         }
 
         const auto remaining =
-          m_data->m_active_threads.load(std::memory_order_acquire);
-        XDISPATCH_TRACE() << "joining thread - " << remaining << " remaining";
+          m_data->m_active_threads.load(std::memory_order_consume);
+        const auto idle =
+          m_data->m_idle_threads.load(std::memory_order_consume);
+        XDISPATCH_TP_TRACE(m_data->m_pool, remaining, idle)
+          << "Thread" << std::this_thread::get_id() << " joining";
         operation_queue_manager::instance().detach(this);
     }
 
@@ -300,8 +318,8 @@ threadpool::schedule()
 
     if (idle_threads > 0) {
         // idle count will be decremented by thread waking up again
-        XDISPATCH_TRACE() << "Woke one of " << idle_threads << " idle threads ("
-                          << active_threads << " active)";
+        XDISPATCH_TP_TRACE(this, active_threads, idle_threads)
+          << "Woke an idle thread";
     }
     // check if we are good to create another thread
     else if (active_threads <
@@ -310,9 +328,9 @@ threadpool::schedule()
         operation_queue_manager::instance().attach(thread);
         m_data->m_active_threads.fetch_add(1, std::memory_order_release);
 
-        XDISPATCH_TRACE() << "Spawned thread " << thread->get_id() << " ("
-                          << (active_threads + 1) << "/"
-                          << m_data->m_max_threads << ")";
+        XDISPATCH_TP_TRACE(this, active_threads + 1, idle_threads)
+          << "Spawned thread " << thread->get_id()
+          << " (max=" << m_data->m_max_threads << ")";
     }
     // all threads busy and processor allocation reached, wait
     // and the operation will be picked up as soon as a thread is available
@@ -322,8 +340,12 @@ void
 threadpool::notify_thread_blocked()
 {
     const auto max_threads =
-      m_data->m_max_threads.fetch_add(1, std::memory_order_acquire) + 1;
-    XDISPATCH_TRACE() << "Increased threadcount to " << max_threads;
+      m_data->m_max_threads.fetch_add(1, std::memory_order_acq_rel) + 1;
+    const auto active =
+      m_data->m_active_threads.load(std::memory_order_consume);
+    const auto idle = m_data->m_idle_threads.load(std::memory_order_consume);
+    XDISPATCH_TP_TRACE(this, active, idle)
+      << "Increased threadcount to " << max_threads;
     schedule();
 }
 
@@ -333,7 +355,11 @@ threadpool::notify_thread_unblocked()
     const auto max_threads =
       m_data->m_max_threads.fetch_sub(1, std::memory_order_acquire) - 1;
     ;
-    XDISPATCH_TRACE() << "Lowered threadcount to " << max_threads;
+    const auto active =
+      m_data->m_active_threads.load(std::memory_order_consume);
+    const auto idle = m_data->m_idle_threads.load(std::memory_order_consume);
+    XDISPATCH_TP_TRACE(this, active, idle)
+      << "Lowered threadcount to " << max_threads;
 }
 
 } // namespace naive
