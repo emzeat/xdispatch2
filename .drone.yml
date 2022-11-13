@@ -3,6 +3,11 @@ kind: pipeline
 type: docker
 name: pre-commit
 
+trigger:
+  event:
+    exclude:
+    - tag
+
 steps:
 - name: check hooks
   image: ${MZ_DOCKER_REGISTRY}/pre-commit:latest
@@ -14,6 +19,11 @@ steps:
 kind: pipeline
 type: docker
 name: ubuntu-1804-clang
+
+trigger:
+  event:
+    exclude:
+    - tag
 
 workspace:
   path: /drone/src
@@ -44,14 +54,6 @@ steps:
     ref:
       - refs/pull/*/head
 
-- name: package - upload
-  image: ${MZ_DOCKER_REGISTRY}/builder-1804-clang:latest
-  commands:
-    - python3 build/conan_package.py --create --upload
-  when:
-    event:
-    - tag
-
 - name: test
   image: ${MZ_DOCKER_REGISTRY}/builder-1804-clang:latest
   environment:
@@ -62,10 +64,51 @@ steps:
     - ./xdispatch2_tests
     - ./xdispatch2_platform_demo
 
+
+---
+kind: pipeline
+type: docker
+name: conan
+
+trigger:
+  event:
+    include:
+    - tag
+
+workspace:
+  path: /drone/src
+environment:
+  CONAN_CPU_COUNT: 12
+  CONAN_USER_HOME: /drone/src
+
+steps:
+- name: submodules
+  image: alpine/git
+  commands:
+    - git fetch --tags
+    - git submodule update --init --recursive
+
+- name: configure
+  image: ${MZ_DOCKER_REGISTRY}/builder-1804-clang:latest
+  commands:
+    - cd build
+    - bash ./generator.sh mode=release compiler=clang generator=ninja location=inside -DBUILD_XDISPATCH2_TESTS=ON
+
+- name: package & upload
+  image: ${MZ_DOCKER_REGISTRY}/builder-1804-clang:latest
+  commands:
+    - python3 build/conan_package.py --create --upload
+
+
 ---
 kind: pipeline
 type: exec
 name: darwin-macos
+
+trigger:
+  event:
+    exclude:
+    - tag
 
 platform:
   os: darwin
@@ -92,16 +135,7 @@ steps:
     ref:
       - refs/pull/*/head
 
-- name: package - upload
-  commands:
-    - python3 build/conan_package.py --create --upload
-  when:
-    event:
-    - tag
-
 - name: test
-  environment:
-    # XDISPATCH2_TRACE: 1
   commands:
     - cd build/clang-ninja-release/bin
     - ./xdispatch2_tests
@@ -115,7 +149,45 @@ steps:
 ---
 kind: pipeline
 type: exec
+name: darwin-macos (tag)
+
+trigger:
+  event:
+    include:
+    - tag
+depends_on:
+- conan
+
+platform:
+  os: darwin
+  arch: amd64
+
+steps:
+- name: submodules
+  commands:
+    - git fetch --tags
+    - git submodule update --init --recursive
+
+- name: configure
+  commands:
+    - ln -s /Users/$${USER}/Library $${HOME}/Library
+    - cd build
+    - bash ./generator.sh mode=release compiler=clang generator=ninja location=inside -DBUILD_XDISPATCH2_TESTS=ON
+
+- name: package & upload
+  commands:
+    - python3 build/conan_package.py --build --upload
+
+
+---
+kind: pipeline
+type: exec
 name: darwin-ios
+
+trigger:
+  event:
+    exclude:
+    - tag
 
 platform:
   os: darwin
@@ -142,17 +214,49 @@ steps:
     ref:
       - refs/pull/*/head
 
-- name: package - upload
-  commands:
-    - python3 build/conan_package.py --create --upload
-  when:
-    event:
+
+---
+kind: pipeline
+type: exec
+name: darwin-ios (tag)
+
+trigger:
+  event:
+    include:
     - tag
+depends_on:
+- conan
+
+platform:
+  os: darwin
+  arch: amd64
+
+steps:
+- name: submodules
+  commands:
+    - git fetch --tags
+    - git submodule update --init --recursive
+
+- name: configure
+  commands:
+    - ln -s /Users/$${USER}/Library $${HOME}/Library
+    - cd build
+    - bash ./generator.sh mode=release compiler=ios generator=makefiles location=inside -DBUILD_XDISPATCH2_TESTS=ON
+
+- name: package & upload
+  commands:
+    - python3 build/conan_package.py --build --upload
+
 
 ---
 kind: pipeline
 type: exec
 name: windows-msvc64
+
+trigger:
+  event:
+    exclude:
+    - tag
 
 platform:
   os: windows
@@ -178,16 +282,7 @@ steps:
     ref:
       - refs/pull/*/head
 
-- name: package - upload
-  commands:
-    - python3 build/conan_package.py --create --upload
-  when:
-    event:
-    - tag
-
 - name: test
-  environment:
-    # XDISPATCH2_TRACE: 1
   commands:
     - cd build/win32-ninja_64-release/bin
     - .\xdispatch2_tests.exe
@@ -196,3 +291,35 @@ steps:
     ref:
       - refs/heads/master
       - refs/pull/*/head
+
+
+---
+kind: pipeline
+type: exec
+name: windows-msvc64 (tag)
+
+trigger:
+  event:
+    include:
+    - tag
+depends_on:
+- conan
+
+platform:
+  os: windows
+  arch: amd64
+
+steps:
+- name: submodules
+  commands:
+    - git fetch --tags
+    - git submodule update --init --recursive
+
+- name: configure
+  commands:
+    - cd build
+    - .\generator.bat release ninja_64 inside -DBUILD_XDISPATCH2_TESTS=ON
+
+- name: package & upload
+  commands:
+    - python3 build/conan_package.py --build --upload
