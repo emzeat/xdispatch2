@@ -157,6 +157,9 @@ public:
                     const auto queue = this_ptr->m_queue;
                     auto& handler_cancelable = this_ptr->m_handler_cancelable;
 
+                    // no member access beyond this!
+                    inverse_lock_guard<std::mutex> unlock(this_ptr->m_CS);
+
                     lightweight_barrier barrier;
                     queue->async(make_operation(
                       [handler, socket, type, &barrier, &handler_cancelable] {
