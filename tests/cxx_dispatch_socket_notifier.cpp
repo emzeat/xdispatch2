@@ -59,7 +59,7 @@ cxx_dispatch_notifier_read(void* data)
           MU_ASSERT_EQUAL(fds[1], socket);
 
           std::vector<char> buffer(64);
-          auto actual = read(fds[1], &buffer[0], buffer.size());
+          auto actual = read(fds[1], buffer.data(), buffer.size());
           MU_ASSERT_EQUAL(actual, kPacket);
 
           MU_PASS("Seems to work");
@@ -67,7 +67,7 @@ cxx_dispatch_notifier_read(void* data)
     notifier.resume();
 
     std::vector<char> buffer(kPacket);
-    MU_ASSERT_EQUAL(kPacket, write(fds[0], &buffer[0], buffer.size()));
+    MU_ASSERT_EQUAL(kPacket, write(fds[0], buffer.data(), buffer.size()));
 
     cxx_exec();
 
@@ -89,7 +89,7 @@ cxx_dispatch_notifier_write(void* data)
     std::vector<char> buffer(kPacket);
     size_t written = 0;
     while (true) {
-        const auto actual = write(fds[1], &buffer[0], kPacket);
+        const auto actual = write(fds[1], buffer.data(), kPacket);
         if (actual != kPacket) {
             break;
         }
@@ -116,13 +116,13 @@ cxx_dispatch_notifier_write(void* data)
           MU_ASSERT_EQUAL(fds[1], socket);
 
           std::vector<char> buffer(kPacket);
-          auto actual = write(fds[1], &buffer[0], kPacket);
+          auto actual = write(fds[1], buffer.data(), kPacket);
           MU_ASSERT_EQUAL(actual, kPacket);
           MU_PASS("Seems to work");
       });
     notifier.resume();
 
-    while (kPacket == read(fds[0], &buffer[0], buffer.size())) {
+    while (kPacket == read(fds[0], buffer.data(), buffer.size())) {
     }
     cxx_exec();
 
@@ -148,7 +148,7 @@ cxx_dispatch_notifier_suspend(void* data)
         MU_ASSERT_EQUAL(fds[1], socket);
 
         std::vector<char> buffer(64);
-        auto actual = read(fds[1], &buffer[0], buffer.size());
+        auto actual = read(fds[1], buffer.data(), buffer.size());
         MU_ASSERT_GREATER_THAN_EQUAL(actual, kPacket);
 
         switch (barrier) {
@@ -176,7 +176,7 @@ cxx_dispatch_notifier_suspend(void* data)
     // blindly saturate the socket
     std::vector<char> buffer(kPacket);
     for (int i = 0; i < 10; ++i) {
-        write(fds[0], &buffer[0], buffer.size());
+        write(fds[0], buffer.data(), buffer.size());
     }
 
     cxx_exec();
@@ -203,7 +203,7 @@ cxx_dispatch_notifier_cancel(void* data)
         MU_ASSERT_EQUAL(fds[1], socket);
 
         std::vector<char> buffer(64);
-        auto actual = read(fds[1], &buffer[0], buffer.size());
+        auto actual = read(fds[1], buffer.data(), buffer.size());
         MU_ASSERT_GREATER_THAN_EQUAL(actual, kPacket);
 
         if (barrier) {
@@ -222,7 +222,7 @@ cxx_dispatch_notifier_cancel(void* data)
     // blindly saturate the socket
     std::vector<char> buffer(kPacket);
     for (int i = 0; i < 10; ++i) {
-        write(fds[0], &buffer[0], buffer.size());
+        write(fds[0], buffer.data(), buffer.size());
     }
 
     cxx_exec();
