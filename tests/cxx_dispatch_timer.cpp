@@ -28,13 +28,26 @@
 
 static Stopwatch s_checked_time;
 static std::atomic_int s_scope_count{ 0 };
+static constexpr std::chrono::milliseconds kPeriodicInterval(500);
+template<typename Duration>
+inline constexpr Duration
+UpperBound(Duration target)
+{
+    return target * 7 / 6;
+}
+template<typename Duration>
+inline constexpr Duration
+LowerBound(Duration target)
+{
+    return target * 6 / 7;
+}
 
 struct ScopeCounter
 {
 
     ScopeCounter() { ++s_scope_count; }
-    ScopeCounter(const ScopeCounter& other) { ++s_scope_count; }
-    ScopeCounter(ScopeCounter&& other) { ++s_scope_count; }
+    ScopeCounter(const ScopeCounter&) { ++s_scope_count; }
+    ScopeCounter(ScopeCounter&&) noexcept { ++s_scope_count; }
     ~ScopeCounter() { --s_scope_count; }
 };
 
@@ -53,13 +66,15 @@ public:
         // test the timer interval (but only after the second run
         // as the first one will be started immediately
         if (m_counter > 0) {
-            const auto diff = s_checked_time.elapsed();
-            constexpr auto k1second = 1.0 * 1000 * 1000;
-            constexpr auto k3seconds = 3.0 * 1000 * 1000;
-            MU_DESC_ASSERT_LESS_THAN_DOUBLE(
-              "timer not too late", diff, k3seconds);
-            MU_DESC_ASSERT_LESS_THAN_DOUBLE(
-              "timer not too early", k1second, diff);
+            const auto diff =
+              std::chrono::duration_cast<std::chrono::milliseconds>(
+                s_checked_time.elapsed());
+            constexpr auto kTooEarly = LowerBound(kPeriodicInterval);
+            constexpr auto kTooLate = UpperBound(kPeriodicInterval);
+            MU_DESC_ASSERT_LESS_THAN(
+              "timer not too late", diff.count(), kTooLate.count());
+            MU_DESC_ASSERT_LESS_THAN(
+              "timer not too early", kTooEarly.count(), diff.count());
         }
 
         s_checked_time.start();
@@ -82,7 +97,7 @@ void
 cxx_dispatch_timer(xdispatch::timer& tested_timer)
 {
     MU_MESSAGE("Testing periodic timer");
-    tested_timer.interval(std::chrono::seconds(2));
+    tested_timer.interval(kPeriodicInterval);
     tested_timer.handler(std::make_shared<test_periodic>());
     s_checked_time.start();
     tested_timer.resume();
@@ -137,25 +152,29 @@ cxx_dispatch_after(const xdispatch::queue& queue)
     // dispatch two operations, one with delay, one without
     // with the one without delay expected to complete before
     // the other
+    static constexpr auto kAfterInterval = std::chrono::milliseconds(500);
 
-    queue.after(std::chrono::seconds(1),
-                [&elapsed, &async_complete, &after_complete, counter, queue] {
-                    MU_ASSERT_TRUE(async_complete);
-                    MU_ASSERT_TRUE(!after_complete);
-                    after_complete = true;
+    queue.after(
+      kAfterInterval,
+      [&elapsed, &async_complete, &after_complete, counter, queue] {
+          MU_ASSERT_TRUE(async_complete);
+          MU_ASSERT_TRUE(!after_complete);
+          after_complete = true;
 
-                    auto usec = elapsed.elapsed();
-                    MU_ASSERT_LESS_THAN(usec, 1100 * 1000);
-                    MU_ASSERT_GREATER_THAN(usec, 900 * 1000);
+          auto usec = std::chrono::duration_cast<std::chrono::milliseconds>(
+            elapsed.elapsed());
+          MU_ASSERT_LESS_THAN(usec.count(), UpperBound(kAfterInterval).count());
+          MU_ASSERT_GREATER_THAN(usec.count(),
+                                 LowerBound(kAfterInterval).count());
 
-                    MU_ASSERT_EQUAL(s_scope_count, 2);
+          MU_ASSERT_EQUAL(s_scope_count, 2);
 
-                    queue.async([] {
-                        MU_SLEEP(1);
-                        MU_ASSERT_EQUAL(s_scope_count, 1);
-                        MU_PASS("Done");
-                    });
-                });
+          queue.async([] {
+              MU_SLEEP(1);
+              MU_ASSERT_EQUAL(s_scope_count, 1);
+              MU_PASS("Done");
+          });
+      });
     queue.async([&async_complete, &after_complete, counter] {
         MU_ASSERT_TRUE(!async_complete);
         MU_ASSERT_TRUE(!after_complete);

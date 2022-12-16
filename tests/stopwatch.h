@@ -23,6 +23,7 @@
 #define STOPWATCH_H_
 
 #include <stdint.h>
+#include <chrono>
 
 #if _WIN32
 
@@ -54,14 +55,15 @@ class Stopwatch {
     /**
      * @returns the elapsed time in usec
      */
-    uint64_t elapsed() {
+    std::chrono::microseconds elapsed() {
       if( _active )
         QueryPerformanceCounter(&_end);
 
       LARGE_INTEGER diff;
       diff.QuadPart = _end.QuadPart - _start.QuadPart;
 
-      return (uint64_t)( (double)diff.QuadPart/(double)_frequency.QuadPart * 1000000ul );
+      auto usec = (uint64_t)( (double)diff.QuadPart/(double)_frequency.QuadPart * 1000000ul );
+      return std::chrono::microseconds(usec);
     }
 
 
@@ -96,12 +98,13 @@ class Stopwatch {
     /**
      * @returns the elapsed time in usec
      */
-    uint64_t elapsed() {
+    std::chrono::microseconds elapsed() {
       if( _active )
         gettimeofday( &_end, NULL );
 
-      return (_end.tv_sec - _start.tv_sec ) * 1000000ul
+      auto usec = (_end.tv_sec - _start.tv_sec ) * 1000000ul
         + ( _end.tv_usec - _start.tv_usec );
+      return std::chrono::microseconds(usec);
     }
 
 
