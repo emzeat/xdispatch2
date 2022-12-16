@@ -55,6 +55,12 @@ timer::resume(std::chrono::milliseconds d)
 }
 
 void
+timer::suspend()
+{
+    m_impl->suspend();
+}
+
+void
 timer::cancel()
 {
     m_impl->cancel();

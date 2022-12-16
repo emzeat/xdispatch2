@@ -21,6 +21,7 @@
  */
 
 #include <xdispatch/dispatch.h>
+#include <xdispatch/barrier_operation.h>
 
 #include "cxx_tests.h"
 #include "stopwatch.h"
@@ -197,4 +198,67 @@ cxx_dispatch_after_main(void* data)
     cxx_dispatch_after(tested_queue);
 
     MU_END_TEST;
+}
+
+void
+cxx_dispatch_timer_suspend(void* data)
+{
+    CXX_BEGIN_BACKEND_TEST(cxx_dispatch_timer_suspend);
+
+    const std::chrono::milliseconds kInterval(500);
+    auto timer = cxx_create_timer();
+    timer.interval(kInterval);
+
+    auto barrier = std::make_shared<xdispatch::barrier_operation>();
+    timer.handler(barrier);
+    timer.resume();
+    MU_ASSERT_TRUE(barrier->wait(kInterval * 3 / 2));
+
+    barrier = std::make_shared<xdispatch::barrier_operation>();
+    timer.handler(barrier);
+    timer.suspend();
+    MU_ASSERT_TRUE(!barrier->wait(kInterval * 3 / 2));
+
+    barrier = std::make_shared<xdispatch::barrier_operation>();
+    timer.handler([&timer, barrier] {
+        timer.suspend();
+        if (barrier->has_passed()) {
+            MU_FAIL("Should not hit this a second time");
+        }
+        (*barrier)();
+    });
+    timer.resume();
+    MU_ASSERT_TRUE(barrier->wait(kInterval * 3));
+
+    MU_PASS("");
+}
+
+void
+cxx_dispatch_timer_cancel(void* data)
+{
+    CXX_BEGIN_BACKEND_TEST(cxx_dispatch_timer_cancel);
+
+    const std::chrono::milliseconds kInterval(500);
+    auto timer = cxx_create_timer();
+    timer.interval(kInterval);
+    auto barrier = std::make_shared<xdispatch::barrier_operation>();
+    timer.handler(barrier);
+    timer.resume();
+    timer.cancel();
+    MU_ASSERT_TRUE(!barrier->wait(kInterval * 3 / 2));
+
+    timer = cxx_create_timer();
+    timer.interval(kInterval);
+    barrier = std::make_shared<xdispatch::barrier_operation>();
+    timer.handler([&timer, barrier] {
+        timer.cancel();
+        if (barrier->has_passed()) {
+            MU_FAIL("Should not hit this a second time");
+        }
+        (*barrier)();
+    });
+    timer.resume();
+    MU_ASSERT_TRUE(barrier->wait(kInterval * 3));
+
+    MU_PASS("");
 }
