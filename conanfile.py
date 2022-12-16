@@ -51,6 +51,9 @@ class XDispatch2Conan(ConanFile):
             self.requires("sqlite3/3.29.0", override=True)
             if self.settings.os == "Linux":
                 self.requires("xorg/system@emzeat/external", override=True)
+                self.requires("expat/2.4.8", override=True)
+                self.requires("glib/2.72.0", override=True)
+                self.requires("libffi/3.4.3", override=True)
 
     def build_requirements(self):
         self.tool_requires("clang-tools-extra/13.0.1@emzeat/external")
