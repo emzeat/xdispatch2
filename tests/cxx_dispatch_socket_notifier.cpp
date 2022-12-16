@@ -128,3 +128,104 @@ cxx_dispatch_notifier_write(void* data)
 
     MU_END_TEST;
 }
+
+void
+cxx_dispatch_notifier_suspend(void* data)
+{
+    CXX_BEGIN_BACKEND_TEST(cxx_dispatch_notifier_suspend);
+
+    static constexpr auto kPacket = 16;
+
+    int fds[2] = { -1 };
+    auto ret = platform_socketpair(fds);
+    MU_ASSERT_NOT_EQUAL(ret, -1);
+
+    auto notifier = cxx_create_notifier(fds[1], xdispatch::notifier_type::READ);
+    int barrier = 0;
+    notifier.handler([fds, &barrier, &notifier](xdispatch::socket_t socket,
+                                                xdispatch::notifier_type type) {
+        MU_ASSERT_EQUAL(type, xdispatch::notifier_type::READ);
+        MU_ASSERT_EQUAL(fds[1], socket);
+
+        std::vector<char> buffer(64);
+        auto actual = read(fds[1], &buffer[0], buffer.size());
+        MU_ASSERT_GREATER_THAN_EQUAL(actual, kPacket);
+
+        switch (barrier) {
+            case 1:
+                MU_FAIL("Should not reach this");
+                break;
+            case 2:
+                MU_PASS("Suspending and resuming works");
+                break;
+            default:
+                barrier = 1;
+                notifier.suspend();
+
+                MU_MESSAGE("Initial handler call, suspending");
+                cxx_global_queue().after(std::chrono::milliseconds(500),
+                                         [&barrier, &notifier] {
+                                             barrier = 2;
+                                             notifier.resume();
+                                         });
+                break;
+        }
+    });
+    notifier.resume();
+
+    // blindly saturate the socket
+    std::vector<char> buffer(kPacket);
+    for (int i = 0; i < 10; ++i) {
+        write(fds[0], &buffer[0], buffer.size());
+    }
+
+    cxx_exec();
+
+    MU_END_TEST
+}
+
+void
+cxx_dispatch_notifier_cancel(void* data)
+{
+    CXX_BEGIN_BACKEND_TEST(cxx_dispatch_notifier_suspend);
+
+    static constexpr auto kPacket = 16;
+
+    int fds[2] = { -1 };
+    auto ret = platform_socketpair(fds);
+    MU_ASSERT_NOT_EQUAL(ret, -1);
+
+    auto notifier = cxx_create_notifier(fds[1], xdispatch::notifier_type::READ);
+    bool barrier = false;
+    notifier.handler([fds, &barrier, &notifier](xdispatch::socket_t socket,
+                                                xdispatch::notifier_type type) {
+        MU_ASSERT_EQUAL(type, xdispatch::notifier_type::READ);
+        MU_ASSERT_EQUAL(fds[1], socket);
+
+        std::vector<char> buffer(64);
+        auto actual = read(fds[1], &buffer[0], buffer.size());
+        MU_ASSERT_GREATER_THAN_EQUAL(actual, kPacket);
+
+        if (barrier) {
+            MU_FAIL("Should not reach this a second time");
+        } else {
+            barrier = true;
+            notifier.cancel();
+
+            MU_MESSAGE("Initial handler call, canceling");
+            cxx_global_queue().after(std::chrono::milliseconds(500),
+                                     [] { MU_PASS("Seems to work"); });
+        }
+    });
+    notifier.resume();
+
+    // blindly saturate the socket
+    std::vector<char> buffer(kPacket);
+    for (int i = 0; i < 10; ++i) {
+        write(fds[0], &buffer[0], buffer.size());
+    }
+
+    cxx_exec();
+
+    MU_END_TEST
+}

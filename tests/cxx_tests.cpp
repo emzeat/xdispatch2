@@ -50,6 +50,10 @@ cxx_dispatch_notifier_read(void*);
 void
 cxx_dispatch_notifier_write(void*);
 void
+cxx_dispatch_notifier_suspend(void*);
+void
+cxx_dispatch_notifier_cancel(void*);
+void
 cxx_dispatch_fibo(void*);
 void
 cxx_dispatch_cascade_lambda(void*);
@@ -89,6 +93,8 @@ register_cxx_tests(const char* name, xdispatch::ibackend* backend)
     MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_after_serial, backend);
     MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_notifier_read, backend);
     MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_notifier_write, backend);
+    MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_notifier_suspend, backend);
+    MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_notifier_cancel, backend);
     //    MU_REGISTER_TEST_INSTANCE( name, cxx_dispatch_fibo, backend );
     MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_cascade_lambda, backend);
     MU_REGISTER_TEST_INSTANCE(name, cxx_dispatch_group_lambda, backend);
