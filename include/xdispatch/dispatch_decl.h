@@ -1,7 +1,7 @@
 /*
  * dispatch_decl.h
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -22,19 +22,28 @@
 #ifndef XDISPATCH_DECL_H_
 #define XDISPATCH_DECL_H_
 
-#include "platform.h"
+#include "xdispatch/platform.h"
+#include "xdispatch/config.h"
 
 #if XDISPATCH_COMPILER_MSVC
     #pragma warning(                                                           \
       disable : 4251) /* disable warning C4251 - * requires dll-interface */
-    #ifdef XDISPATCH_MAKEDLL
-        #define XDISPATCH_EXPORT __declspec(dllexport)
+    #if (defined XDISPATCH2_BUILD_SHARED)
+        #if (defined XDISPATCH_MAKEDLL)
+            #define XDISPATCH_EXPORT __declspec(dllexport)
+        #else
+            #define XDISPATCH_EXPORT __declspec(dllimport)
+        #endif
     #else
-        #define XDISPATCH_EXPORT __declspec(dllimport)
+        #define XDISPATCH_EXPORT
     #endif
     #define XDISPATCH_DEPRECATED(F) __declspec(deprecated) F
 #elif XDISPATCH_COMPILER_GCC || XDISPATCH_COMPILER_CLANG
-    #define XDISPATCH_EXPORT __attribute__((__visibility__("default")))
+    #if (defined XDISPATCH2_BUILD_SHARED)
+        #define XDISPATCH_EXPORT __attribute__((__visibility__("default")))
+    #else
+        #define XDISPATCH_EXPORT
+    #endif
     #define XDISPATCH_DEPRECATED(F) __attribute__((__deprecated__)) F
 #endif // if XDISPATCH_COMPILER_MSVC2010 || XDISPATCH_COMPILER_MSVC2008SP1
 

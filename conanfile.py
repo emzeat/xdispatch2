@@ -1,7 +1,7 @@
 """
  conanfile.py
 
- Copyright (c) 2022 Marius Zwicker
+ Copyright (c) 2022 - 2023 Marius Zwicker
  All rights reserved.
 
  SPDX-License-Identifier: Apache-2.0
@@ -71,6 +71,8 @@ class XDispatch2Conan(ConanFile):
         cmake.definitions["MZ_DO_CPPLINT_DIFF"] = False
         cmake.definitions["MZ_CONAN_INSTALL_DIR"] = self.install_folder.replace("\\", "/")
         cmake.definitions["BUILD_XDISPATCH2_AS_FRAMEWORK"] = False
+        if self.settings.os == "iOS":
+            cmake.definitions["BUILD_XDISPATCH2_STATIC"] = True
         cmake.definitions["XDISPATCH2_VERSION"] = self.version or '0.0+conan.dev'
         cmake.configure(source_folder=self.source_folder,
                         build_folder=self.build_folder)
@@ -91,6 +93,13 @@ class XDispatch2Conan(ConanFile):
         cmake.install()
         self.copy("LICENSE", src=self.source_folder, dst="licenses")
 
+    def _append_implicit_qt5_deps(self, frameworks):
+        if self.settings.os in ["iOS"]:
+            frameworks.append("CoreFoundation")
+            frameworks.append("Security")
+            frameworks.append("UIKit")
+            frameworks.append("MobileCoreServices")
+
     def package_info(self):
         self.cpp_info.set_property("cmake_file_name", "xdispatch2")
 
@@ -100,12 +109,14 @@ class XDispatch2Conan(ConanFile):
             self.cpp_info.components["xdispatch_qt5"].names["cmake_target_name"] = "xdispatch2::xdispatch_qt5"
             self.cpp_info.components["xdispatch_qt5"].libs = ["xdispatch_qt5"]
             self.cpp_info.components["xdispatch_qt5"].requires = ["qt::qtCore", "xdispatch"]
+            # these are indirect dependencies inherited through qt5
+            self._append_implicit_qt5_deps(self.cpp_info.components["xdispatch_qt5"].frameworks)
+            # static builds cannot avoid the Qt5 dependency as symbols cannot be resolved at runtime
+            # without requiring users to link the static library in a special way
             if self.settings.os in ["iOS"]:
-                # these are indirect dependencies inherited through qt5
-                self.cpp_info.components["xdispatch_qt5"].frameworks.append("CoreFoundation")
-                self.cpp_info.components["xdispatch_qt5"].frameworks.append("Security")
-                self.cpp_info.components["xdispatch_qt5"].frameworks.append("UIKit")
-                self.cpp_info.components["xdispatch_qt5"].frameworks.append("MobileCoreServices")
+                self.cpp_info.components["xdispatch"].libs.append("xdispatch_qt5")
+                self.cpp_info.components["xdispatch"].requires.append("qt::qtCore")
+                self._append_implicit_qt5_deps(self.cpp_info.components["xdispatch"].frameworks)
 
         self.cpp_info.names["cmake_find_package"] = "xdispatch2"
         self.cpp_info.names["cmake_find_package_multi"] = "xdispatch2"

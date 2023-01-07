@@ -1,7 +1,7 @@
 /*
  * config.h.in
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -60,6 +60,10 @@
 #cmakedefine XDISPATCH2_HAVE_GET_PROC_ADDRESS
 
 #cmakedefine XDISPATCH2_HAVE_IMMINTRIN_H
+
+#cmakedefine XDISPATCH2_BUILD_STATIC
+
+#cmakedefine XDISPATCH2_BUILD_SHARED
 
 /** @} */
 

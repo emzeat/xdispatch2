@@ -1,7 +1,7 @@
 /*
  * dispatch.h
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -32,7 +32,6 @@
 #if defined(__cplusplus)
 
     #define __XDISPATCH_INDIRECT__
-    #include "xdispatch/config.h"
     #include "xdispatch/operation.h"
     #include "xdispatch/queue.h"
     #include "xdispatch/backend.h"

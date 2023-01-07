@@ -1,7 +1,7 @@
 #
 # CMakeLists.txt
 #
-# Copyright (c) 2011 - 2022 Marius Zwicker
+# Copyright (c) 2011 - 2023 Marius Zwicker
 # All rights reserved.
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -101,11 +101,6 @@ if( BUILD_XDISPATCH2_BACKEND_QT5 )
         xdispatch_qt5
         Qt5::Gui
         Qt5::Widgets
-    )
-endif()
-if( BUILD_XDISPATCH2_BACKEND_LIBDISPATCH )
-    target_link_libraries( xdispatch2_tests
-        xdispatch_libdispatch
     )
 endif()
 if( XDISPATCH2_HAVE_WINSOCK2 )

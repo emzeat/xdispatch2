@@ -1,7 +1,7 @@
 /*
  * qt5_backend_internal.h
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -22,7 +22,11 @@
 #ifndef XDISPATCH_QT5_INTERNAL_H_
 #define XDISPATCH_QT5_INTERNAL_H_
 
-#include "xdispatch/backend_qt.h"
+#include "xdispatch/dispatch_decl.h"
+
+#if !(defined AVOID_QT5_BACKEND)
+    #include "xdispatch/backend_qt.h"
+#endif
 #if !(defined BUILD_XDISPATCH2_BACKEND_NAIVE)
     #error "Naive backend is required to build qt5 backend"
 #endif

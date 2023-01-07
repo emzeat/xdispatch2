@@ -1,7 +1,7 @@
 /*
  * backend.cpp
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -27,14 +27,14 @@
 #include "symbol_utils.h"
 
 /** Helper macro to import a backend entry point by resolving its symbol
- * globally, providing on or more fallbacks when unavailable */
-#define XDISPATCH_IMPORT_BACKEND(type, ...)                                    \
-    extern "C" xdispatch::ibackend* type##_backend_get_static_instance()       \
+ * globally, providing a fallback when unavailable */
+#define XDISPATCH_IMPORT_SHARED_BACKEND(type, ...)                             \
+    static inline xdispatch::ibackend* type##_backend_get_static_instance()    \
     {                                                                          \
         const char* backends[] = { #type, __VA_ARGS__ };                       \
         for (const char* backend : backends) {                                 \
             const auto symbol =                                                \
-              std::string(backend) + "_backend_get_static_instance";           \
+              std::string(backend) + "_backend_get_static_instance_impl";      \
             auto* instance =                                                   \
               xdispatch::symbol_utils::resolve<xdispatch::ibackend*(void)>(    \
                 symbol.c_str());                                               \
@@ -45,6 +45,13 @@
         XDISPATCH_WARNING() << "Failed to resolve backend '" << #type << "'";  \
         return nullptr;                                                        \
     }
+
+#if (defined XDISPATCH2_BUILD_STATIC)
+    #define XDISPATCH_IMPORT_BACKEND(type, ...) XDISPATCH_DECLARE_BACKEND(type);
+#else
+    #define XDISPATCH_IMPORT_BACKEND(type, ...)                                \
+        XDISPATCH_IMPORT_SHARED_BACKEND(type, __VA_ARGS__);
+#endif
 
 #if (defined BUILD_XDISPATCH2_BACKEND_NAIVE)
 XDISPATCH_DECLARE_BACKEND(naive)

@@ -1,7 +1,7 @@
 /*
  * ibackend.h
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -85,7 +85,7 @@ __XDISPATCH_END_NAMESPACE
 /** Helper macro for backend implementations to define their entry point */
 #define XDISPATCH_DEFINE_BACKEND(type, class)                                  \
     extern "C" XDISPATCH_EXPORT xdispatch::ibackend*                           \
-      type##_backend_get_static_instance()                                     \
+      type##_backend_get_static_instance_impl()                                \
     {                                                                          \
         static class _instance;                                                \
         return &_instance;                                                     \
@@ -93,6 +93,10 @@ __XDISPATCH_END_NAMESPACE
 
 /** Helper macro to declare a backend entry point */
 #define XDISPATCH_DECLARE_BACKEND(type)                                        \
-    extern "C" xdispatch::ibackend* type##_backend_get_static_instance();
+    extern "C" xdispatch::ibackend* type##_backend_get_static_instance_impl(); \
+    static inline xdispatch::ibackend* type##_backend_get_static_instance()    \
+    {                                                                          \
+        return type##_backend_get_static_instance_impl();                      \
+    }
 
 #endif /* XDISPATCH_IBACKEND_H_ */

@@ -1,7 +1,7 @@
 #
 # CMakeLists.txt
 #
-# Copyright (c) 2011 - 2022 Marius Zwicker
+# Copyright (c) 2011 - 2023 Marius Zwicker
 # All rights reserved.
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -59,11 +59,18 @@ set(BUILD_XDISPATCH2_BACKEND_NAIVE ON)
 option(BUILD_XDISPATCH2_BACKEND_QT5 "Build the qt5 backend" ON)
 option(BUILD_XDISPATCH2_TESTS "Build the xdispatch2 test target" OFF)
 if( XDISPATCH2_HAVE_LIBDISPATCH_NATIVE )
-    option(BUILD_XDISPATCH2_BACKEND_LIBDISPATCH "Build the libdispatch backend" ON)
+    set(BUILD_XDISPATCH2_BACKEND_LIBDISPATCH_DEFAULT ON)
 else()
-    option(BUILD_XDISPATCH2_BACKEND_LIBDISPATCH "Build the libdispatch backend" OFF)
+    set(BUILD_XDISPATCH2_BACKEND_LIBDISPATCH_DEFAULT OFF)
 endif()
-if( MZ_MACOS )
+option(BUILD_XDISPATCH2_BACKEND_LIBDISPATCH "Build the libdispatch backend" ${BUILD_XDISPATCH2_BACKEND_LIBDISPATCH_DEFAULT})
+if( MZ_IOS )
+    set(BUILD_XDISPATCH2_STATIC_DEFAULT ON)
+else()
+    set(BUILD_XDISPATCH2_STATIC_DEFAULT OFF)
+endif()
+option( BUILD_XDISPATCH2_STATIC "Build xdispatch2 as static library" ${BUILD_XDISPATCH2_STATIC_DEFAULT})
+if( MZ_MACOS OR MZ_IOS )
     option(BUILD_XDISPATCH2_AS_FRAMEWORK "Build xdispatch2 as framework" ON)
 endif()
 
@@ -84,10 +91,12 @@ if( NOT MZ_WINDOWS )
     mz_add_flag(GCC -fvisibility=hidden)
 endif()
 mz_add_definition(XDISPATCH_MAKEDLL)
-if( MZ_IOS )
+if( BUILD_XDISPATCH2_STATIC )
     set( XDISPATCH_BUILD_TYPE STATIC )
+    set( XDISPATCH2_BUILD_STATIC TRUE )
 else()
     set( XDISPATCH_BUILD_TYPE SHARED )
+    set( XDISPATCH2_BUILD_SHARED TRUE )
 endif()
 
 # generate the build time configuration header
@@ -157,16 +166,11 @@ target_include_directories( xdispatch
 
 # helper macro to install an xdispatch target
 macro(install_xdispatch_target TGT_NAME)
-    if(MZ_IOS)
-        install(TARGETS ${TGT_NAME}
-                    LIBRARY DESTINATION lib
-                    RUNTIME DESTINATION bin
-                    ARCHIVE DESTINATION lib)
-        install(DIRECTORY include/xdispatch
-                    DESTINATION include
-                    PATTERN "*.git" EXCLUDE)
-
-    elseif(MZ_MACOS AND BUILD_XDISPATCH2_AS_FRAMEWORK)
+    set_target_properties( ${TGT_NAME} PROPERTIES
+        VERSION ${XDISPATCH2_VERSION}
+        SOVERSION ${XDISPATCH2_VERSION}
+    )
+    if(BUILD_XDISPATCH2_AS_FRAMEWORK)
         set_target_properties( ${TGT_NAME} PROPERTIES
             FRAMEWORK TRUE
             MACOSX_FRAMEWORK_IDENTIFIER "de.emzeat.${TGT_NAME}"
@@ -185,7 +189,8 @@ macro(install_xdispatch_target TGT_NAME)
                     ARCHIVE DESTINATION lib)
         install(DIRECTORY include/xdispatch
                     DESTINATION include
-                    COMPONENT lib${TGT_NAME}-dev)
+                    COMPONENT lib${TGT_NAME}-dev
+                    PATTERN "*.git" EXCLUDE)
     endif()
 endmacro()
 install_xdispatch_target(xdispatch)
@@ -222,10 +227,6 @@ macro(add_xdispatch_backend SUFFIX)
             PUBLIC xdispatch
             PRIVATE ${_xb_LIBS}
         )
-        set_target_properties( xdispatch_${SUFFIX} PROPERTIES
-            VERSION ${XDISPATCH2_VERSION}
-            SOVERSION ${XDISPATCH2_VERSION}
-        )
         install_xdispatch_target(xdispatch_${SUFFIX})
     endif()
 endmacro()
@@ -246,7 +247,7 @@ endif()
 # qt backend
 if( BUILD_XDISPATCH2_BACKEND_QT5 )
     file(GLOB CXX_QT5
-        src/qt5/*.cpp
+        src/qt5/qt5_*.cpp
         src/qt5/*.h
     )
     mz_qt_auto_moc(MOC_QT5 ${CXX_QT5})
@@ -259,6 +260,15 @@ if( BUILD_XDISPATCH2_BACKEND_QT5 )
         SOURCES ${CXX_QT5} ${MOC_QT5}
         LIBS Qt5::Core ${LIBS_QT5}
     )
+    if(XDISPATCH2_BUILD_STATIC)
+        # to ensure symbol availability on static builds not working with
+        # dlsym reliably we provide a stub library to link against
+        add_xdispatch_backend(dummy_qt5
+            SOURCES src/qt5/fallback_qt5_backend.cpp
+        )
+    else()
+        add_library( xdispatch_dummy_qt5 ALIAS xdispatch )
+    endif()
 endif()
 
 # finalize xdispatch properties considering all sources added lazily
@@ -267,4 +277,17 @@ mz_auto_format( xdispatch )
 
 if(BUILD_XDISPATCH2_TESTS)
     mz_add_executable(xdispatch2_tests tests)
+
+    add_executable(xdispatch2_test_package test_package/test_package.cpp)
+    target_link_libraries(xdispatch2_test_package
+        xdispatch xdispatch_dummy_qt5
+    )
+
+    if( BUILD_XDISPATCH2_BACKEND_QT5 )
+        add_executable(xdispatch2_test_package_qt5 test_package/test_package_qt5.cpp)
+        target_link_libraries(xdispatch2_test_package_qt5
+            xdispatch xdispatch_qt5
+            Qt5::Core
+        )
+    endif()
 endif()

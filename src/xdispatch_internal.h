@@ -1,7 +1,7 @@
 /*
  * xdispatch_internal.h
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -36,16 +36,7 @@
 #endif
 
 #include "../include/xdispatch/platform.h"
-
-#if XDISPATCH_COMPILER_MSVC2010 || XDISPATCH_COMPILER_MSVC2008SP1
-    #pragma warning(                                                           \
-      disable : 4251) /* disable warning C4251 - * requires dll-interface */
-    #define XDISPATCH_EXPORT __declspec(dllexport)
-    #define XDISPATCH_DEPRECATED(F) __declspec(deprecated) F
-#elif XDISPATCH_COMPILER_GCC || XDISPATCH_COMPILER_CLANG
-    #define XDISPATCH_EXPORT __attribute__((__visibility__("default")))
-    #define XDISPATCH_DEPRECATED(F) __attribute__((__deprecated__)) F
-#endif // if XDISPATCH_COMPILER_MSVC2010 || XDISPATCH_COMPILER_MSVC2008SP1
+#include "../include/xdispatch/dispatch_decl.h"
 
 #include <assert.h>
 #include <stdexcept>
