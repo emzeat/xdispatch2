@@ -1,8 +1,7 @@
 /*
  * assert.c
  *
- * Copyright (c) 2010 MLBA. All rights reserved.
- * Copyright (c) 2021 - 2022 Marius Zwicker
+ * Copyright (c) 2010 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
