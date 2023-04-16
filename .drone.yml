@@ -123,10 +123,8 @@ steps:
 - name: build
   commands:
     - ln -s /Users/$${USER}/Library $${HOME}/Library
-    - cd build
-    - bash ./generator.sh mode=release compiler=clang generator=ninja location=inside -DBUILD_XDISPATCH2_TESTS=ON
-    - cd clang-ninja-release
-    - ninja -j 12
+    - bash ./build/generator.sh mode=release compiler=clang generator=ninja location=inside -DBUILD_XDISPATCH2_TESTS=ON
+    - cmake --build --preset clang-ninja-release
 
 - name: package
   commands:
@@ -171,8 +169,7 @@ steps:
 - name: configure
   commands:
     - ln -s /Users/$${USER}/Library $${HOME}/Library
-    - cd build
-    - bash ./generator.sh mode=release compiler=clang generator=ninja location=inside -DBUILD_XDISPATCH2_TESTS=ON
+    - bash ./build/generator.sh mode=release compiler=clang generator=ninja location=inside -DBUILD_XDISPATCH2_TESTS=ON
 
 - name: package & upload
   commands:
@@ -202,10 +199,8 @@ steps:
 - name: build
   commands:
     - ln -s /Users/$${USER}/Library $${HOME}/Library
-    - cd build
-    - bash ./generator.sh mode=release compiler=ios generator=makefiles location=inside -DBUILD_XDISPATCH2_TESTS=ON
-    - cd ios-makefiles-release
-    - make -j 12
+    - bash ./build/generator.sh mode=release compiler=ios generator=makefiles location=inside -DBUILD_XDISPATCH2_TESTS=ON
+    - cmake --build --preset ios-makefiles-release
 
 - name: package
   commands:
@@ -240,8 +235,7 @@ steps:
 - name: configure
   commands:
     - ln -s /Users/$${USER}/Library $${HOME}/Library
-    - cd build
-    - bash ./generator.sh mode=release compiler=ios generator=makefiles location=inside -DBUILD_XDISPATCH2_TESTS=ON
+    - bash ./build/generator.sh mode=release compiler=ios generator=makefiles location=inside -DBUILD_XDISPATCH2_TESTS=ON
 
 - name: package & upload
   commands:
@@ -270,10 +264,8 @@ steps:
 
 - name: build
   commands:
-    - cd build
-    - .\generator.bat release ninja_64 inside -DBUILD_XDISPATCH2_TESTS=ON
-    - cd win32-ninja_64-release
-    - ninja
+    - .\build\generator.bat release ninja_64 inside -DBUILD_XDISPATCH2_TESTS=ON
+    - cmake --build --preset win32-ninja_64-release
 
 - name: package
   commands:
@@ -317,8 +309,7 @@ steps:
 
 - name: configure
   commands:
-    - cd build
-    - .\generator.bat release ninja_64 inside -DBUILD_XDISPATCH2_TESTS=ON
+    - .\build\generator.bat release ninja_64 inside -DBUILD_XDISPATCH2_TESTS=ON
 
 - name: package & upload
   commands:

@@ -1,3 +1,5 @@
 *.txt.user
 *.sublime-workspace
 *.txt.user.*
+*.vscode
+CMakePresets.json
