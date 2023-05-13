@@ -4,9 +4,8 @@ type: docker
 name: pre-commit
 
 trigger:
-  event:
-    exclude:
-    - tag
+  ref:
+  - refs/pull/*/head
 
 steps:
 - name: check hooks
@@ -21,9 +20,10 @@ type: docker
 name: ubuntu-1804-clang
 
 trigger:
-  event:
-    exclude:
-    - tag
+  ref:
+  - refs/heads/master
+  - refs/pull/*/head
+  - refs/tags/*
 
 workspace:
   path: /drone/src
@@ -106,9 +106,10 @@ type: exec
 name: darwin-macos
 
 trigger:
-  event:
-    exclude:
-    - tag
+  ref:
+  - refs/heads/master
+  - refs/pull/*/head
+  - refs/tags/*
 
 platform:
   os: darwin
@@ -182,9 +183,10 @@ type: exec
 name: darwin-ios
 
 trigger:
-  event:
-    exclude:
-    - tag
+  ref:
+  - refs/heads/master
+  - refs/pull/*/head
+  - refs/tags/*
 
 platform:
   os: darwin
@@ -199,8 +201,8 @@ steps:
 - name: build
   commands:
     - ln -s /Users/$${USER}/Library $${HOME}/Library
-    - bash ./build/generator.sh mode=release compiler=ios generator=makefiles location=inside -DBUILD_XDISPATCH2_TESTS=ON
-    - cmake --build --preset ios-makefiles-release
+    - bash ./build/generator.sh mode=release compiler=ios generator=ninja location=inside -DBUILD_XDISPATCH2_TESTS=ON
+    - cmake --build --preset ios-ninja-release
 
 - name: package
   commands:
@@ -235,7 +237,7 @@ steps:
 - name: configure
   commands:
     - ln -s /Users/$${USER}/Library $${HOME}/Library
-    - bash ./build/generator.sh mode=release compiler=ios generator=makefiles location=inside -DBUILD_XDISPATCH2_TESTS=ON
+    - bash ./build/generator.sh mode=release compiler=ios generator=ninja location=inside -DBUILD_XDISPATCH2_TESTS=ON
 
 - name: package & upload
   commands:
@@ -248,9 +250,10 @@ type: exec
 name: windows-msvc64
 
 trigger:
-  event:
-    exclude:
-    - tag
+  ref:
+  - refs/heads/master
+  - refs/pull/*/head
+  - refs/tags/*
 
 platform:
   os: windows
