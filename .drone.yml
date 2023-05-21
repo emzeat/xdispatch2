@@ -21,7 +21,7 @@ name: ubuntu-1804-clang
 
 trigger:
   ref:
-  - refs/heads/master
+  - refs/heads/dev
   - refs/pull/*/head
   - refs/tags/*
 
@@ -50,6 +50,7 @@ steps:
   image: ${MZ_DOCKER_REGISTRY}/builder-1804-clang:latest
   commands:
     - python3 build/conan_package.py --create
+    - python3 build/conan_package.py --create -o xdispatch2:backend_qt5=False
   when:
     ref:
       - refs/pull/*/head
@@ -98,6 +99,7 @@ steps:
   image: ${MZ_DOCKER_REGISTRY}/builder-1804-clang:latest
   commands:
     - python3 build/conan_package.py --create --upload
+    - python3 build/conan_package.py --create --upload -o xdispatch2:backend_qt5=False
 
 
 ---
@@ -107,7 +109,7 @@ name: darwin-macos
 
 trigger:
   ref:
-  - refs/heads/master
+  - refs/heads/dev
   - refs/pull/*/head
   - refs/tags/*
 
@@ -130,6 +132,7 @@ steps:
 - name: package
   commands:
     - python3 build/conan_package.py --create
+    - python3 build/conan_package.py --create -o xdispatch2:backend_qt5=False
   when:
     ref:
       - refs/pull/*/head
@@ -141,7 +144,7 @@ steps:
     - ./xdispatch2_platform_demo
   when:
     ref:
-      - refs/heads/master
+      - refs/heads/dev
       - refs/pull/*/head
 
 
@@ -175,6 +178,7 @@ steps:
 - name: package & upload
   commands:
     - python3 build/conan_package.py --build --upload
+    - python3 build/conan_package.py --build --upload -o xdispatch2:backend_qt5=False
 
 
 ---
@@ -184,7 +188,7 @@ name: darwin-ios
 
 trigger:
   ref:
-  - refs/heads/master
+  - refs/heads/dev
   - refs/pull/*/head
   - refs/tags/*
 
@@ -207,6 +211,7 @@ steps:
 - name: package
   commands:
     - python3 build/conan_package.py --create
+    - python3 build/conan_package.py --create -o xdispatch2:backend_qt5=False
   when:
     ref:
       - refs/pull/*/head
@@ -242,6 +247,7 @@ steps:
 - name: package & upload
   commands:
     - python3 build/conan_package.py --build --upload
+    - python3 build/conan_package.py --build --upload -o xdispatch2:backend_qt5=False
 
 
 ---
@@ -251,7 +257,7 @@ name: windows-msvc64
 
 trigger:
   ref:
-  - refs/heads/master
+  - refs/heads/dev
   - refs/pull/*/head
   - refs/tags/*
 
@@ -273,6 +279,7 @@ steps:
 - name: package
   commands:
     - python3 build/conan_package.py --create
+    - python3 build/conan_package.py --create -o xdispatch2:backend_qt5=False
   when:
     ref:
       - refs/pull/*/head
@@ -284,7 +291,7 @@ steps:
     - .\xdispatch2_platform_demo.exe
   when:
     ref:
-      - refs/heads/master
+      - refs/heads/dev
       - refs/pull/*/head
 
 
@@ -317,3 +324,4 @@ steps:
 - name: package & upload
   commands:
     - python3 build/conan_package.py --build --upload
+    - python3 build/conan_package.py --build --upload -o xdispatch2:backend_qt5=False

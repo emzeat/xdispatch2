@@ -16,7 +16,7 @@ These goals were accomplished with the latest [feature version 0.7.2](http://ope
 
 ## Back to present
 
-Dial back to June 2020 when I had gathered several lessons learned from using xdispatch in multiple projects from [little university projects](https://github.com/emzeat/steriss) to [full media servers sold on the app store](https://mlba-team.de/shlive/):
+Dial forward to June 2020 when I had gathered several lessons learned from using xdispatch in multiple projects from [little university projects](https://github.com/emzeat/steriss) to [full media servers sold on the app store](https://mlba-team.de/shlive/):
 
 1. The concept of queues really makes things easier not only for scaling on multiple cores but also for efficient serialization of acccess to resources like an OpenGL render context.
 
