@@ -23,7 +23,6 @@ trigger:
   ref:
   - refs/heads/dev
   - refs/pull/*/head
-  - refs/tags/*
 
 workspace:
   path: /drone/src
@@ -41,10 +40,8 @@ steps:
 - name: build
   image: ${MZ_DOCKER_REGISTRY}/builder-1804-clang:latest
   commands:
-    - cd build
-    - bash ./generator.sh mode=release compiler=clang generator=ninja location=inside -DBUILD_XDISPATCH2_TESTS=ON
-    - cd clang-ninja-release
-    - ninja -j 12
+    - bash ./build/generator.sh mode=release compiler=clang generator=ninja location=inside -DBUILD_XDISPATCH2_TESTS=ON
+    - cmake --build -j 12 --preset clang-ninja-release
 
 - name: package
   image: ${MZ_DOCKER_REGISTRY}/builder-1804-clang:latest
@@ -111,7 +108,6 @@ trigger:
   ref:
   - refs/heads/dev
   - refs/pull/*/head
-  - refs/tags/*
 
 platform:
   os: darwin
@@ -190,7 +186,6 @@ trigger:
   ref:
   - refs/heads/dev
   - refs/pull/*/head
-  - refs/tags/*
 
 platform:
   os: darwin
@@ -259,7 +254,6 @@ trigger:
   ref:
   - refs/heads/dev
   - refs/pull/*/head
-  - refs/tags/*
 
 platform:
   os: windows
