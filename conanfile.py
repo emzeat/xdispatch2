@@ -43,7 +43,7 @@ class XDispatch2Conan(ConanFile):
     }
 
     def export_sources(self):
-        self.copy("*", excludes=["build/*-*-*"])
+        self.copy("*", excludes=["build/*-*-*", ".conan/*"])
 
     def requirements(self):
         if self.options.backend_qt5:
