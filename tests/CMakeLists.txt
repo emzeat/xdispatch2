@@ -117,3 +117,12 @@ file( COPY
     DESTINATION ${EXECUTABLE_OUTPUT_PATH}
     FILE_PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE
 )
+
+# register tests via ctest
+if(NOT CMAKE_CROSSCOMPILING)
+    include(munit/discover_tests.cmake)
+    munit_discover_tests(xdispatch2_tests
+        WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+    )
+    add_test(NAME platform_demo COMMAND $<TARGET_FILE:xdispatch2_platform_demo>)
+endif()

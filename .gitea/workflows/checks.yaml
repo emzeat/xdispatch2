@@ -1,0 +1,76 @@
+name: Pull Request
+run-name: Verifies conditions for a pull request
+on:
+  pull_request
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu
+    container: ${{ env.MZ_DOCKER_REGISTRY }}/pre-commit:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+            fetch-depth: 0
+      #- run: echo "github: ${{ toJson(github) }}"
+      - name: Check hooks
+        run: |
+          set -ex
+          pre-commit run --color=always --from-ref ${{ github.event.pull_request.base.sha }} --to-ref ${{ github.event.pull_request.head.sha }} --verbose --show-diff-on-failure
+
+  build-and-test:
+    needs: pre-commit
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-1804-large
+            compiler: clang
+            generator: ninja
+          - runner: windows-large
+            compiler: msvc
+            generator: ninja_64
+          - runner: macos-large
+            compiler: clang
+            generator: ninja
+          - runner: macos-large
+            compiler: ios
+            generator: ninja
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+            lfs: true
+            submodules: true
+      - name: Configure
+        run: |
+          set -ex
+          bash ./build/generator.sh \
+            compiler=${{ matrix.compiler }} \
+            generator=${{ matrix.generator }} \
+            mode=release \
+            location=inside \
+            -DBUILD_XDISPATCH2_TESTS=ON
+      - name: Build
+        run: |
+          set -ex
+          cmake \
+            --build \
+            --preset ${{ matrix.compiler }}-${{ matrix.generator }}-release
+      - name: Package
+        run: |
+          set -ex
+          # workaround for https://gitea.com/gitea/act_runner/issues/349
+          # by explicitly recoding any output
+          python3 build/conan_package.py --create | python3 build/recode.py --encoding ascii
+          python3 build/conan_package.py --create -o xdispatch2:backend_qt5=False | python3 build/recode.py --encoding ascii
+      - name: Test
+        run: |
+          set -ex
+          ctest -j 1 \
+            --preset ${{ matrix.compiler }}-${{ matrix.generator }}-release \
+            --output-on-failure \
+            --stop-on-failure

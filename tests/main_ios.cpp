@@ -1,7 +1,7 @@
 /*
  * main_ios.cpp
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -49,12 +49,13 @@ void null_printer(const char* _unused_){
 // ios program to run all tests.
 // Pass a message handler to print all messages
 int run_dispatch_tests(int argc, char* argv[], MU_messageHandler handler) {
-	int ret = 0;
+    int ret = 0;
 
-    if( handler == NULL )
+    if( handler == nullptr ) {
         handler = null_printer;
+    }
 
-	MU_initFramework( handler );
+    MU_initFramework( handler );
 
 #if (defined BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
     static xdispatch::libdispatch::backend s_libdispatch;
@@ -76,7 +77,7 @@ int run_dispatch_tests(int argc, char* argv[], MU_messageHandler handler) {
     register_platform_tests();
     register_signal_tests();
 
-	ret = MU_main(argc,argv);
+    ret = MU_main(argc,argv);
 
-	return ret;
+    return ret;
 }

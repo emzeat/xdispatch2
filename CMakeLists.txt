@@ -23,6 +23,7 @@ cmake_minimum_required(VERSION 3.10)
 include(CheckSymbolExists)
 include(CheckIncludeFile)
 project(xdispatch2)
+include(CTest)
 
 # build scripts
 if(NOT HAS_MZ_GLOBAL)

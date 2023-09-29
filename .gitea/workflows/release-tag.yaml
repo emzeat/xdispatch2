@@ -1,0 +1,51 @@
+name: Release on tag
+run-name: Build a release package for a tagged version
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-deploy:
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-2004-large
+            compiler: clang
+            generator: ninja
+          - runner: windows-large
+            compiler: msvc
+            generator: ninja_64
+          - runner: macos-large
+            compiler: clang
+            generator: ninja
+          - runner: macos-large
+            compiler: ios
+            generator: ninja
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+            lfs: true
+            submodules: true
+            fetch-depth: 0
+      - name: Configure
+        run: |
+          set -ex
+          bash ./build/generator.sh \
+            compiler=${{ matrix.compiler }} \
+            generator=${{ matrix.generator }} \
+            mode=release \
+            location=inside \
+            -DBUILD_XDISPATCH2_TESTS=OFF
+      - name: Deploy
+        run: |
+          set -ex
+          # workaround for https://gitea.com/gitea/act_runner/issues/349
+          # by explicitly recoding any output
+          python3 build/conan_package.py --create --upload | python3 build/recode.py --encoding ascii
+          python3 build/conan_package.py --create --upload -o xdispatch2:backend_qt5=False | python3 build/recode.py --encoding ascii

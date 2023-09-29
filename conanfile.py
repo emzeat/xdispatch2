@@ -76,7 +76,8 @@ class XDispatch2Conan(ConanFile):
             cmake.definitions["BUILD_XDISPATCH2_STATIC"] = True
         cmake.definitions["XDISPATCH2_VERSION"] = self.version or '0.0+conan.dev'
         cmake.configure(source_folder=self.source_folder,
-                        build_folder=self.build_folder)
+                        build_folder=self.build_folder,
+                        args=['--no-warn-unused-cli'])
         return cmake
 
     def build(self):
