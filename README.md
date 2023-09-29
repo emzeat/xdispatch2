@@ -66,13 +66,13 @@ Numbers have been collected on an AMD Ryzen 3900x 12 core processor. They try to
 
 ## Usage
 
-`xdispatch2` is provided as [conan](https://conan.io/) package through the registry at https://mirrors.emzeat.de.
+`xdispatch2` is provided as [conan v1](https://conan.io/) package through the registry at https://mirrors.emzeat.de.
 
 Simply add this as a remote and install the package including all dependencies:
 
 ```bash
-conan remote add emzeat https://mirrors.emzeat.de/repository/conan/
-conan install --build=always xdispatch/2.0.0@emzeat/oss
+conan remote add emzeat https://codeberg.org/api/packages/emzeat/conan/
+conan install --build=missing xdispatch/2.1.3@emzeat/oss
 ```
 
 Available options to configure enabled backends can be found by looking at the [conanfile.py](conanfile.py).

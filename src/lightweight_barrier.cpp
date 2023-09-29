@@ -1,7 +1,7 @@
 /*
  * lightweight_barrier.cpp
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -126,11 +126,11 @@ lightweight_barrier::complete()
 {
     auto* previous = kNoOwner;
     if (m_owner.compare_exchange_weak(
-          previous, kCompleted, std::memory_order_acq_rel)) {
+          previous, kCompleted, std::memory_order_acq_rel)) { // NOLINT
         // nobody was waiting and now marked as complete
-    } else if (kCompleted == previous) {
+    } else if (kCompleted == previous) { // NOLINT
         // complete before
-    } else if (kNoOwner != previous) {
+    } else if (kNoOwner != previous) { // NOLINT
         // somebody is waiting
         previous->complete();
     }

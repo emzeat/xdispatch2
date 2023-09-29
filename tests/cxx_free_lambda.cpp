@@ -2,7 +2,7 @@
  * cxx_free_lambda.cpp
  *
  * Copyright (c) 2008 - 2009 Apple Inc.
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -42,7 +42,7 @@ public:
         ++m_ref_ct;
     }
 
-    ToBeFreed(ToBeFreed&& other)
+    ToBeFreed(ToBeFreed&& other) noexcept
       : m_ref_ct(other.m_ref_ct)
     {
         ++m_ref_ct;
