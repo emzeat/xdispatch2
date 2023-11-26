@@ -19,7 +19,9 @@
 # limitations under the License.
 #
 
-from conans import ConanFile, CMake
+from conan import ConanFile
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain
+from conan.tools.files import copy
 
 class XDispatch2Conan(ConanFile):
     name = "xdispatch2"
@@ -28,7 +30,6 @@ class XDispatch2Conan(ConanFile):
     url = "https://emzeat.de/xdispatch2"
 
     short_paths = True
-    generators = "cmake_find_package", "cmake_paths", "json"
 
     settings = "os", "compiler", "build_type", "arch"
     options = {
@@ -42,58 +43,63 @@ class XDispatch2Conan(ConanFile):
         "backend_libdispatch": "None",
     }
 
+    def set_version(self):
+        return self.version or '0.0+conan.dev'
+
     def export_sources(self):
         self.copy("*", excludes=["build/*-*-*", ".conan/*"])
 
     def requirements(self):
         if self.options.backend_qt5:
-            self.requires("qt/5.15.4@emzeat/external")
-            self.requires("sqlite3/3.29.0", override=True)
+            self.requires("qt/5.15.11@emzeat/external")
+            self.requires("sqlite3/3.43.1", override=True)
+            self.requires("openssl/1.1.1w", override=True)
+            self.requires("zlib/1.2.13", override=True)
+            self.requires("libpng/1.6.40", override=True)
             if self.settings.os == "Linux":
-                self.requires("xorg/system@emzeat/external", override=True)
                 self.requires("expat/2.4.8", override=True)
-                self.requires("glib/2.72.0", override=True)
+                self.requires("glib/2.78.1", override=True)
                 self.requires("libffi/3.4.3", override=True)
 
     def build_requirements(self):
         self.tool_requires("clang-tools-extra/15.0.7@emzeat/external")
+        self.tool_requires("ccache/4.6")
         self.tool_requires("linter-cache/0.2.1@emzeat/oss")
+
+    def generate(self):
+        deps = CMakeDeps(self)
+        deps.build_context_activated = ["clang-tools-extra", "linter-cache", "ccache"]
+        deps.build_context_build_modules = ["clang-tools-extra", "linter-cache", "ccache"]
+        deps.generate()
+
+        tc = CMakeToolchain(self)
+        tc.user_presets_path = None
+        tc.cache_variables["BUILD_XDISPATCH2_BACKEND_QT5"] = self.options.backend_qt5
+        if self.options.backend_libdispatch != "None":
+            tc.cache_variables["BUILD_XDISPATCH2_BACKEND_LIBDISPATCH"] = self.options.backend_libdispatch
+        tc.cache_variables["BUILD_XDISPATCH2_TESTS"] = self.options.build_tests
+        tc.cache_variables["MZ_DO_AUTO_FORMAT"] = False
+        tc.cache_variables["MZ_DO_CPPLINT"] = False
+        tc.cache_variables["MZ_DO_CPPLINT_DIFF"] = False
+        tc.cache_variables["BUILD_XDISPATCH2_AS_FRAMEWORK"] = False
+        if self.settings.os == "iOS":
+            tc.cache_variables["BUILD_XDISPATCH2_STATIC"] = True
+        tc.cache_variables["XDISPATCH2_VERSION"] = self.version
+        tc.generate()
 
     def _configure_cmake(self):
         cmake = CMake(self)
-        cmake.definitions["CMAKE_MODULE_PATH"] = self.build_folder.replace("\\", "/")
-        cmake.definitions["CONAN_EXPORTED"] = True
-        cmake.definitions["BUILD_XDISPATCH2_BACKEND_QT5"] = self.options.backend_qt5
-        if self.options.backend_libdispatch != "None":
-            cmake.definitions["BUILD_XDISPATCH2_BACKEND_LIBDISPATCH"] = self.options.backend_libdispatch
-        cmake.definitions["BUILD_XDISPATCH2_TESTS"] = self.options.build_tests
-        cmake.definitions["MZ_DO_AUTO_FORMAT"] = False
-        cmake.definitions["MZ_DO_CPPLINT"] = False
-        cmake.definitions["MZ_DO_CPPLINT_DIFF"] = False
-        cmake.definitions["MZ_CONAN_INSTALL_DIR"] = self.install_folder.replace("\\", "/")
-        cmake.definitions["BUILD_XDISPATCH2_AS_FRAMEWORK"] = False
-        if self.settings.os == "iOS":
-            cmake.definitions["BUILD_XDISPATCH2_STATIC"] = True
-        cmake.definitions["XDISPATCH2_VERSION"] = self.version or '0.0+conan.dev'
-        cmake.configure(source_folder=self.source_folder,
-                        build_folder=self.build_folder,
-                        args=['--no-warn-unused-cli'])
+        cmake.configure(variables={'CONAN_EXPORTED': True})
         return cmake
 
     def build(self):
         cmake = self._configure_cmake()
         cmake.build()
 
-    def imports(self):
-        self.copy("*.dll", dst="${EXECUTABLE_OUTPUT_PATH}", src="bin")
-        self.copy("*.dylib*", dst="${EXECUTABLE_OUTPUT_PATH}", src="lib")
-        self.copy("*.so*", dst="${EXECUTABLE_OUTPUT_PATH}", src="lib")
-        self.copy("license*", dst="${EXECUTABLE_OUTPUT_PATH}/3rdparty", folder=True, ignore_case=True)
-
     def package(self):
         cmake = self._configure_cmake()
         cmake.install()
-        self.copy("LICENSE", src=self.source_folder, dst="licenses")
+        copy(self, "LICENSE", src=self.source_folder, dst="licenses")
 
     def _append_implicit_qt5_deps(self, frameworks):
         if self.settings.os in ["iOS"]:

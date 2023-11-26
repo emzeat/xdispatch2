@@ -1,7 +1,7 @@
 #
 # CMakeLists.txt
 #
-# Copyright (c) 2022 Marius Zwicker
+# Copyright (c) 2022 - 2023 Marius Zwicker
 # All rights reserved.
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -22,8 +22,6 @@
 cmake_minimum_required(VERSION 3.1)
 project(example CXX)
 set(CMAKE_CXX_STANDARD 14)
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup(TARGETS)
 
 find_package(xdispatch2 REQUIRED CONFIG)
 
