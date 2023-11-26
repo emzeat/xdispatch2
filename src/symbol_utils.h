@@ -1,7 +1,7 @@
 /*
  * symbol_utils.h
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -69,7 +69,7 @@ public:
             std::vector<HMODULE> modules(modCount, nullptr);
             if (EnumProcessModules(
                   process, modules.data(), modules.size(), &modCount)) {
-                for (auto handle : modules) {
+                for (auto* handle : modules) {
                     auto* function = reinterpret_cast<Signature*>(
                       GetProcAddress(handle, symbol));
                     if (function) {

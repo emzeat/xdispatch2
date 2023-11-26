@@ -1,7 +1,7 @@
 /*
  * platform_socketpair.h
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -109,7 +109,7 @@ platform_socketpair(xdispatch::socket_t sockets[2])
             break;
         }
 
-        sockets[1] = accept(listener, nullptr, nullptr);
+        sockets[1] = static_cast< xdispatch::socket_t >( accept(listener, nullptr, nullptr) );
         if (sockets[1] == INVALID_SOCKET) {
             break;
         }

@@ -36,10 +36,10 @@ class TestPackageConan(ConanFile):
         cmake.build()
 
     def test(self):
-        if not can_run(self):
-            bin_path = os.path.join("bin", "example")
-            self.run(bin_path, env=["conanbuild", "conanrun"])
+        if can_run(self):
+            bin_path = self.build_path / "example"
+            self.run(bin_path.as_posix(), env=["conanbuild", "conanrun"])
 
-            bin_path_qt5 = os.path.join("bin", "example_qt5")
-            if os.path.exists(bin_path_qt5):
-                self.run(bin_path_qt5, env=["conanbuild", "conanrun"])
+            bin_path_qt5 = self.build_path / "example_qt5"
+            if bin_path_qt5.exists():
+                self.run(bin_path_qt5.as_posix(), env=["conanbuild", "conanrun"])

@@ -56,13 +56,14 @@ class Stopwatch {
      * @returns the elapsed time in usec
      */
     std::chrono::microseconds elapsed() {
-      if( _active )
+      if( _active ) {
         QueryPerformanceCounter(&_end);
+      }
 
       LARGE_INTEGER diff;
       diff.QuadPart = _end.QuadPart - _start.QuadPart;
 
-      auto usec = (uint64_t)( (double)diff.QuadPart/(double)_frequency.QuadPart * 1000000ul );
+      auto usec = (uint64_t)( (double)diff.QuadPart/(double)_frequency.QuadPart * 1000000UL );
       return std::chrono::microseconds(usec);
     }
 

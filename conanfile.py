@@ -45,7 +45,7 @@ class XDispatch2Conan(ConanFile):
         return self.version or '0.0+conan.dev'
 
     def export_sources(self):
-        self.copy("*", excludes=["build/*-*-*", ".conan/*"])
+        self.copy("*", excludes=["build/*-*-*", ".conan/*", ".git", ".gitmodules", ".vscode", "CMakeUserPresets.json"])
 
     def requirements(self):
         if self.options.backend_qt5:
@@ -61,10 +61,16 @@ class XDispatch2Conan(ConanFile):
 
     def build_requirements(self):
         self.tool_requires("clang-tools-extra/15.0.7@emzeat/external")
-        self.tool_requires("ccache/4.6")
-        self.tool_requires("linter-cache/0.2.1@emzeat/oss")
+        self.tool_requires("ccache/4.8.3")
+        self.tool_requires("linter-cache/0.2.2@emzeat/oss")
 
     def generate(self):
+        try:
+            qt = self.dependencies["qt"]
+            copy(self, "*.dll", dst=self.build_path / 'bin', src=qt.cpp_info.bindirs[0])
+        except KeyError:
+            pass
+
         deps = CMakeDeps(self)
         deps.build_context_activated = ["clang-tools-extra", "linter-cache", "ccache"]
         deps.build_context_build_modules = ["clang-tools-extra", "linter-cache", "ccache"]
@@ -101,10 +107,12 @@ class XDispatch2Conan(ConanFile):
 
     def _append_implicit_qt5_deps(self, frameworks):
         if self.settings.os in ["iOS"]:
-            frameworks.append("CoreFoundation")
             frameworks.append("Security")
             frameworks.append("UIKit")
+            frameworks.append("IOKit")
             frameworks.append("MobileCoreServices")
+            frameworks.append("Foundation")
+            frameworks.append("CoreFoundation")
 
     def package_info(self):
         self.cpp_info.set_property("cmake_file_name", "xdispatch2")

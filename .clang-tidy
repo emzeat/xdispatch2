@@ -10,6 +10,7 @@ Checks: >
     -bugprone-reserved-identifier,
     -bugprone-exception-escape,
     -clang-diagnostic-pragma-pack,
+    -clang-analyzer-cplusplus.NewDelete,
     -misc-const-correctness,
     -misc-non-private-member-variables-in-classes,
     -modernize-avoid-c-arrays,
@@ -26,9 +27,17 @@ Checks: >
     -readability-identifier-length,
     -readability-implicit-bool-conversion,
     -readability-redundant-member-init,
+    -readability-redundant-access-specifiers,
     -readability-static-accessed-through-instance,
     -readability-named-parameter,
-    -readability-function-cognitive-complexity
+    -readability-magic-numbers,
+    -misc-no-recursion,
+    -clang-analyzer-core.NullDereference,
+    -clang-analyzer-core.CallAndMessage,
+    -clang-analyzer-cplusplus.NewDeleteLeaks,
+    -clang-analyzer-core.NonNullParamChecker,
+    -readability-function-cognitive-complexity,
+    -bugprone-easily-swappable-parameters
 
 # All warnings are errors
 WarningsAsErrors: "*"

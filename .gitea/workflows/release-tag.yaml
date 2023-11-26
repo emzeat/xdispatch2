@@ -48,5 +48,5 @@ jobs:
           source ./build/conan.sh
           # workaround for https://gitea.com/gitea/act_runner/issues/349
           # by explicitly recoding any output
-          python3 build/conan_package.py --create --upload | python3 build/recode.py --encoding ascii
-          python3 build/conan_package.py --create --upload -o xdispatch2:backend_qt5=False | python3 build/recode.py --encoding ascii
+          python3 build/conan_package.py --create --verbose --upload | python3 build/recode.py --encoding ascii
+          python3 build/conan_package.py --create --verbose --upload -o xdispatch2:backend_qt5=False | python3 build/recode.py --encoding ascii

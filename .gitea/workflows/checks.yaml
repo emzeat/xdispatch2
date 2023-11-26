@@ -23,7 +23,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - runner: ubuntu-1804-large
+          - runner: ubuntu-2004-large
             compiler: clang
             generator: ninja
           - runner: windows-large
@@ -53,21 +53,21 @@ jobs:
             generator=${{ matrix.generator }} \
             mode=release \
             location=inside \
-            -DBUILD_XDISPATCH2_TESTS=ON
+            -DBUILD_XDISPATCH2_TESTS=ON | python3 build/recode.py --encoding ascii
       - name: Build
         run: |
           set -ex
           cmake \
             --build \
-            --preset ${{ matrix.compiler }}-${{ matrix.generator }}-release
+            --preset ${{ matrix.compiler }}-${{ matrix.generator }}-release | python3 build/recode.py --encoding ascii
       - name: Package
         run: |
           set -ex
           source ./build/conan.sh
           # workaround for https://gitea.com/gitea/act_runner/issues/349
           # by explicitly recoding any output
-          python3 build/conan_package.py --create | python3 build/recode.py --encoding ascii
-          python3 build/conan_package.py --create -o xdispatch2:backend_qt5=False | python3 build/recode.py --encoding ascii
+          python3 build/conan_package.py --create --verbose | python3 build/recode.py --encoding ascii
+          python3 build/conan_package.py --create --verbose -o xdispatch2:backend_qt5=False | python3 build/recode.py --encoding ascii
       - name: Test
         run: |
           set -ex

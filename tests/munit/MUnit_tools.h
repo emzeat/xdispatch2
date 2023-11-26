@@ -29,7 +29,7 @@
 #ifdef _WIN32
     #define WIN32_LEAN_AND_MEAN 1
     #include <windows.h>
-    #define MU_SLEEP(T) Sleep(1000 * T)
+    #define MU_SLEEP(T) Sleep(1000 * (T))
 #else // ifdef _WIN32
     #include <unistd.h>
     #define MU_SLEEP(T) sleep(T)
