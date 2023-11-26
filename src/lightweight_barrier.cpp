@@ -124,6 +124,9 @@ lightweight_barrier::wait(std::chrono::milliseconds timeout)
 void
 lightweight_barrier::complete()
 {
+    // NOLINTBEGIN(bugprone-branch-clone)
+    // branches are kept for readability
+
     auto* previous = kNoOwner;
     if (m_owner.compare_exchange_weak(
           previous, kCompleted, std::memory_order_acq_rel)) { // NOLINT
@@ -134,6 +137,8 @@ lightweight_barrier::complete()
         // somebody is waiting
         previous->complete();
     }
+
+    // NOLINTEND(bugprone-branch-clone)
 }
 
 bool

@@ -27,6 +27,8 @@
  * @{
  */
 
+// NOLINTBEGIN(modernize-macro-to-enum)
+
 #cmakedefine BUILD_XDISPATCH2_BACKEND_NAIVE 1
 
 #cmakedefine BUILD_XDISPATCH2_BACKEND_QT5 1
@@ -64,6 +66,8 @@
 #cmakedefine XDISPATCH2_BUILD_STATIC
 
 #cmakedefine XDISPATCH2_BUILD_SHARED
+
+// NOLINTEND(modernize-macro-to-enum)
 
 /** @} */
 

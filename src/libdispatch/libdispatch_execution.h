@@ -1,7 +1,7 @@
 /*
  * libdispatch_execution.h
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -24,13 +24,15 @@
 
 #include "xdispatch/dispatch.h"
 
-extern "C"
-{
-    void _xdispatch2_run_wrap(void*);
+extern "C" {
+void
+_xdispatch2_run_wrap(void*);
 
-    void _xdispatch2_run_wrap_delete(void*);
+void
+_xdispatch2_run_wrap_delete(void*);
 
-    void _xdispatch2_run_iter_wrap(void*, size_t);
+void
+_xdispatch2_run_iter_wrap(void*, size_t);
 }
 
 __XDISPATCH_BEGIN_NAMESPACE

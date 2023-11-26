@@ -1,7 +1,7 @@
 /*
  * qt5_threadpool.h
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -35,7 +35,7 @@ class ThreadPoolProxy : public naive::ithreadpool
 public:
     ThreadPoolProxy(QThreadPool* pool);
 
-    ~ThreadPoolProxy();
+    ~ThreadPoolProxy() override;
 
     void execute(const operation_ptr& work, queue_priority priority) final;
     void notify_thread_blocked() final;

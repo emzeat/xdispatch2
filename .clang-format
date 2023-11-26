@@ -19,3 +19,12 @@ StatementMacros:
   - Q_OBJECT
   - Q_LOGGING_CATEGORY
   - Q_DECLARE_LOGGING_CATEGORY
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterStruct: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterUnion: true
+  AfterNamespace: false
+  SplitEmptyFunction: false

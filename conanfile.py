@@ -56,8 +56,8 @@ class XDispatch2Conan(ConanFile):
                 self.requires("libffi/3.4.3", override=True)
 
     def build_requirements(self):
-        self.tool_requires("clang-tools-extra/13.0.1@emzeat/external")
-        self.tool_requires("linter-cache/0.2.0@emzeat/oss")
+        self.tool_requires("clang-tools-extra/15.0.7@emzeat/external")
+        self.tool_requires("linter-cache/0.2.1@emzeat/oss")
 
     def _configure_cmake(self):
         cmake = CMake(self)

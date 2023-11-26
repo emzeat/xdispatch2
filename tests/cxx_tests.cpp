@@ -2,7 +2,7 @@
  * cxx_tests.cpp
  *
  * Copyright (c) 2008 - 2009 Apple Inc.
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -154,10 +154,9 @@ cxx_global_queue(xdispatch::queue_priority priority)
         const auto impl =
           s_backend_tested->create_parallel_queue(q_name, priority);
         MU_ASSERT_NOT_NULL(impl.get());
-        it =
-          s_backend_global_queues
-            .emplace(std::make_pair(priority, xdispatch::queue(q_name, impl)))
-            .first;
+        it = s_backend_global_queues
+               .emplace(priority, xdispatch::queue(q_name, impl))
+               .first;
     }
     return it->second;
 }

@@ -65,7 +65,6 @@ public:
     void exec() final;
 
     // ibackend interface
-public:
 };
 
 } // namespace qt5

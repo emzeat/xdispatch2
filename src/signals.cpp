@@ -1,7 +1,7 @@
 /*
  * signals.cpp
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -72,8 +72,10 @@ scoped_connection::scoped_connection()
 scoped_connection::scoped_connection(scoped_connection&& other) noexcept
   : connection(std::move(other))
 {
+    // NOLINTBEGIN(bugprone-use-after-move)
     other.m_id.reset();
     other.m_parent = nullptr;
+    // NOLINTEND(bugprone-use-after-move)
 }
 
 scoped_connection::~scoped_connection()

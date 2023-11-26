@@ -7,18 +7,23 @@ Checks: >
     performance-*,
     readability-*,
     security-*,
-    llvm-header-guard,
+    -bugprone-reserved-identifier,
+    -bugprone-exception-escape,
     -clang-diagnostic-pragma-pack,
+    -misc-const-correctness,
+    -misc-non-private-member-variables-in-classes,
     -modernize-avoid-c-arrays,
     -modernize-concat-nested-namespaces,
     -modernize-pass-by-value,
     -modernize-raw-string-literal,
     -modernize-return-braced-init-list,
     -modernize-use-default-member-init,
+    -modernize-use-equals-delete,
     -modernize-use-trailing-return-type,
     -modernize-make-unique,
     -readability-avoid-const-params-in-decls
     -readability-identifier-naming,
+    -readability-identifier-length,
     -readability-implicit-bool-conversion,
     -readability-redundant-member-init,
     -readability-static-accessed-through-instance,
@@ -30,3 +35,6 @@ WarningsAsErrors: "*"
 
 # Align with clang-format
 FormatStyle: file
+
+# Include warnings from headers
+HeaderFilterRegex: ".*"

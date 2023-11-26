@@ -2,7 +2,7 @@
  * concurrentqueue.h
  *
  * Copyright (c) 2013 - 2020 Cameron Desrochers
- * Copyright (c) 2021 - 2022 Marius Zwicker
+ * Copyright (c) 2021 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-2-Clause or BSL-1.0
@@ -36,6 +36,7 @@
 //    http://moodycamel.com/blog/2014/detailed-design-of-a-lock-free-queue
 
 // clazy:skip
+// NOLINTBEGIN
 
 #pragma once
 
@@ -4270,3 +4271,5 @@ inline void swap( typename ConcurrentQueue<T, Traits>::ImplicitProducerKVP& a, t
 #if defined(__GNUC__)
     #pragma GCC diagnostic pop
 #endif
+
+// NOLINTEND

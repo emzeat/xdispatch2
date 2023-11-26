@@ -1,7 +1,7 @@
 /*
  * libdispatch_timer.cpp
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -103,9 +103,7 @@ public:
 
     void suspend() final { dispatch_suspend(m_native); }
 
-    void cancel() final {
-        dispatch_source_cancel(m_native);
-    }
+    void cancel() final { dispatch_source_cancel(m_native); }
 
     backend_type backend() final { return backend_type::libdispatch; }
 

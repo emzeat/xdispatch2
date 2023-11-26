@@ -1,7 +1,7 @@
 /*
  * qt5_signals.h
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -60,7 +60,7 @@ public:
                            // for an object
 
         QMutexLocker lock(&sCS);
-        auto oc = object->findChild<ObjectConnectionManager*>(
+        auto* oc = object->findChild<ObjectConnectionManager*>(
           QString(), Qt::FindDirectChildrenOnly);
         if (createIfMissing && nullptr == oc) {
             oc = new ObjectConnectionManager;

@@ -1,7 +1,7 @@
 /*
  * thread_utils.cpp
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -33,7 +33,6 @@
 #if (defined XDISPATCH2_HAVE_SETPRIORITY)
     #include <sys/time.h>
     #include <sys/resource.h>
-    #include <unistd.h>
     #include <sys/syscall.h>
 #endif
 
@@ -41,7 +40,7 @@
     #include <sys/sysctl.h>
 #endif
 
-#if (defined XDISPATCH2_HAVE_SYSCONF)
+#if (defined XDISPATCH2_HAVE_SYSCONF) || (defined XDISPATCH2_HAVE_SETPRIORITY)
     #include <unistd.h>
 #endif
 

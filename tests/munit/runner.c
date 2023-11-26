@@ -1,7 +1,7 @@
 /*
  * runner.c
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -24,7 +24,6 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h>
-#include <errno.h>
 #include <signal.h>
 #ifndef WIN32
     #include <unistd.h>
@@ -355,9 +354,8 @@ run(int no, const char* bin)
         if (wait(&res) == pid) {
             if (WIFEXITED(res) && WEXITSTATUS(res) == EXIT_SUCCESS) {
                 return 0;
-            } else {
-                return EXIT_FAILURE;
             }
+            return EXIT_FAILURE;
         }
     }
 
@@ -443,7 +441,8 @@ repeat_suite(const char* bin, char keep_running, int times)
 
     for (iteration = 0; iteration < times; iteration++) {
         int res;
-        int passed = 0, failed = 0;
+        int passed = 0;
+        int failed = 0;
         int no = 0;
         curr = suite;
 
@@ -571,7 +570,6 @@ MU_runTestName(const char* name)
 void
 MU_printTestsCTest()
 {
-    int no = 0;
     item_t* curr;
     mu_test_t* test;
 
@@ -583,7 +581,6 @@ MU_printTestsCTest()
 
     while (curr->next != NULL) {
         curr = curr->next;
-        no++;
 
         // clear cache first
         fflush(stdout);

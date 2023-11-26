@@ -1,7 +1,7 @@
 /*
  * naive_operation_queue_manager.h
  *
- * Copyright (c) 2012 - 2022 Marius Zwicker
+ * Copyright (c) 2012 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -66,7 +66,7 @@ public:
         It is safe to call this function from multiple
         threads at the same time.
      */
-    void detach(void const* const q);
+    void detach(void const* q);
 
     /**
         @return The global instance of the operation manager

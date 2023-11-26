@@ -1,7 +1,7 @@
 /*
  * list.c
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -26,17 +26,18 @@
 item_t*
 createList()
 {
-    item_t* t = malloc(sizeof(item_t));
+    item_t* root = malloc(sizeof(item_t));
 
-    t->data = NULL;
-    t->next = NULL;
-    return t;
+    root->data = NULL;
+    root->next = NULL;
+    return root;
 }
 
 int
 append(item_t* lst, void* data)
 {
-    item_t *neu, *last;
+    item_t* new_entry;
+    item_t* last;
 
     last = lst;
 
@@ -44,20 +45,20 @@ append(item_t* lst, void* data)
         last = last->next;
     }
 
-    neu = malloc(sizeof(item_t));
+    new_entry = malloc(sizeof(item_t));
 
-    if (neu == NULL) {
+    if (new_entry == NULL) {
         return -1;
     }
 
-    last->next = neu;
-    neu->data = data;
-    neu->next = NULL;
+    last->next = new_entry;
+    new_entry->data = data;
+    new_entry->next = NULL;
     return 0;
 } /* append */
 
 void
-destroyList(item_t* lst)
+destroyList(item_t* lst) // NOLINT
 {
     if (lst->next != NULL) {
         destroyList(lst->next);

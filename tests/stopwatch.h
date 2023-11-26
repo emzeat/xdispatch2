@@ -1,7 +1,7 @@
 /*
  * stopwatch.h
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -76,7 +76,6 @@ class Stopwatch {
 
 #else
 # include <sys/time.h>
-# include <stdint.h>
 
 class Stopwatch {
 
@@ -99,10 +98,11 @@ class Stopwatch {
      * @returns the elapsed time in usec
      */
     std::chrono::microseconds elapsed() {
-      if( _active )
+      if( _active ) {
         gettimeofday( &_end, NULL );
+      }
 
-      auto usec = (_end.tv_sec - _start.tv_sec ) * 1000000ul
+      auto usec = (_end.tv_sec - _start.tv_sec ) * 1000000UL
         + ( _end.tv_usec - _start.tv_usec );
       return std::chrono::microseconds(usec);
     }

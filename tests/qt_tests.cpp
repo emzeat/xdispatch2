@@ -2,7 +2,7 @@
  * qt_tests.cpp
  *
  * Copyright (c) 2008 - 2009 Apple Inc.
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -44,7 +44,7 @@ public:
     int m_signal_value;              // NOLINT
     std::atomic<int> m_signal_calls; // NOLINT
 
-public // NOLINT
+    public // NOLINT
     Q_SLOT : void myIntSignal(int value)
     {
         MU_ASSERT_EQUAL(value, m_signal_value);

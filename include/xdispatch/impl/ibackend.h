@@ -82,6 +82,8 @@ __XDISPATCH_END_NAMESPACE
 
 /** @} */
 
+// NOLINTBEGIN(bugprone-macro-parentheses)
+
 /** Helper macro for backend implementations to define their entry point */
 #define XDISPATCH_DEFINE_BACKEND(type, class)                                  \
     extern "C" XDISPATCH_EXPORT xdispatch::ibackend*                           \
@@ -98,5 +100,7 @@ __XDISPATCH_END_NAMESPACE
     {                                                                          \
         return type##_backend_get_static_instance_impl();                      \
     }
+
+// NOLINTEND(bugprone-macro-parentheses)
 
 #endif /* XDISPATCH_IBACKEND_H_ */

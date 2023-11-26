@@ -1,7 +1,7 @@
 /*
  * MUnit_tools.h
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2023 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -83,7 +83,7 @@ _print_message(const char* format, ...)
 #ifdef WIN32_VS
     vsprintf_s(tmp, 510, format, params);
 #else
-    vsprintf(tmp, format, params);
+    vsnprintf(tmp, sizeof(tmp) / sizeof(tmp[0]), format, params);
 #endif
     va_end(params);
     msg_handler(tmp);

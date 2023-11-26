@@ -42,7 +42,8 @@
 #include <stdexcept>
 #define XDISPATCH_ASSERT(X)                                                    \
     {                                                                          \
-        if (!(X)) /* NOLINT(readability/braces) */                             \
+        if (!(X)) /* NOLINT(readability/braces,                                \
+                     readability-simplify-boolean-expr) */                     \
         {                                                                      \
             std::cerr << "Assertion failed: " #X " (at " << __FILE__ ":"       \
                       << __LINE__ << ")" << std::endl;                         \
