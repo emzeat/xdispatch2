@@ -36,7 +36,7 @@
     #include <sys/syscall.h>
 #endif
 
-#if (defined XDISPATCH2_HAVE_SYSCTL)
+#if (defined XDISPATCH2_HAVE_SYSCTL) && !(defined XDISPATCH2_HAVE_SYSCONF)
     #include <sys/sysctl.h>
 #endif
 
@@ -241,9 +241,7 @@ thread_utils::system_thread_count()
     } else {
         return nprocessors;
     }
-#endif
-
-#if (defined XDISPATCH2_HAVE_SYSCTL) && (defined XDISPATCH2_HAVE_SYSCTL_HW_NCPU)
+#elif (defined XDISPATCH2_HAVE_SYSCTL) && (defined XDISPATCH2_HAVE_SYSCTL_HW_NCPU)
     int value = 0;
     size_t length = sizeof(value);
     int mib[] = { CTL_HW, HW_NCPU };
