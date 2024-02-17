@@ -1,7 +1,6 @@
-#
 # CMakeLists.txt
 #
-# Copyright (c) 2011 - 2023 Marius Zwicker
+# Copyright (c) 2011 - 2024 Marius Zwicker
 # All rights reserved.
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -17,7 +16,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 cmake_minimum_required(VERSION 3.10)
 include(CheckSymbolExists)
@@ -37,6 +35,7 @@ include(build/linting.cmake)
 
 # check for platform features
 check_symbol_exists( dispatch_queue_create "dispatch/dispatch.h" XDISPATCH2_HAVE_LIBDISPATCH_NATIVE )
+find_package( libdispatch QUIET )
 check_symbol_exists( pthread_setname_np "pthread.h" XDISPATCH2_HAVE_PTHREAD_SETNAME_NP )
 check_symbol_exists( pthread_set_qos_class_self_np "pthread.h;sys/qos.h" XDISPATCH2_HAVE_PTHREAD_SET_QOS_CLASS_SELF_NP )
 check_symbol_exists( prctl "sys/prctl.h" XDISPATCH2_HAVE_PRCTL )
@@ -59,7 +58,7 @@ find_library(XDISPATCH2_HAVE_LIBATOMIC NAMES atomic atomic.so.1 libatomic.so.1)
 set(BUILD_XDISPATCH2_BACKEND_NAIVE ON)
 option(BUILD_XDISPATCH2_BACKEND_QT5 "Build the qt5 backend" ON)
 option(BUILD_XDISPATCH2_TESTS "Build the xdispatch2 test target" OFF)
-if( XDISPATCH2_HAVE_LIBDISPATCH_NATIVE )
+if( XDISPATCH2_HAVE_LIBDISPATCH_NATIVE OR TARGET libdispatch::libdispatch )
     set(BUILD_XDISPATCH2_BACKEND_LIBDISPATCH_DEFAULT ON)
 else()
     set(BUILD_XDISPATCH2_BACKEND_LIBDISPATCH_DEFAULT OFF)
@@ -238,10 +237,14 @@ if( BUILD_XDISPATCH2_BACKEND_LIBDISPATCH )
         src/libdispatch/*.cpp
         src/libdispatch/*.h
     )
+    if( TARGET libdispatch::libdispatch )
+        set(LIBS_LIBDISPATCH libdispatch::libdispatch)
+    endif()
     # use libdispatch automatically, it causes no additional dependencies or license limits
     add_xdispatch_backend(libdispatch
         BUILTIN
         SOURCES ${CXX_LIBDISPATCH}
+        LIBS ${LIBS_LIBDISPATCH}
     )
 endif()
 
@@ -254,6 +257,9 @@ if( BUILD_XDISPATCH2_BACKEND_QT5 )
     mz_qt_auto_moc(MOC_QT5 ${CXX_QT5})
     if(BUILD_XDISPATCH2_BACKEND_LIBDISPATCH)
         set(LIBS_QT5 xdispatch_libdispatch)
+        if( TARGET libdispatch::libdispatch )
+            list(APPEND LIBS_QT5 libdispatch::libdispatch)
+        endif()
     endif()
     # not a builtin backend, linking with qt incurrs LGPL or other license
     # limitations and as such should be made explicit

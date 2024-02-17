@@ -1,6 +1,6 @@
 # conanfile.py
 #
-# Copyright (c) 2022 - 2023 Marius Zwicker
+# Copyright (c) 2022 - 2024 Marius Zwicker
 # All rights reserved.
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -58,6 +58,8 @@ class XDispatch2Conan(ConanFile):
                 self.requires("expat/2.4.8", override=True)
                 self.requires("glib/2.78.1", override=True)
                 self.requires("libffi/3.4.3", override=True)
+        if self.options.backend_libdispatch and self.options.backend_libdispatch != "None":
+            self.requires("libdispatch/5.9.2@emzeat/external")
 
     def build_requirements(self):
         self.tool_requires("clang-tools-extra/15.0.7@emzeat/external")
