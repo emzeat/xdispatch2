@@ -1,7 +1,7 @@
 /*
  * libdispatch_queue.cpp
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2024 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -84,6 +84,34 @@ impl_2_native(const iqueue_impl_ptr& impl)
     return dispatch.m_native;
 }
 
+static dispatch_qos_class_t
+priority_2_native(queue_priority priority)
+{
+#if (defined XDISPATCH2_HAVE_PTHREAD_SET_QOS_CLASS_SELF_NP)
+    return thread_utils::map_priority_to_qos(priority);
+
+#else
+    dispatch_queue_priority_t native = DISPATCH_QUEUE_PRIORITY_DEFAULT;
+    switch (priority) {
+        case queue_priority::USER_INTERACTIVE:
+        case queue_priority::USER_INITIATED:
+            native = DISPATCH_QUEUE_PRIORITY_HIGH;
+            break;
+        case queue_priority::UTILITY:
+            native = DISPATCH_QUEUE_PRIORITY_LOW;
+            break;
+        case queue_priority::DEFAULT:
+            native = DISPATCH_QUEUE_PRIORITY_DEFAULT;
+            break;
+        case queue_priority::BACKGROUND:
+            native = DISPATCH_QUEUE_PRIORITY_BACKGROUND;
+            break;
+    }
+    return native;
+
+#endif
+}
+
 queue
 create_queue(dispatch_queue_t native)
 {
@@ -102,7 +130,7 @@ iqueue_impl_ptr
 backend::create_serial_queue(const std::string& label, queue_priority priority)
 {
     dispatch_queue_attr_t qos_attr = dispatch_queue_attr_make_with_qos_class(
-      DISPATCH_QUEUE_SERIAL, thread_utils::map_priority_to_qos(priority), 0);
+      DISPATCH_QUEUE_SERIAL, priority_2_native(priority), 0);
     object_scope_T<dispatch_queue_t> native(
       dispatch_queue_create(label.c_str(), qos_attr));
     return std::make_shared<queue_impl>(native.take());
@@ -112,7 +140,7 @@ iqueue_impl_ptr
 backend::create_parallel_queue(const std::string& /* label */,
                                queue_priority priority)
 {
-    const auto qos = thread_utils::map_priority_to_qos(priority);
+    const auto qos = priority_2_native(priority);
     return std::make_shared<queue_impl>(dispatch_get_global_queue(qos, 0));
 }
 
