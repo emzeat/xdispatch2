@@ -1,7 +1,7 @@
 /*
  * libdispatch_socket_notifier.cpp
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2024 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -20,6 +20,7 @@
  */
 
 #include <thread>
+#include <atomic>
 
 #include "xdispatch/impl/isocket_notifier_impl.h"
 #include "xdispatch/impl/iqueue_impl.h"
@@ -61,29 +62,44 @@ public:
         }
     }
 
+    static void static_notifier_callback(void* context)
+    {
+        auto* this_ptr = static_cast<socket_notifier_impl*>(context);
+        this_ptr->notifier_callback();
+    }
+
+    void notifier_callback()
+    {
+        if (notifier_type::WRITE == m_type) {
+            auto available = dispatch_source_get_data(m_native);
+            if (0 == available) {
+                // FIXME(zwicker): Why do we get called with full buffer?
+                XDISPATCH_TRACE() << "socket_notifier: Write handler without "
+                                     "available buffer";
+                static constexpr auto k50 = 50;
+                std::this_thread::sleep_for(std::chrono::milliseconds(k50));
+                return;
+            }
+        }
+        cancelable_scope scope(m_active);
+        // no ordering constraints on m_notifier_operation it just needs to be
+        // atomic
+        const auto notifier = std::atomic_load_explicit(
+          &m_notifier_operation, std::memory_order_relaxed);
+        if (scope && notifier) {
+            execute_operation_on_this_thread(*notifier, m_socket, m_type);
+        }
+    }
+
     void handler(const socket_notifier_operation_ptr& op) final
     {
-        const auto socket = m_socket;
-        const auto type = m_type;
-        // NOLINTNEXTLINE(performance-unnecessary-copy-initialization)
-        const socket_notifier_operation_ptr op_strong_ref = op;
-        dispatch_source_set_event_handler(m_native, ^{
-          if (notifier_type::WRITE == type) {
-              auto available = dispatch_source_get_data(m_native);
-              if (0 == available) {
-                  // FIXME(zwicker): Why do we get called with full buffer?
-                  XDISPATCH_TRACE() << "socket_notifier: Write handler without "
-                                       "available buffer";
-                  static constexpr auto k50 = 50;
-                  std::this_thread::sleep_for(std::chrono::milliseconds(k50));
-                  return;
-              }
-          }
-          cancelable_scope scope(m_active);
-          if (scope) {
-              execute_operation_on_this_thread(*op_strong_ref, socket, type);
-          }
-        });
+        // we won't read m_notifier_operation, just make sure it is stored
+        // before we update the handler and set the context
+        std::atomic_store_explicit(
+          &m_notifier_operation, op, std::memory_order_release);
+        dispatch_set_context(m_native, this);
+        dispatch_source_set_event_handler_f(m_native,
+                                            &static_notifier_callback);
     }
 
     void target_queue(const iqueue_impl_ptr& q) final
@@ -114,6 +130,7 @@ private:
     const notifier_type m_type;
     dispatch_source_t m_native;
     cancelable m_active;
+    socket_notifier_operation_ptr m_notifier_operation;
 };
 
 isocket_notifier_impl_ptr
