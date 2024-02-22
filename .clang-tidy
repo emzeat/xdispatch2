@@ -21,7 +21,6 @@ Checks: >
     -modernize-use-default-member-init,
     -modernize-use-equals-delete,
     -modernize-use-trailing-return-type,
-    -modernize-make-unique,
     -readability-avoid-const-params-in-decls
     -readability-identifier-naming,
     -readability-identifier-length,

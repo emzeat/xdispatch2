@@ -47,7 +47,7 @@ public:
 
     void async(const operation_ptr& op) final
     {
-        std::unique_ptr<operation_wrap> wrapper(new operation_wrap(op));
+        auto wrapper = std::make_unique<operation_wrap>(op);
         dispatch_async_f(
           m_native, wrapper.release(), _xdispatch2_run_wrap_delete);
     }
@@ -63,7 +63,7 @@ public:
     {
         const auto time = dispatch_time(
           DISPATCH_TIME_NOW, std::int64_t(delay.count() * NSEC_PER_MSEC));
-        std::unique_ptr<operation_wrap> wrapper(new operation_wrap(op));
+        auto wrapper = std::make_unique<operation_wrap>(op);
         dispatch_after_f(
           time, m_native, wrapper.release(), _xdispatch2_run_wrap_delete);
     }

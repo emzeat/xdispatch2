@@ -1,7 +1,7 @@
 /*
  * libdispatch_group.cpp
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2024 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -46,7 +46,7 @@ public:
 
     void async(const operation_ptr& op, const iqueue_impl_ptr& q) final
     {
-        std::unique_ptr<operation_wrap> wrapper(new operation_wrap(op));
+        auto wrapper = std::make_unique<operation_wrap>(op);
         dispatch_group_async_f(m_native,
                                impl_2_native(q),
                                wrapper.release(),
@@ -69,7 +69,7 @@ public:
 
     void notify(const operation_ptr& op, const iqueue_impl_ptr& q) final
     {
-        std::unique_ptr<operation_wrap> wrapper(new operation_wrap(op));
+        auto wrapper = std::make_unique<operation_wrap>(op);
         dispatch_group_notify_f(m_native,
                                 impl_2_native(q),
                                 wrapper.release(),

@@ -1,7 +1,7 @@
 /*
  * libdispatch_timer.cpp
  *
- * Copyright (c) 2011 - 2023 Marius Zwicker
+ * Copyright (c) 2011 - 2024 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -78,7 +78,7 @@ public:
 
     void handler(const operation_ptr& op) final
     {
-        m_wrapper.reset(new operation_wrap(op));
+        m_wrapper = std::make_unique<operation_wrap>(op);
         dispatch_set_context(m_native, m_wrapper.get());
         dispatch_source_set_event_handler_f(m_native, _xdispatch2_run_wrap);
     }

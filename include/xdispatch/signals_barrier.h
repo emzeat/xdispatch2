@@ -1,7 +1,7 @@
 /*
  * signals_barrier.h
  *
- * Copyright (c) 2011 - 2022 Marius Zwicker
+ * Copyright (c) 2011 - 2024 Marius Zwicker
  * All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -77,7 +77,7 @@ class signal_barrier<void(Args...)>
 
         inline void set(Args... args)
         {
-            m_values.reset(new std::tuple<Args...>(std::make_tuple(args...)));
+            m_values = std::make_unique< std::tuple<Args...> >(std::make_tuple(args...));
         }
 
     private:
